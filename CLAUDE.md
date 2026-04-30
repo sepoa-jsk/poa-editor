@@ -117,7 +117,7 @@ poa-editor/
 | S1-S2 | 1-2주 | EditorCore + CommandManager + FormatCommand | ✅ |
 | S3-S4 | 3-4주 | HistoryManager (Undo/Redo 100스텝) | ✅ |
 | S5-S6 | 5-6주 | `<poa-toolbar>` Web Component + 기본 서식 | ✅ |
-| S7-S8 | 7-8주 | FileManager + AutoSave (IndexedDB) | [ ] |
+| S7-S8 | 7-8주 | FileManager + AutoSave (IndexedDB) | ✅ |
 | S9-S10 | 9-10주 | ClipboardHandler + FindReplace + ImageEditor | [ ] |
 | S11-S13 | 11-13주 | ImageInserter + MultiImageUploader | [ ] |
 | S14-S17 | 14-17주 | TableBuilder + CellMerger + TableNavigator | [ ] |
