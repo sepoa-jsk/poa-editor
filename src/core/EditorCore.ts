@@ -17,6 +17,16 @@ export class EditorCore {
   private readonly commandManager: CommandManager;
   private readonly historyManager: HistoryManager;
   private root: HTMLElement | null = null;
+  private inputTimer: ReturnType<typeof setTimeout> | null = null;
+
+  /** 타이핑 800ms 무입력 후 히스토리에 자동 기록 */
+  private readonly inputHandler = (): void => {
+    if (this.inputTimer !== null) clearTimeout(this.inputTimer);
+    this.inputTimer = setTimeout(() => {
+      this.inputTimer = null;
+      if (this.root) void this.historyManager.push(this.root.innerHTML, 'input');
+    }, 800);
+  };
 
   /**
    * keydown 이벤트 핸들러를 멤버로 유지해 unmount 시 정확히 제거할 수 있도록 한다.
@@ -54,13 +64,15 @@ export class EditorCore {
     // 초기 DOM 상태를 히스토리에 등록 (동기 — mount는 sync 유지)
     this.historyManager.setInitial(element.innerHTML);
 
-    // Ctrl+Z / Ctrl+Y 단축키 등록
+    element.addEventListener('input', this.inputHandler);
     element.addEventListener('keydown', this.keydownHandler);
   }
 
   /** 에디터를 해제하고 속성 및 이벤트를 정리한다 */
   unmount(): void {
     if (!this.root) return;
+    if (this.inputTimer !== null) { clearTimeout(this.inputTimer); this.inputTimer = null; }
+    this.root.removeEventListener('input', this.inputHandler);
     this.root.removeEventListener('keydown', this.keydownHandler);
     this.root.contentEditable = 'inherit';
     this.root.removeAttribute('role');
@@ -72,9 +84,12 @@ export class EditorCore {
   /**
    * 커맨드를 실행하고 실행 후 DOM 상태를 히스토리에 추가한다.
    * 모든 편집 조작은 이 메서드를 통해 히스토리에 기록된다.
+   * 커맨드 실행 전 미발화 input 디바운스를 즉시 플러시해 "타이핑 → 즉시 서식 적용 → Undo"
+   * 시나리오에서 타이핑 상태가 히스토리에 남도록 한다.
    */
   async execute(cmd: Command): Promise<void> {
     if (!this.root) throw new Error('EditorCore가 마운트되지 않았습니다.');
+    await this.flushInput();
     this.commandManager.execute(cmd);
     await this.historyManager.push(this.root.innerHTML, cmd.name);
   }
@@ -82,6 +97,8 @@ export class EditorCore {
   /** 한 단계 이전 상태로 복원한다 */
   async undo(): Promise<void> {
     if (!this.root) return;
+    // 아직 히스토리에 기록되지 않은 타이핑 내용을 먼저 저장한 뒤 되돌린다
+    await this.flushInput();
     const html = await this.historyManager.undo();
     if (html !== null) {
       this.root.innerHTML = DOMPurify.sanitize(html);
@@ -95,6 +112,26 @@ export class EditorCore {
     if (html !== null) {
       this.root.innerHTML = DOMPurify.sanitize(html);
     }
+  }
+
+  /**
+   * 미발화 input 디바운스를 즉시 플러시한다.
+   * execute() · undo() 진입 시 호출하여 "타이핑 → Undo" 시 상태 손실을 방지한다.
+   */
+  private async flushInput(): Promise<void> {
+    if (this.inputTimer === null) return;
+    clearTimeout(this.inputTimer);
+    this.inputTimer = null;
+    if (this.root) await this.historyManager.push(this.root.innerHTML, 'input');
+  }
+
+  /**
+   * 컴포넌트 레이어에서 스타일·정렬 적용 후 현재 DOM 상태를 히스토리에 기록한다.
+   * execute()를 거치지 않는 직접 DOM 조작(정렬, 인덴트, 색상 등)에 사용.
+   */
+  async captureHistory(label: string): Promise<void> {
+    if (!this.root) return;
+    await this.historyManager.push(this.root.innerHTML, label);
   }
 
   /** 이전 상태가 존재하는지 여부 (툴바 버튼 활성화에 사용) */

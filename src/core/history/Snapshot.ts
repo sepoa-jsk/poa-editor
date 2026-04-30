@@ -42,7 +42,7 @@ export class Snapshot {
     const writer = ds.writable.getWriter();
     const reader = ds.readable.getReader();
 
-    await writer.write(data);
+    await writer.write(new Uint8Array(data));
     await writer.close();
 
     const result = await Snapshot.collectStream(reader);

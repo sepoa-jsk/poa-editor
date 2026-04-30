@@ -26,3 +26,23 @@ export const FORMAT_TAG_MAP = {
 } as const satisfies Record<string, FormatTag>;
 
 export type FormatName = keyof typeof FORMAT_TAG_MAP;
+
+/** 텍스트 정렬 타입 */
+export type TextAlign = 'left' | 'center' | 'right' | 'justify';
+
+/** 툴바 상태 스냅샷 — selectionchange 시 PoaEditor가 계산하여 toolbar.setState()에 전달 */
+export interface ToolbarState {
+  bold: boolean;
+  italic: boolean;
+  underline: boolean;
+  strike: boolean;
+  align: TextAlign;
+  canUndo: boolean;
+  canRedo: boolean;
+  fontSize: string;
+  fontFamily: string;
+  lineHeight: string;
+  letterSpacing: string;
+  foreColor: string;
+  backColor: string;
+}

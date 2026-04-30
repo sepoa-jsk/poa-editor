@@ -1,6 +1,9 @@
 import { defineConfig } from 'vite';
 
 export default defineConfig({
+  server: {
+    open: '/demo/index.html',
+  },
   build: {
     lib: {
       entry: 'src/index.ts',
