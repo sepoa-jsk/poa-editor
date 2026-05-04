@@ -19,6 +19,7 @@ import { TableBuilder } from '../modules/table/TableBuilder.js';
 import type { TableOptions } from '../modules/table/TableBuilder.js';
 import { CellMerger } from '../modules/table/CellMerger.js';
 import { TableNavigator } from '../modules/table/TableNavigator.js';
+import type { TableNavigatorCallbacks } from '../modules/table/TableNavigator.js';
 
 const INDENT_STEP_EM = 2;
 const BLOCK_TAGS = new Set(['p', 'div', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'li', 'blockquote', 'pre']);
@@ -143,7 +144,17 @@ slot[name="content"] { display: contents; }
     this.cellMerger = new CellMerger();
     this.cellMerger.attach(this.contentEl);
 
-    this.tableNavigator = new TableNavigator();
+    const navCallbacks: TableNavigatorCallbacks = {
+      onMerge: () => this.cellMerger.merge(),
+      onSplitH: (cell, table) => CellMerger.splitCellHorizontal(cell, table),
+      onSplitV: (cell, table) => CellMerger.splitCellVertical(cell, table),
+      onOpenTableProps: (table) => this.tableDialog.open(table),
+      onModified: () => {
+        void this.core.captureHistory('tableModified');
+        this.statusBar.update(this.contentEl.innerHTML);
+      },
+    };
+    this.tableNavigator = new TableNavigator(navCallbacks);
     this.tableNavigator.attach(this.contentEl);
 
     this.clipboardHandler = new ClipboardHandler(this.contentEl, {
@@ -243,6 +254,14 @@ slot[name="content"] { display: contents; }
       this.restoreSelection();
       TableBuilder.insert(table, this.contentEl);
       void this.core.captureHistory('insertTable');
+      this.statusBar.update(this.contentEl.innerHTML);
+    });
+
+    // 표 속성 다이얼로그 → 기존 표 업데이트
+    this.shadow.addEventListener('poa-table-update', (e) => {
+      const { options, table } = (e as CustomEvent).detail as { options: TableOptions; table: HTMLTableElement };
+      TableBuilder.applyOptions(table, options);
+      void this.core.captureHistory('tableUpdate');
       this.statusBar.update(this.contentEl.innerHTML);
     });
 
