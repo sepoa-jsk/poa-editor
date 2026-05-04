@@ -69,7 +69,7 @@ export class FileManager {
 
   private async openWithFSA(): Promise<OpenedFile | null> {
     try {
-      const [handle] = await window.showOpenFilePicker({
+      const [handle] = await (window as unknown as { showOpenFilePicker: (o: unknown) => Promise<FileSystemFileHandle[]> }).showOpenFilePicker({
         types: ALL_TYPES,
         multiple: false,
       });
@@ -129,7 +129,7 @@ export class FileManager {
 
   private async saveWithFSA(html: string, suggestedName: string): Promise<boolean> {
     try {
-      const handle = await window.showSaveFilePicker({
+      const handle = await (window as unknown as { showSaveFilePicker: (o: unknown) => Promise<FileSystemFileHandle> }).showSaveFilePicker({
         suggestedName,
         types: HTML_TYPES,
       });

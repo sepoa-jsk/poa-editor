@@ -14,7 +14,10 @@ export { TableNavigator } from './modules/table/TableNavigator.js';
 export { TableResizer } from './modules/table/TableResizer.js';
 export { TableSelector } from './modules/table/TableSelector.js';
 export { TableHandle } from './modules/table/TableHandle.js';
+export { TABLE_PRESETS, applyPreset } from './modules/table/TablePresets.js';
+export type { TablePreset } from './modules/table/TablePresets.js';
 export { TableContextMenu } from './modules/table/TableContextMenu.js';
+export { PoaCellSplitDialog } from './components/dialogs/CellSplitDialog.js';
 export type { TableOptions, HeaderPosition } from './modules/table/TableBuilder.js';
 export type { GridCell, CellProperties, MergeResult } from './modules/table/CellMerger.js';
 export type { TableNavigatorCallbacks } from './modules/table/TableNavigator.js';
@@ -34,6 +37,7 @@ import { PoaFindReplaceDialog } from './components/dialogs/FindReplaceDialog.js'
 import { PoaImageEditDialog } from './components/dialogs/ImageEditDialog.js';
 import { PoaImageDialog } from './components/dialogs/ImageDialog.js';
 import { PoaTableDialog } from './components/dialogs/TableDialog.js';
+import { PoaCellSplitDialog } from './components/dialogs/CellSplitDialog.js';
 
 // poa-editor의 connectedCallback 시점에 모든 하위 요소가 이미 정의되어 있어야 한다.
 // poa-editor를 마지막으로 등록하면 shadow.innerHTML 파싱 시 child 요소가 즉시 업그레이드된다.
@@ -46,4 +50,5 @@ if (!customElements.get('poa-find-replace-dialog'))  customElements.define('poa-
 if (!customElements.get('poa-image-edit-dialog'))    customElements.define('poa-image-edit-dialog',    PoaImageEditDialog);
 if (!customElements.get('poa-image-dialog'))         customElements.define('poa-image-dialog',         PoaImageDialog);
 if (!customElements.get('poa-table-dialog'))         customElements.define('poa-table-dialog',         PoaTableDialog);
+if (!customElements.get('poa-cell-split-dialog'))    customElements.define('poa-cell-split-dialog',    PoaCellSplitDialog);
 if (!customElements.get('poa-editor'))               customElements.define('poa-editor',               PoaEditor);

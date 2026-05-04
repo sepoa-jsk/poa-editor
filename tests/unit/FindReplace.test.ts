@@ -76,7 +76,7 @@ describe('FindReplace', () => {
 
   it('replaceCurrent: 현재 매칭을 교체', () => {
     fr.find('hello', { caseSensitive: true });
-    const before = fr.find('hello', { caseSensitive: true }).count; // 1
+    fr.find('hello', { caseSensitive: true });
     fr.replaceCurrent('Hi');
     expect(root.textContent).toContain('Hi');
     expect(root.querySelectorAll('mark[data-poa-mark]').length).toBe(0);

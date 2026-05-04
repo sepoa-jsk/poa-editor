@@ -17,7 +17,6 @@ export class TableSelector {
 
   private anchor: HTMLTableCellElement | null = null;
   private isDragging = false;
-  private selState: SelState = 'drag';
 
   constructor(merger: CellMerger) {
     this.merger = merger;
@@ -119,7 +118,6 @@ export class TableSelector {
   // ── 시각적 피드백 ────────────────────────────────────────────────
 
   private applyFeedback(state: SelState): void {
-    this.selState = state;
     const cells = this.merger.getSelectedCells();
     for (const cell of cells) {
       cell.classList.remove('poa-cell-selected', 'poa-cell-sel-ok', 'poa-cell-sel-bad');
@@ -134,6 +132,11 @@ export class TableSelector {
   /** 현재 선택 유효(직사각형)한지 여부 */
   get canMerge(): boolean {
     return this.merger.getSelectedCells().length >= 2 && this.isRectangular();
+  }
+
+  /** 현재 선택된 셀 목록을 반환한다 */
+  getCellSelection(): HTMLTableCellElement[] {
+    return this.merger.getSelectedCells();
   }
 
   // ── 헬퍼 ────────────────────────────────────────────────────────

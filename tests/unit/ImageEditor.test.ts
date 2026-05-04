@@ -14,9 +14,6 @@ function mockCanvas(ctx: Partial<CanvasRenderingContext2D> = {}): void {
   vi.spyOn(HTMLCanvasElement.prototype, 'toDataURL').mockReturnValue(MOCK_DATA_URL);
 }
 
-function mockLoadImage(naturalWidth = 100, naturalHeight = 80): void {
-  // loadImage는 public이므로 spy 가능
-}
 
 describe('ImageEditor', () => {
   let editor: ImageEditor;

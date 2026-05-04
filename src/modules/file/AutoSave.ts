@@ -92,7 +92,7 @@ export class AutoSave {
    */
   async restoreSnapshot(id: IDBValidKey): Promise<string | null> {
     const db = await this.openDB();
-    const entry = (await db.get(STORE, id)) as StoredEntry | undefined;
+    const entry = (await db.get(STORE, id as number)) as StoredEntry | undefined;
     return entry?.html ?? null;
   }
 

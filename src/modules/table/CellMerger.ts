@@ -15,6 +15,8 @@ export interface CellProperties {
   /** 들여쓰기 = padding-left px */
   indent?: number;
   bgColor?: string;
+  /** 글자 크기 px (0 = 상속/초기화) */
+  fontSize?: number;
   id?: string;
   className?: string;
 }
@@ -130,7 +132,8 @@ export class CellMerger {
   }
 
   clearSelection(): void {
-    for (const cell of this.selectedCells) cell.classList.remove('poa-cell-selected');
+    for (const cell of this.selectedCells)
+      cell.classList.remove('poa-cell-selected', 'poa-cell-sel-ok', 'poa-cell-sel-bad');
     this.selectedCells.clear();
   }
 
@@ -302,7 +305,7 @@ export class CellMerger {
 
   /** 셀에 CellProperties 를 적용한다 */
   static applyCellProperties(cell: HTMLTableCellElement, props: CellProperties): void {
-    const { borderStyle, borderWidth, borderColor, indent, bgColor, id, className } = props;
+    const { borderStyle, borderWidth, borderColor, indent, bgColor, fontSize, id, className } = props;
 
     if (borderStyle !== undefined || borderWidth !== undefined || borderColor !== undefined) {
       const bStyle = borderStyle ?? 'solid';
@@ -310,10 +313,18 @@ export class CellMerger {
       const bColor = borderColor ?? '#000000';
       cell.style.border = bStyle === 'none' ? 'none' : `${bWidth}px ${bStyle} ${bColor}`;
     }
-    if (indent     !== undefined) cell.style.paddingLeft   = indent > 0 ? `${indent}px` : '';
-    if (bgColor    !== undefined) cell.style.backgroundColor = bgColor;
-    if (id         !== undefined) cell.id        = id;
-    if (className  !== undefined) cell.className = className;
+    if (indent    !== undefined) cell.style.paddingLeft     = indent > 0 ? `${indent}px` : '';
+    if (bgColor   !== undefined) cell.style.backgroundColor = bgColor;
+    if (fontSize  !== undefined) {
+      const fsVal = fontSize > 0 ? `${fontSize}px` : '';
+      cell.style.fontSize = fsVal;
+      // 셀 내부 인라인 font-size 스타일을 가진 요소에도 덮어써서 CSS 특수성 문제를 해결한다
+      cell.querySelectorAll<HTMLElement>('[style*="font-size"]').forEach((el) => {
+        el.style.fontSize = fsVal;
+      });
+    }
+    if (id        !== undefined) cell.id        = id;
+    if (className !== undefined) cell.className = className;
   }
 
   /** 셀의 현재 CellProperties 를 읽어 반환한다 */
@@ -325,6 +336,7 @@ export class CellMerger {
       borderColor:  bm?.[3] ?? '#000000',
       indent:       parseFloat(cell.style.paddingLeft) || 0,
       bgColor:      cell.style.backgroundColor || '',
+      fontSize:     parseFloat(cell.style.fontSize) || 0,
       id:           cell.id        || '',
       className:    cell.className || '',
     };
@@ -380,6 +392,158 @@ export class CellMerger {
     }
   }
 
+  /**
+   * 셀을 colCount 열 × rowCount 행으로 나눈다.
+   *
+   * - colspan/rowspan > 1 → 기존 span을 N개로 균등 분배
+   * - colspan/rowspan = 1 → 새 셀/행을 삽입하고 인접 셀의 span을 보정
+   * - 두 방향 동시 지정 시 수평 → 수직 순으로 처리하며 새 행의 셀 수를 수평 조각 수에 맞춘다
+   */
+  static splitCell(
+    cell: HTMLTableCellElement,
+    table: HTMLTableElement,
+    colCount: number,
+    rowCount: number,
+  ): void {
+    const nCols = Math.max(colCount, 1);
+    const nRows = Math.max(rowCount, 1);
+    if (nCols <= 1 && nRows <= 1) return;
+
+    const ownerDoc = cell.ownerDocument;
+    const tag      = cell.tagName.toLowerCase() as 'td' | 'th';
+
+    // 수평 분할 후 조각 수/colspan 을 추적 (수직 분할의 새 행 크기 결정에 사용)
+    let hPieces    = 1;
+    let hColWidths: number[] = [Math.max(cell.colSpan, 1)];
+
+    // ── 수평 분할 ────────────────────────────────────────────────────
+    if (nCols > 1) {
+      const grid    = buildGridMap(table);
+      const allRows = Array.from(table.rows);
+      const curCols = Math.max(cell.colSpan, 1);
+      const curRows = Math.max(cell.rowSpan, 1);
+
+      let cellRow = -1, cellCol = -1;
+      outerH: for (let r = 0; r < grid.length; r++) {
+        for (let c = 0; c < (grid[r]?.length ?? 0); c++) {
+          const gc = grid[r]?.[c];
+          if (gc?.cell === cell && gc.row === r && gc.col === c) {
+            cellRow = r; cellCol = c; break outerH;
+          }
+        }
+      }
+
+      if (cellRow !== -1) {
+        if (nCols <= curCols) {
+          // 기존 colspan을 nCols 개로 균등 분배
+          const colWidths = CellMerger.distribute(curCols, nCols);
+          hPieces    = nCols;
+          hColWidths = colWidths;
+          cell.colSpan = colWidths[0]!;
+          let prev: Element = cell;
+          for (let ci = 1; ci < nCols; ci++) {
+            const nc = CellMerger.makeEmptyCell(ownerDoc, tag, cell.style.cssText);
+            nc.colSpan = colWidths[ci]!;
+            nc.rowSpan = curRows;
+            prev.insertAdjacentElement('afterend', nc);
+            prev = nc;
+          }
+        } else {
+          // colspan=1 → 오른쪽에 nCols-1 개 셀 삽입, 다른 행 spanning 셀 colspan 확장
+          const extra = nCols - 1;
+          hPieces    = nCols;
+          hColWidths = new Array(nCols).fill(1) as number[];
+          let prev: Element = cell;
+          for (let ci = 0; ci < extra; ci++) {
+            const nc = CellMerger.makeEmptyCell(ownerDoc, tag, cell.style.cssText);
+            prev.insertAdjacentElement('afterend', nc);
+            prev = nc;
+          }
+          const seen = new Set<HTMLTableCellElement>();
+          for (let r = 0; r < allRows.length; r++) {
+            if (r >= cellRow && r < cellRow + curRows) continue;
+            const gc = grid[r]?.[cellCol];
+            if (!gc || gc.cell === cell || seen.has(gc.cell)) continue;
+            seen.add(gc.cell);
+            gc.cell.colSpan += extra;
+          }
+        }
+      }
+    }
+
+    // ── 수직 분할 ────────────────────────────────────────────────────
+    if (nRows > 1) {
+      // H 분할 이후 그리드 재계산
+      const grid2    = buildGridMap(table);
+      const allRows2 = Array.from(table.rows);
+      const curCols2 = Math.max(cell.colSpan, 1);
+      const curRows2 = Math.max(cell.rowSpan, 1);
+
+      let cellRow2 = -1, cellCol2 = -1;
+      outerV: for (let r = 0; r < grid2.length; r++) {
+        for (let c = 0; c < (grid2[r]?.length ?? 0); c++) {
+          const gc = grid2[r]?.[c];
+          if (gc?.cell === cell && gc.row === r && gc.col === c) {
+            cellRow2 = r; cellCol2 = c; break outerV;
+          }
+        }
+      }
+      if (cellRow2 === -1) return;
+
+      if (nRows <= curRows2) {
+        // 기존 rowspan을 nRows 개로 균등 분배
+        const rowHeights = CellMerger.distribute(curRows2, nRows);
+        cell.rowSpan = rowHeights[0]!;
+        let physOffset = rowHeights[0]!;
+        for (let ri = 1; ri < nRows; ri++) {
+          const physRow = allRows2[cellRow2 + physOffset];
+          if (physRow) {
+            const insertBefore = CellMerger.findInsertBefore(
+              grid2, cellRow2 + physOffset, cellCol2 + curCols2 - 1, physRow,
+            );
+            const nc = CellMerger.makeEmptyCell(ownerDoc, tag, cell.style.cssText);
+            nc.colSpan = curCols2;
+            nc.rowSpan = rowHeights[ri]!;
+            if (insertBefore) physRow.insertBefore(nc, insertBefore);
+            else              physRow.appendChild(nc);
+          }
+          physOffset += rowHeights[ri]!;
+        }
+      } else {
+        // rowspan=1 → 아래에 nRows-1 개 행 삽입, 다른 컬럼 spanning 셀 rowspan 확장
+        const extra = nRows - 1;
+        let lastInserted: Element = allRows2[cellRow2]!;
+        for (let ri = 0; ri < extra; ri++) {
+          const newRow = ownerDoc.createElement('tr');
+          // 수평 분할된 각 조각마다 셀 추가 (단일 셀이면 hPieces=1)
+          for (let hi = 0; hi < hPieces; hi++) {
+            const nc = CellMerger.makeEmptyCell(ownerDoc, tag, cell.style.cssText);
+            nc.colSpan = hColWidths[hi] ?? 1;
+            newRow.appendChild(nc);
+          }
+          lastInserted.insertAdjacentElement('afterend', newRow);
+          lastInserted = newRow;
+        }
+        const seen = new Set<HTMLTableCellElement>();
+        for (let c = 0; c < (grid2[cellRow2]?.length ?? 0); c++) {
+          if (c >= cellCol2 && c < cellCol2 + curCols2) continue;
+          const gc = grid2[cellRow2]?.[c];
+          if (!gc || gc.cell === cell || seen.has(gc.cell)) continue;
+          seen.add(gc.cell);
+          gc.cell.rowSpan += extra;
+        }
+      }
+    }
+  }
+
+  /** total 을 parts 개로 최대한 균등 분배한다. */
+  private static distribute(total: number, parts: number): number[] {
+    if (parts <= 0) return [total];
+    const base  = Math.floor(total / parts);
+    const extra = total % parts;
+    return Array.from({ length: parts }, (_, i) => base + (i < extra ? 1 : 0));
+  }
+
   static findInsertBefore(
     grid: (GridCell | null)[][],
     physRow: number,
@@ -415,9 +579,9 @@ export class CellMerger {
     const s = ownerDoc.createElement('style');
     s.id = 'poa-cell-merger-styles';
     s.textContent = [
-      '.poa-cell-selected{outline:2px solid #1565c0!important;background:rgba(21,101,192,0.12)!important;}',
-      '.poa-cell-sel-ok{outline:2px solid #2e7d32!important;background:rgba(46,125,50,0.12)!important;}',
-      '.poa-cell-sel-bad{outline:2px solid #c62828!important;background:rgba(198,40,40,0.10)!important;}',
+      '.poa-cell-selected{outline:2px solid rgba(0,120,215,0.8)!important;background:rgba(0,120,215,0.15)!important;}',
+      '.poa-cell-sel-ok{outline:2px solid rgba(0,120,215,0.8)!important;background:rgba(0,120,215,0.15)!important;}',
+      '.poa-cell-sel-bad{outline:2px solid #c62828!important;background:rgba(198,40,40,0.12)!important;}',
     ].join('');
     ownerDoc.head.appendChild(s);
   }

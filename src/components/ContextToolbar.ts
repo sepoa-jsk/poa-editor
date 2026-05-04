@@ -26,7 +26,7 @@ const TABS: Record<MenuTab, ReadonlyArray<GroupDef>> = {
   ],
   table: [
     [['표 삽입','table'],['표 속성','table:table-props'],['셀 속성','table:cell-props']],
-    [['셀 병합','table:merge'],['수평 분할','table:split-h'],['수직 분할','table:split-v']],
+    [['셀 병합','table:merge'],['셀 나누기','table:split-cell']],
     [['위에 행 삽입','table:row-above'],['아래에 행 삽입','table:row-below'],['왼쪽에 열 삽입','table:col-left'],['오른쪽에 열 삽입','table:col-right']],
     [['행 삭제','table:row-delete'],['열 삭제','table:col-delete'],['표 삭제','table:delete']],
   ],
@@ -109,7 +109,7 @@ export class PoaContextToolbar extends HTMLElement {
     this.shadow.innerHTML = `<style>${CSS}</style><div class="ctx-bar">${parts.join('')}</div>`;
 
     this.shadow.querySelector('.ctx-bar')!.addEventListener('mousedown', (e) => {
-      const btn = (e.target as HTMLElement).closest<HTMLElement>('.btn');
+      const btn = (e.target as HTMLElement).closest<HTMLButtonElement>('.btn');
       if (!btn || btn.disabled) return;
       const action = btn.dataset.action;
       if (!action) return;

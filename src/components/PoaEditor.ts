@@ -16,6 +16,7 @@ import type { PoaImageEditDialog } from './dialogs/ImageEditDialog.js';
 import type { PoaImageDialog } from './dialogs/ImageDialog.js';
 import type { PoaSettingsDialog } from './dialogs/SettingsDialog.js';
 import type { PoaTableDialog } from './dialogs/TableDialog.js';
+import type { PoaCellSplitDialog } from './dialogs/CellSplitDialog.js';
 import { TableBuilder } from '../modules/table/TableBuilder.js';
 import type { TableOptions } from '../modules/table/TableBuilder.js';
 import { CellMerger } from '../modules/table/CellMerger.js';
@@ -26,6 +27,7 @@ import { TableSelector } from '../modules/table/TableSelector.js';
 import { TableHandle } from '../modules/table/TableHandle.js';
 import { TableContextMenu } from '../modules/table/TableContextMenu.js';
 import type { TableContextCallbacks } from '../modules/table/TableContextMenu.js';
+import { applyPreset } from '../modules/table/TablePresets.js';
 
 const INDENT_STEP_EM = 2;
 const BLOCK_TAGS = new Set(['p', 'div', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'li', 'blockquote', 'pre']);
@@ -49,6 +51,7 @@ export class PoaEditor extends HTMLElement {
   private imageInsertDialog!: PoaImageDialog;
   private settingsDialog!: PoaSettingsDialog;
   private tableDialog!: PoaTableDialog;
+  private cellSplitDialog!: PoaCellSplitDialog;
   private cellMerger!: CellMerger;
   private tableNavigator!: TableNavigator;
   private tableResizer!: TableResizer;
@@ -106,7 +109,8 @@ slot[name="content"] { display: contents; }
 <poa-image-edit-dialog></poa-image-edit-dialog>
 <poa-image-dialog></poa-image-dialog>
 <poa-settings-dialog></poa-settings-dialog>
-<poa-table-dialog></poa-table-dialog>`;
+<poa-table-dialog></poa-table-dialog>
+<poa-cell-split-dialog></poa-cell-split-dialog>`;
 
     // contentEl을 light DOM(poa-editor의 직계 자식)으로 생성 — Selection API가 정상 작동
     this.contentEl = (this.querySelector('.poa-editor-content') as HTMLDivElement | null)
@@ -136,6 +140,7 @@ slot[name="content"] { display: contents; }
     this.imageInsertDialog = this.shadow.querySelector('poa-image-dialog')        as PoaImageDialog;
     this.settingsDialog    = this.shadow.querySelector('poa-settings-dialog')     as PoaSettingsDialog;
     this.tableDialog       = this.shadow.querySelector('poa-table-dialog')        as PoaTableDialog;
+    this.cellSplitDialog   = this.shadow.querySelector('poa-cell-split-dialog')  as PoaCellSplitDialog;
 
     const placeholder = this.getAttribute('placeholder') ?? '';
     if (placeholder) this.contentEl.dataset.placeholder = placeholder;
@@ -187,11 +192,11 @@ slot[name="content"] { display: contents; }
 
     const ctxCallbacks: TableContextCallbacks = {
       onMerge:          navCallbacks.onMerge,
-      onSplitH:         navCallbacks.onSplitH,
-      onSplitV:         navCallbacks.onSplitV,
+      onSplitCell:      (cell) => this.cellSplitDialog.open(cell),
       onOpenTableProps: navCallbacks.onOpenTableProps,
       onModified:       onTableModified,
       canMerge:         () => this.tableSelector.canMerge,
+      getSelectedCells: () => this.tableSelector.getCellSelection(),
     };
     this.tableContextMenu = new TableContextMenu(this.tableNavigator, ctxCallbacks);
     this.tableContextMenu.attach(this.contentEl);
@@ -300,12 +305,25 @@ slot[name="content"] { display: contents; }
 
     // 표 삽입 다이얼로그 → TableBuilder로 삽입
     this.shadow.addEventListener('poa-table-insert', (e) => {
-      const { options } = (e as CustomEvent).detail as { options: TableOptions };
+      const { options, presetId } = (e as CustomEvent).detail as { options: TableOptions; presetId?: string };
       const table = TableBuilder.build(options, this.contentEl.ownerDocument);
+      if (presetId) applyPreset(presetId, table);
       this.restoreSelection();
       TableBuilder.insert(table, this.contentEl);
       void this.core.captureHistory('insertTable');
       this.statusBar.update(this.contentEl.innerHTML);
+    });
+
+    // 셀 나누기 다이얼로그 → splitCell 실행
+    this.shadow.addEventListener('poa-cell-split', (e) => {
+      const { cell, cols, rows } = (e as CustomEvent).detail as {
+        cell: HTMLTableCellElement; cols: number; rows: number;
+      };
+      const tbl = cell.closest('table') as HTMLTableElement | null;
+      if (tbl) {
+        CellMerger.splitCell(cell, tbl, cols, rows);
+        onTableModified();
+      }
     });
 
     // 표 속성 다이얼로그 → 기존 표 업데이트
@@ -657,10 +675,15 @@ slot[name="content"] { display: contents; }
         const t = this.getFocusedTable();
         if (t) this.tableDialog.open(t); return;
       }
+      case 'table:split-cell':
+      case 'table:split-h':
+      case 'table:split-v': {
+        const cell = this.getFocusedCell();
+        if (cell) this.cellSplitDialog.open(cell);
+        return;
+      }
       case 'table:cell-props':
       case 'table:merge':
-      case 'table:split-h':
-      case 'table:split-v':
       case 'table:row-above':
       case 'table:row-below':
       case 'table:col-left':

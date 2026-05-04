@@ -123,6 +123,6 @@ describe('MultiImageUploader', () => {
       fieldName: 'image',
     });
 
-    expect(capturedFormData?.has('image')).toBe(true);
+    expect((capturedFormData as FormData | null)?.has('image')).toBe(true);
   });
 });

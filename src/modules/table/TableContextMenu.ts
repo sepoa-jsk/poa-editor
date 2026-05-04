@@ -3,12 +3,13 @@ import type { CellProperties, MergeResult } from './CellMerger.js';
 import type { TableNavigator } from './TableNavigator.js';
 
 export interface TableContextCallbacks {
-  onMerge?:          () => MergeResult;
-  onSplitH?:         (cell: HTMLTableCellElement, table: HTMLTableElement) => void;
-  onSplitV?:         (cell: HTMLTableCellElement, table: HTMLTableElement) => void;
-  onOpenTableProps?: (table: HTMLTableElement) => void;
-  onModified?:       () => void;
-  canMerge?:         () => boolean;
+  onMerge?:           () => MergeResult;
+  onSplitCell?:       (cell: HTMLTableCellElement) => void;
+  onOpenTableProps?:  (table: HTMLTableElement) => void;
+  onModified?:        () => void;
+  canMerge?:          () => boolean;
+  /** 현재 다중 선택된 셀 목록 반환 — 없으면 우클릭 셀 단독 적용 */
+  getSelectedCells?:  () => HTMLTableCellElement[];
 }
 
 type MenuEntry =
@@ -64,16 +65,14 @@ export class TableContextMenu {
     const colCount = Math.max(...grid.map((r) => r.length));
     const rowCount = table.rows.length;
     const selected = table.querySelectorAll('.poa-cell-selected, .poa-cell-sel-ok').length;
-    const canMerge = (this.cb.canMerge?.() ?? selected >= 2);
-    const canSplitH = cell.colSpan > 1;
-    const canSplitV = cell.rowSpan > 1;
+    const canMerge    = (this.cb.canMerge?.() ?? selected >= 2);
+    const canSplitCell = cell.colSpan > 1 || cell.rowSpan > 1;
 
     const nav = this.navigator;
 
     const entries: MenuEntry[] = [
-      { label: '셀 병합',    action: () => this.doMerge(ownerDoc),              disabled: !canMerge },
-      { label: '수평 분할',  action: () => nav.executeAction('table:split-h', cell, table), disabled: !canSplitH },
-      { label: '수직 분할',  action: () => nav.executeAction('table:split-v', cell, table), disabled: !canSplitV },
+      { label: '셀 병합',    action: () => this.doMerge(ownerDoc),          disabled: !canMerge },
+      { label: '셀 나누기',  action: () => this.cb.onSplitCell?.(cell),     disabled: !canSplitCell },
       '---',
       { label: '위에 행 삽입',      action: () => nav.executeAction('table:row-above',  cell, table) },
       { label: '아래에 행 삽입',    action: () => nav.executeAction('table:row-below',  cell, table) },
@@ -159,15 +158,27 @@ export class TableContextMenu {
 
   private showCellProps(cell: HTMLTableCellElement): void {
     const ownerDoc = cell.ownerDocument;
-    const cur = CellMerger.readCellProperties(cell);
+
+    // 우클릭 셀이 다중 선택에 포함돼 있으면 선택 전체, 아니면 단독
+    const selCells   = this.cb.getSelectedCells?.() ?? [];
+    const targetCells = selCells.includes(cell) && selCells.length > 0
+      ? selCells
+      : [cell];
+    const cur = CellMerger.readCellProperties(targetCells[0]!);
 
     const overlay = ownerDoc.createElement('div');
     overlay.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.38);display:flex;align-items:center;justify-content:center;z-index:10000;';
 
     const dlg = ownerDoc.createElement('div');
     dlg.style.cssText = 'background:#fff;border-radius:6px;box-shadow:0 4px 24px rgba(0,0,0,0.2);padding:20px 24px;min-width:280px;font-size:13px;';
+
+    const multiNote = targetCells.length > 1
+      ? `<p style="margin:0 0 10px;font-size:11px;color:#1565c0;">선택된 ${targetCells.length}개 셀에 일괄 적용됩니다.</p>`
+      : '';
+
     dlg.innerHTML = `
-<h4 style="margin:0 0 14px;font-size:14px;font-weight:600;">셀 속성</h4>
+<h4 style="margin:0 0 10px;font-size:14px;font-weight:600;">셀 속성</h4>
+${multiNote}
 <div style="display:grid;grid-template-columns:80px 1fr;gap:8px 12px;align-items:center;">
   <label>테두리 종류</label>
   <select id="cp-bs" style="height:26px;border:1px solid #ccc;border-radius:3px;font-size:13px;">
@@ -177,20 +188,33 @@ export class TableContextMenu {
   <div style="display:flex;gap:4px;align-items:center;">
     <input id="cp-bw" type="number" value="${cur.borderWidth ?? 1}" min="0" max="20"
       style="width:60px;height:26px;border:1px solid #ccc;border-radius:3px;font-size:13px;padding:0 6px;">
-    <span>px</span></div>
+    <span>px</span>
+  </div>
   <label>테두리 색</label>
-  <input id="cp-bc" type="color" value="${cur.borderColor ?? '#000000'}" style="height:26px;width:60px;border:1px solid #ccc;border-radius:3px;">
+  <input id="cp-bc" type="color" value="${cur.borderColor ?? '#000000'}"
+    style="height:26px;width:60px;border:1px solid #ccc;border-radius:3px;">
   <label>들여쓰기</label>
   <div style="display:flex;gap:4px;align-items:center;">
     <input id="cp-ind" type="number" value="${cur.indent ?? 0}" min="0"
       style="width:60px;height:26px;border:1px solid #ccc;border-radius:3px;font-size:13px;padding:0 6px;">
-    <span>px</span></div>
+    <span>px</span>
+  </div>
   <label>배경색</label>
-  <input id="cp-bg" type="color" value="${cur.bgColor || '#ffffff'}" style="height:26px;width:60px;border:1px solid #ccc;border-radius:3px;">
+  <input id="cp-bg" type="color" value="${cur.bgColor || '#ffffff'}"
+    style="height:26px;width:60px;border:1px solid #ccc;border-radius:3px;">
+  <label>글자 크기</label>
+  <div style="display:flex;gap:4px;align-items:center;">
+    <input id="cp-fs" type="number" value="${cur.fontSize ?? 0}" min="0" max="100"
+      style="width:60px;height:26px;border:1px solid #ccc;border-radius:3px;font-size:13px;padding:0 6px;"
+      placeholder="0=상속">
+    <span>px</span>
+  </div>
   <label>ID</label>
-  <input id="cp-id" type="text" value="${cur.id ?? ''}" style="height:26px;border:1px solid #ccc;border-radius:3px;font-size:13px;padding:0 6px;">
+  <input id="cp-id" type="text" value="${cur.id ?? ''}"
+    style="height:26px;border:1px solid #ccc;border-radius:3px;font-size:13px;padding:0 6px;">
   <label>Class</label>
-  <input id="cp-cls" type="text" value="${cur.className ?? ''}" style="height:26px;border:1px solid #ccc;border-radius:3px;font-size:13px;padding:0 6px;">
+  <input id="cp-cls" type="text" value="${cur.className ?? ''}"
+    style="height:26px;border:1px solid #ccc;border-radius:3px;font-size:13px;padding:0 6px;">
 </div>
 <div style="display:flex;justify-content:flex-end;gap:8px;margin-top:16px;">
   <button id="cp-cancel" style="height:28px;padding:0 14px;border:1px solid #ccc;border-radius:3px;background:#fff;cursor:pointer;">취소</button>
@@ -211,10 +235,11 @@ export class TableContextMenu {
         borderColor: (dlg.querySelector('#cp-bc')  as HTMLInputElement).value,
         indent:      parseInt((dlg.querySelector('#cp-ind') as HTMLInputElement).value, 10) || 0,
         bgColor:     (dlg.querySelector('#cp-bg')  as HTMLInputElement).value,
+        fontSize:    parseInt((dlg.querySelector('#cp-fs')  as HTMLInputElement).value, 10) || 0,
         id:          (dlg.querySelector('#cp-id')  as HTMLInputElement).value.trim(),
         className:   (dlg.querySelector('#cp-cls') as HTMLInputElement).value.trim(),
       };
-      CellMerger.applyCellProperties(cell, props);
+      for (const c of targetCells) CellMerger.applyCellProperties(c, props);
       this.cb.onModified?.();
       close();
     });

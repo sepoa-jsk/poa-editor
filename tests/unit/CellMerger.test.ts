@@ -230,6 +230,103 @@ describe('CellMerger.applyCellProperties', () => {
   });
 });
 
+// ───────────────────── splitCell ─────────────────────────────────────
+
+describe('CellMerger.splitCell', () => {
+  // ── 단순 표 (1×1 셀) 분할 ──────────────────────────────────────────
+
+  it('열 2 + 행 1: 3×3 표의 가운데 셀을 좌우 2개로 분할', () => {
+    const table = track(makeTable(3, 3));
+    const cell  = table.rows[1].cells[1] as HTMLTableCellElement; // r1c1
+
+    CellMerger.splitCell(cell, table, 2, 1);
+
+    // 분할된 행은 셀이 1개 늘어야 한다
+    expect(table.rows[1].cells).toHaveLength(4);
+    // 다른 행들은 r1c1 위치를 커버하는 셀의 colspan이 1 증가해야 한다
+    expect((table.rows[0].cells[1] as HTMLTableCellElement).colSpan).toBe(2);
+    expect((table.rows[2].cells[1] as HTMLTableCellElement).colSpan).toBe(2);
+  });
+
+  it('열 1 + 행 2: 3×3 표의 가운데 셀을 위아래 2개로 분할', () => {
+    const table = track(makeTable(3, 3));
+    const cell  = table.rows[1].cells[1] as HTMLTableCellElement; // r1c1
+
+    CellMerger.splitCell(cell, table, 1, 2);
+
+    // 행이 1개 추가되어야 한다
+    expect(table.rows).toHaveLength(4);
+    // 같은 행의 다른 셀들의 rowspan이 1 증가
+    expect((table.rows[1].cells[0] as HTMLTableCellElement).rowSpan).toBe(2);
+    expect((table.rows[1].cells[2] as HTMLTableCellElement).rowSpan).toBe(2);
+    // 새 행에는 1개 셀이 있어야 한다 (r1c1 분할 결과)
+    expect(table.rows[2].cells).toHaveLength(1);
+  });
+
+  it('열 2 + 행 2: 3×3 표의 가운데 셀을 2×2 = 4개로 분할', () => {
+    const table = track(makeTable(3, 3));
+    const cell  = table.rows[1].cells[1] as HTMLTableCellElement;
+
+    CellMerger.splitCell(cell, table, 2, 2);
+
+    // 분할된 행은 셀이 1개 늘어야 한다
+    expect(table.rows[1].cells).toHaveLength(4);
+    // 행이 1개 추가된다
+    expect(table.rows).toHaveLength(4);
+    // 삽입된 행에는 2개 셀(분할된 열 수만큼)이 있어야 한다
+    expect(table.rows[2].cells).toHaveLength(2);
+  });
+
+  it('열 3 + 행 1: 3×3 표의 가운데 셀을 좌우 3개로 분할', () => {
+    const table = track(makeTable(3, 3));
+    const cell  = table.rows[1].cells[1] as HTMLTableCellElement;
+
+    CellMerger.splitCell(cell, table, 3, 1);
+
+    // 분할된 행은 셀이 2개 늘어야 한다
+    expect(table.rows[1].cells).toHaveLength(5);
+    // 다른 행들의 해당 셀 colspan이 2 증가
+    expect((table.rows[0].cells[1] as HTMLTableCellElement).colSpan).toBe(3);
+  });
+
+  // ── 병합된 셀 분할 ─────────────────────────────────────────────────
+
+  it('colspan=4 셀을 열 2로 분할하면 colSpan 2짜리 셀 2개가 된다', () => {
+    const table = track(makeTable(1, 5));
+    const cell  = table.rows[0].cells[0] as HTMLTableCellElement;
+    cell.colSpan = 4;
+    table.rows[0].deleteCell(1);
+    table.rows[0].deleteCell(1);
+    table.rows[0].deleteCell(1);
+
+    CellMerger.splitCell(cell, table, 2, 1);
+
+    expect(table.rows[0].cells).toHaveLength(3); // 2 split + 1 remaining
+    expect((table.rows[0].cells[0] as HTMLTableCellElement).colSpan).toBe(2);
+    expect((table.rows[0].cells[1] as HTMLTableCellElement).colSpan).toBe(2);
+  });
+
+  it('rowspan=2 셀을 행 2로 분할하면 rowSpan 1짜리 셀 2개가 된다', () => {
+    const table   = track(makeTableWithRowspan());
+    const spanned = table.rows[0].cells[0] as HTMLTableCellElement;
+
+    CellMerger.splitCell(spanned, table, 1, 2);
+
+    expect(spanned.rowSpan).toBe(1);
+    expect(table.rows[1].cells).toHaveLength(2);
+  });
+
+  it('colCount <= 1 && rowCount <= 1 이면 아무것도 하지 않는다', () => {
+    const table = track(makeTable(2, 2));
+    const cell  = table.rows[0].cells[0] as HTMLTableCellElement;
+
+    CellMerger.splitCell(cell, table, 1, 1);
+
+    expect(table.rows[0].cells).toHaveLength(2);
+    expect(table.rows).toHaveLength(2);
+  });
+});
+
 // ───────────────────── CellMerger 인스턴스 (선택 관련) ───────────────
 
 describe('CellMerger instance — merge 반환값', () => {

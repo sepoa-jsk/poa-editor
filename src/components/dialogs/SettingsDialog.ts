@@ -80,7 +80,6 @@ function fmtDate(ts: number): string {
 export class PoaSettingsDialog extends HTMLElement {
   private shadow: ShadowRoot;
   private autoSave: AutoSave | null = null;
-  private fm: FileManager | null = null;
 
   constructor() {
     super();
@@ -118,7 +117,8 @@ export class PoaSettingsDialog extends HTMLElement {
   }
 
   setAutoSave(autoSave: AutoSave): void { this.autoSave = autoSave; }
-  setFileManager(fm: FileManager): void { this.fm = fm; }
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  setFileManager(_fm: FileManager): void { }
 
   async show(): Promise<void> {
     await this.loadHistory();
