@@ -5,6 +5,8 @@ export interface EditorConfig {
   readonly?: boolean;
   /** 자동저장 간격 (ms), 기본값 300000 (5분) */
   autoSaveInterval?: number;
+  /** 입력 디바운스 후 historyManager.push 완료 시 호출 — 툴바 canUndo 갱신에 사용 */
+  onHistoryPush?: () => void;
 }
 
 /** 커맨드 패턴 기본 인터페이스 */

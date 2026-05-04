@@ -2,14 +2,18 @@ import DOMPurify from 'dompurify';
 import { EditorCore } from '../core/EditorCore.js';
 import { PoaToolbar } from './Toolbar.js';
 import { PoaStatusBar } from './StatusBar.js';
-import type { TextAlign, ToolbarState } from '../core/types.js';
+import type { TextAlign, ToolbarState, FormatName } from '../core/types.js';
+import { FORMAT_TAG_MAP } from '../core/types.js';
 import { ClipboardHandler } from '../modules/edit/ClipboardHandler.js';
 import { FindReplace } from '../modules/edit/FindReplace.js';
 import { ImageInserter } from '../modules/insert/ImageInserter.js';
 import type { ImageAttributes } from '../modules/insert/ImageInserter.js';
+import { FileManager } from '../modules/file/FileManager.js';
+import { AutoSave } from '../modules/file/AutoSave.js';
 import type { PoaFindReplaceDialog } from './dialogs/FindReplaceDialog.js';
 import type { PoaImageEditDialog } from './dialogs/ImageEditDialog.js';
 import type { PoaImageDialog } from './dialogs/ImageDialog.js';
+import type { PoaSettingsDialog } from './dialogs/SettingsDialog.js';
 
 const INDENT_STEP_EM = 2;
 const BLOCK_TAGS = new Set(['p', 'div', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'li', 'blockquote', 'pre']);
@@ -26,11 +30,31 @@ export class PoaEditor extends HTMLElement {
   private clipboardHandler!: ClipboardHandler;
   private findReplace!: FindReplace;
   private imageInserter!: ImageInserter;
+  private fileManager!: FileManager;
+  private autoSave!: AutoSave;
   private findDialog!: PoaFindReplaceDialog;
   private imageDialog!: PoaImageEditDialog;
   private imageInsertDialog!: PoaImageDialog;
+  private settingsDialog!: PoaSettingsDialog;
 
-  private readonly selectionHandler = (): void => { this.syncToolbar(); };
+  /**
+   * 커서만 있을 때 설정한 인라인 스타일 — 다음 키 입력 시 span으로 감싸 적용.
+   * restoreSelection 직후에 발생하는 selectionchange로 인한 오지우기를 방지하기 위해
+   * pendingStylesJustSet 플래그로 한 번의 selectionchange를 건너뛴다.
+   */
+  private pendingStyles = new Map<string, string>();
+  private pendingStylesJustSet = false;
+
+  private readonly selectionHandler = (): void => {
+    if (this.pendingStyles.size > 0) {
+      if (this.pendingStylesJustSet) {
+        this.pendingStylesJustSet = false; // 다음 selectionchange에서 클리어
+      } else {
+        this.pendingStyles.clear();        // 커서 이동 → 대기 스타일 취소
+      }
+    }
+    this.syncToolbar();
+  };
 
   constructor() {
     super();
@@ -38,6 +62,10 @@ export class PoaEditor extends HTMLElement {
   }
 
   connectedCallback(): void {
+    // contentEl은 shadow DOM이 아닌 light DOM에 배치한다.
+    // shadow DOM 안의 contenteditable에서 발생하는 Chrome Selection API 리타깃 버그 우회:
+    // document.getSelection().getRangeAt(0)가 shadow 내 선택을 BODY로 리타깃해 항상 collapsed
+    // → contentEl을 light DOM에 두면 getRangeAt(0)이 정상적으로 텍스트 노드를 반환한다.
     this.shadow.innerHTML = `
 <style>
 :host {
@@ -45,41 +73,62 @@ export class PoaEditor extends HTMLElement {
   border: 1px solid var(--poa-editor-border, #ccc);
   border-radius: 4px; overflow: hidden;
 }
-.content {
-  flex: 1; overflow-y: auto;
-  padding: 16px 20px; outline: none;
-  line-height: 1.6; min-height: 200px;
-  color: var(--poa-editor-color, #222);
-  background: var(--poa-editor-bg, #fff);
-  font-size: 14px;
-  font-family: var(--poa-editor-font, '맑은 고딕', 'Malgun Gothic', sans-serif);
-}
-.content:empty::before {
-  content: attr(data-placeholder); color: #aaa; pointer-events: none;
-}
+slot[name="content"] { display: contents; }
 </style>
 <poa-toolbar></poa-toolbar>
-<div class="content" role="textbox" aria-multiline="true" spellcheck="true"></div>
+<slot name="content"></slot>
 <poa-status-bar></poa-status-bar>
 <poa-find-replace-dialog></poa-find-replace-dialog>
 <poa-image-edit-dialog></poa-image-edit-dialog>
-<poa-image-dialog></poa-image-dialog>`;
+<poa-image-dialog></poa-image-dialog>
+<poa-settings-dialog></poa-settings-dialog>`;
+
+    // contentEl을 light DOM(poa-editor의 직계 자식)으로 생성 — Selection API가 정상 작동
+    this.contentEl = (this.querySelector('.poa-editor-content') as HTMLDivElement | null)
+      ?? document.createElement('div');
+    this.contentEl.className = 'poa-editor-content';
+    this.contentEl.setAttribute('slot', 'content');
+    this.contentEl.setAttribute('role', 'textbox');
+    this.contentEl.setAttribute('aria-multiline', 'true');
+    this.contentEl.setAttribute('spellcheck', 'true');
+    // flex: 1 등 레이아웃 스타일을 인라인으로 적용 (shadow CSS ::slotted는 specificity 낮음)
+    this.contentEl.style.cssText = [
+      'flex: 1', 'overflow-y: auto', 'padding: 16px 20px', 'outline: none',
+      'line-height: 1.6', 'min-height: 200px', 'box-sizing: border-box',
+      'color: var(--poa-editor-color, #222)', 'background: var(--poa-editor-bg, #fff)',
+      'font-size: 14px',
+      "font-family: var(--poa-editor-font, '맑은 고딕', 'Malgun Gothic', sans-serif)",
+    ].join('; ');
+    if (!this.contentEl.parentElement) this.appendChild(this.contentEl);
+
+    // placeholder ::before는 인라인 스타일로 설정 불가 → 문서 head에 한 번만 주입
+    PoaEditor.injectContentStyles();
 
     this.toolbar     = this.shadow.querySelector('poa-toolbar')           as PoaToolbar;
-    this.contentEl   = this.shadow.querySelector('.content')              as HTMLDivElement;
     this.statusBar   = this.shadow.querySelector('poa-status-bar')        as PoaStatusBar;
     this.findDialog        = this.shadow.querySelector('poa-find-replace-dialog') as PoaFindReplaceDialog;
     this.imageDialog       = this.shadow.querySelector('poa-image-edit-dialog')   as PoaImageEditDialog;
     this.imageInsertDialog = this.shadow.querySelector('poa-image-dialog')        as PoaImageDialog;
+    this.settingsDialog    = this.shadow.querySelector('poa-settings-dialog')     as PoaSettingsDialog;
 
     const placeholder = this.getAttribute('placeholder') ?? '';
     if (placeholder) this.contentEl.dataset.placeholder = placeholder;
 
     const readonly = this.hasAttribute('readonly');
-    this.core = new EditorCore({ placeholder, readonly });
+    this.core = new EditorCore({
+      placeholder,
+      readonly,
+      onHistoryPush: () => this.syncToolbar(),
+    });
     this.core.mount(this.contentEl);
 
     this.imageInserter = new ImageInserter(this.contentEl);
+
+    this.fileManager = new FileManager();
+    this.autoSave    = new AutoSave();
+    this.settingsDialog.setAutoSave(this.autoSave);
+    this.settingsDialog.setFileManager(this.fileManager);
+    this.autoSave.start(() => this.contentEl.innerHTML);
 
     this.clipboardHandler = new ClipboardHandler(this.contentEl, {
       onPaste: () => {
@@ -92,7 +141,9 @@ export class PoaEditor extends HTMLElement {
     this.findReplace = new FindReplace(this.contentEl);
 
     this.shadow.addEventListener('poa-action', (e) => {
-      void this.handleAction(e as CustomEvent<{ type: string; value?: string }>);
+      this.handleAction(e as CustomEvent<{ type: string; value?: string }>).catch((err: unknown) => {
+        console.error('[poa-editor] handleAction 오류:', err);
+      });
     });
 
     // 찾기/바꾸기 이벤트 처리
@@ -197,16 +248,103 @@ export class PoaEditor extends HTMLElement {
 
     document.addEventListener('selectionchange', this.selectionHandler);
 
-    // blur 시점에 selection을 저장 — select/color-picker 클릭으로 포커스가 이탈하기 전 마지막 범위
+    // blur 시점에 selection을 저장 (blur보다 selectionchange가 먼저 오는 브라우저용 보조 저장)
     this.contentEl.addEventListener('blur', () => {
-      const sel = this.contentEl.ownerDocument.getSelection();
-      if (sel && sel.rangeCount > 0) {
-        this.savedRange = sel.getRangeAt(0).cloneRange();
+      const r = this.getActualRange();
+      if (r && this.contentEl.contains(r.startContainer)) {
+        this.savedRange = r;
       }
     });
 
+    // 툴바의 어떤 요소(select, color-picker 등)를 클릭하기 직전 — selection이 사라지기 전에 캡처.
+    // mousedown은 blur보다 먼저 발생하므로 이 시점의 selection이 가장 정확하다.
+    this.shadow.addEventListener('mousedown', (e) => {
+      // contentEl 자체 클릭은 제외 (클릭 후 커서 이동이 자연스럽게 savedRange를 갱신함)
+      if (this.contentEl.contains(e.target as Node)) return;
+      const r = this.getActualRange();
+      console.log('[shadow mousedown capture] getActualRange:', r,
+        '| collapsed:', r?.collapsed,
+        '| toString:', r?.toString(),
+        '| startContainer in contentEl:', r ? this.contentEl.contains(r.startContainer) : 'n/a');
+      if (r && this.contentEl.contains(r.startContainer)) {
+        this.savedRange = r.cloneRange();
+        console.log('[shadow mousedown capture] savedRange 저장 완료 | text:', this.savedRange.toString());
+      }
+    }, true); // capture phase — select/button mousedown보다 먼저 실행됨
+
+    // mouseup/keyup은 contentEl 내부 이벤트 — getActualRange로 리타깃 없이 실제 Range를 캡처
+    const captureRange = (): void => {
+      const r = this.getActualRange();
+      if (r && this.contentEl.contains(r.startContainer)) {
+        this.savedRange = r;
+      }
+    };
+    this.contentEl.addEventListener('mouseup', captureRange);
+    this.contentEl.addEventListener('keyup', captureRange);
+
     this.contentEl.addEventListener('input', () => {
       this.statusBar.update(this.contentEl.innerHTML);
+      this.fileManager.markDirty();
+    });
+
+    // 커서만 있을 때 스타일을 설정한 뒤 타이핑하면 해당 스타일의 span으로 감싸 삽입.
+    // IME 조합 중(insertCompositionText)에는 개입하지 않고 insertText만 처리한다.
+    this.contentEl.addEventListener('beforeinput', (e: InputEvent) => {
+      if (this.pendingStyles.size === 0) return;
+      if (e.inputType !== 'insertText' || !e.data) return;
+
+      e.preventDefault();
+      const ownerDoc = this.contentEl.ownerDocument;
+      const sel = ownerDoc.getSelection();
+      if (!sel || sel.rangeCount === 0) { this.pendingStyles.clear(); return; }
+
+      const range = sel.getRangeAt(0);
+      range.deleteContents();
+
+      const span = ownerDoc.createElement('span');
+      this.pendingStyles.forEach((val, prop) => span.style.setProperty(prop, val));
+      span.textContent = e.data;
+      range.insertNode(span);
+
+      // 커서를 span 안 텍스트 끝으로 이동 → 이후 타이핑이 자연스럽게 span 안에 이어짐
+      range.setStart(span.firstChild!, e.data.length);
+      range.collapse(true);
+      sel.removeAllRanges();
+      sel.addRange(range);
+
+      this.pendingStyles.clear();
+
+      // preventDefault로 인해 input 이벤트가 발생하지 않으므로 수동으로 처리
+      this.statusBar.update(this.contentEl.innerHTML);
+      this.fileManager.markDirty();
+      // EditorCore의 debounce를 트리거하기 위해 합성 input 이벤트 발송
+      this.contentEl.dispatchEvent(new InputEvent('input', { bubbles: true }));
+    });
+
+    // 파일 관리 이벤트
+    this.shadow.addEventListener('poa-file-new', () => {
+      if (this.fileManager.isDirty() && !confirm('저장되지 않은 변경사항이 있습니다. 계속할까요?')) return;
+      this.fileManager.newDocument();
+      this.setHTML('');
+      void this.core.captureHistory('fileNew');
+    });
+    this.shadow.addEventListener('poa-file-open', () => {
+      void this.fileManager.openFile().then((file) => {
+        if (!file) return;
+        this.setHTML(file.html);
+        void this.core.captureHistory('fileOpen');
+      });
+    });
+    this.shadow.addEventListener('poa-file-save', () => {
+      void this.fileManager.saveFile(this.getHTML());
+    });
+    this.shadow.addEventListener('poa-file-saveas', () => {
+      void this.fileManager.saveAsFile(this.getHTML());
+    });
+    this.shadow.addEventListener('poa-autosave-restore', (e) => {
+      const { html } = (e as CustomEvent).detail as { html: string };
+      this.setHTML(html);
+      void this.core.captureHistory('autoSaveRestore');
     });
 
     this.statusBar.update(this.contentEl.innerHTML);
@@ -217,6 +355,8 @@ export class PoaEditor extends HTMLElement {
     document.removeEventListener('selectionchange', this.selectionHandler);
     this.clipboardHandler.unregister();
     this.findReplace.clearMarks();
+    this.autoSave.stop();
+    this.fileManager.destroy();
     this.core.unmount();
   }
 
@@ -234,21 +374,34 @@ export class PoaEditor extends HTMLElement {
 
   // ── Action dispatch from toolbar ────────────────────────────────────────
 
-  /** 저장된 선택 범위를 복원하고 contentEl에 포커스를 돌려준다 */
+  /**
+   * 저장된 선택 범위를 복원하고 contentEl에 포커스를 돌려준다.
+   *
+   * contentEl 안에 이미 유효한 selection이 있으면 건드리지 않는다.
+   * (format 버튼 등 mousedown+preventDefault로 selection이 살아있는 경우
+   *  removeAllRanges를 호출하면 오히려 selection이 망가진다.)
+   */
   private restoreSelection(): void {
+    const ownerDoc = this.contentEl.ownerDocument;
+
+    // contentEl 안에 이미 살아있는 selection → 건드리지 않음
+    const existing = this.getActualRange();
+    if (existing && this.contentEl.contains(existing.startContainer)) return;
+
     if (!this.savedRange) {
       this.contentEl.focus();
       return;
     }
+
     // focus() 호출이 selectionchange → syncToolbar()를 동기적으로 트리거해
     // savedRange를 덮어쓸 수 있으므로 로컬 변수에 먼저 복사한다.
     const range = this.savedRange.cloneRange();
     this.contentEl.focus();
     try {
-      const sel = this.contentEl.ownerDocument.getSelection();
-      if (!sel) return;
-      sel.removeAllRanges();
-      sel.addRange(range);
+      const s = ownerDoc.getSelection();
+      if (!s) return;
+      s.removeAllRanges();
+      s.addRange(range);
     } catch {
       // innerHTML 교체 이후 분리된(detached) 노드 참조 시 DOMException 발생 → 무시하고 초기화
       this.savedRange = null;
@@ -257,24 +410,34 @@ export class PoaEditor extends HTMLElement {
 
   private async handleAction(e: CustomEvent<{ type: string; value?: string }>): Promise<void> {
     const { type, value } = e.detail;
+    console.log('[handleAction] type:', type, '| value:', value,
+      '| canUndo:', this.core.canUndo(), '| canRedo:', this.core.canRedo(),
+      '| savedRange:', this.savedRange?.toString());
 
-    // select/color-picker가 포커스를 가져간 경우 선택 범위를 먼저 복원한다.
-    // format(mousedown+preventDefault)·undo·redo는 이미 올바른 상태이지만 호출해도 무해하다.
-    this.restoreSelection();
+    if (type !== 'format') this.restoreSelection();
 
     switch (type) {
-      case 'format':
-        if      (value === 'bold')      await this.core.bold();
-        else if (value === 'italic')    await this.core.italic();
-        else if (value === 'underline') await this.core.underline();
-        else if (value === 'strike')    await this.core.strike();
+      case 'format': {
+        const tag = value ? FORMAT_TAG_MAP[value as FormatName] : undefined;
+        console.log('[handleAction format] tag:', tag,
+          '| savedRange:', this.savedRange,
+          '| collapsed:', this.savedRange?.collapsed,
+          '| toString:', this.savedRange?.toString());
+        if (tag && this.savedRange && !this.savedRange.collapsed) {
+          await this.core.applyFormatWithRange(tag, this.savedRange);
+        }
         break;
+      }
       case 'undo':
+        console.log('[handleAction undo] canUndo:', this.core.canUndo());
         await this.core.undo();
-        this.savedRange = null; // innerHTML 교체로 기존 범위 무효화
+        console.log('[handleAction undo] 완료 | innerHTML 길이:', this.contentEl.innerHTML.length);
+        this.savedRange = null;
         break;
       case 'redo':
+        console.log('[handleAction redo] canRedo:', this.core.canRedo());
         await this.core.redo();
+        console.log('[handleAction redo] 완료 | innerHTML 길이:', this.contentEl.innerHTML.length);
         this.savedRange = null;
         break;
 
@@ -322,6 +485,9 @@ export class PoaEditor extends HTMLElement {
         this.imageInserter.saveSelection();
         this.imageInsertDialog.open();
         return;
+      case 'settings':
+        void this.settingsDialog.show();
+        return;
     }
 
     this.syncToolbar();
@@ -333,9 +499,22 @@ export class PoaEditor extends HTMLElement {
   private applyInlineStyle(cssProperty: string, value: string): void {
     const ownerDoc = this.contentEl.ownerDocument;
     const sel = ownerDoc.getSelection();
+    console.log('[applyInlineStyle]', cssProperty, '| rangeCount:', sel?.rangeCount,
+      '| collapsed:', sel?.rangeCount ? sel.getRangeAt(0).collapsed : 'n/a',
+      '| toString:', sel?.toString());
     if (!sel || sel.rangeCount === 0) return;
     const range = sel.getRangeAt(0);
-    if (range.collapsed) return;
+
+    if (range.collapsed) {
+      // 텍스트 미선택 → 다음 타이핑 시 적용할 대기 스타일로 저장
+      this.pendingStyles.set(cssProperty, value);
+      this.pendingStylesJustSet = true;
+      return;
+    }
+
+    // 텍스트 선택됨 → 즉시 적용, 대기 스타일은 취소
+    this.pendingStyles.clear();
+    this.pendingStylesJustSet = false;
 
     const span = ownerDoc.createElement('span');
     span.style.setProperty(cssProperty, value);
@@ -343,7 +522,6 @@ export class PoaEditor extends HTMLElement {
     span.appendChild(fragment);
     range.insertNode(span);
 
-    // restore selection to the inserted span
     range.selectNodeContents(span);
     sel.removeAllRanges();
     sel.addRange(range);
@@ -396,21 +574,31 @@ export class PoaEditor extends HTMLElement {
   // ── Toolbar state sync ───────────────────────────────────────────────────
 
   private syncToolbar(): void {
-    const sel = this.contentEl.ownerDocument.getSelection();
-    if (!sel?.anchorNode || !this.contentEl.contains(sel.anchorNode)) return;
+    const canUndo = this.core.canUndo();
+    const canRedo = this.core.canRedo();
+    console.log('[syncToolbar] canUndo:', canUndo, '| canRedo:', canRedo);
+
+    const range = this.getActualRange();
+
+    // selection이 없어도 canUndo/canRedo는 항상 최신값으로 갱신 (입력 디바운스 후 즉시 반영)
+    if (!range || !this.contentEl.contains(range.startContainer)) {
+      console.log('[syncToolbar] → setHistoryState only (no valid range in contentEl)');
+      this.toolbar.setHistoryState(canUndo, canRedo);
+      return;
+    }
 
     // selectionchange가 올 때마다 최신 범위를 보관 (blur보다 먼저 저장됨)
-    if (sel.rangeCount > 0) this.savedRange = sel.getRangeAt(0).cloneRange();
+    this.savedRange = range;
 
-    const anchor = sel.anchorNode;
+    const anchor = range.startContainer;
     const state: ToolbarState = {
       bold:         this.hasAncestorTag(anchor, 'strong'),
       italic:       this.hasAncestorTag(anchor, 'em'),
       underline:    this.hasAncestorTag(anchor, 'u'),
       strike:       this.hasAncestorTag(anchor, 's'),
       align:        (this.getInlineStyle(anchor, 'text-align') || 'left') as TextAlign,
-      canUndo:      this.core.canUndo(),
-      canRedo:      this.core.canRedo(),
+      canUndo,
+      canRedo,
       fontSize:     this.getInlineStyle(anchor, 'font-size') || '12pt',
       fontFamily:   this.getInlineStyle(anchor, 'font-family') || 'inherit',
       lineHeight:   this.getInlineStyle(anchor, 'line-height') || '1.5',
@@ -419,6 +607,7 @@ export class PoaEditor extends HTMLElement {
       backColor:    '#ffff00',
     };
 
+    console.log('[syncToolbar] → setState (canUndo:', canUndo, ')');
     this.toolbar.setState(state);
   }
 
@@ -455,5 +644,37 @@ export class PoaEditor extends HTMLElement {
     return '#' + [m[1], m[2], m[3]]
       .map((n) => parseInt(n).toString(16).padStart(2, '0'))
       .join('');
+  }
+
+  /**
+   * contentEl이 light DOM에 있으므로 document.getSelection().getRangeAt(0)이 정상 동작한다.
+   * (Shadow DOM 시절의 Chrome 리타깃 버그 우회 — contentEl 이동으로 근본 해결)
+   */
+  private getActualRange(): Range | null {
+    const sel = this.contentEl.ownerDocument.getSelection();
+    if (!sel || sel.rangeCount === 0) return null;
+    const r = sel.getRangeAt(0);
+    console.log('[getActualRange] collapsed:', r.collapsed,
+      '| toString:', r.toString(),
+      '| startContainer.nodeName:', r.startContainer.nodeName,
+      '| inContentEl:', this.contentEl.contains(r.startContainer));
+    return r;
+  }
+
+  private static _stylesInjected = false;
+  private static injectContentStyles(): void {
+    if (PoaEditor._stylesInjected) return;
+    PoaEditor._stylesInjected = true;
+    const style = document.createElement('style');
+    style.id = 'poa-editor-content-styles';
+    style.textContent = [
+      '.poa-editor-content:empty::before {',
+      '  content: attr(data-placeholder);',
+      '  color: #aaa;',
+      '  pointer-events: none;',
+      '  display: block;',
+      '}',
+    ].join('\n');
+    document.head.appendChild(style);
   }
 }

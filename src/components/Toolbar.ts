@@ -136,6 +136,29 @@ const HTML = `
     <button class="btn" id="btn-undo" title="실행 취소 (Ctrl+Z)">↩</button>
     <button class="btn" id="btn-redo" title="다시 실행 (Ctrl+Y)">↪</button>
   </div>
+  <div class="sep"></div>
+  <div class="group">
+    <button class="btn" id="btn-image" title="이미지 삽입">
+      <svg width="16" height="14" viewBox="0 0 16 14" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round">
+        <rect x="0.75" y="0.75" width="14.5" height="12.5" rx="1"/>
+        <circle cx="5" cy="4.5" r="1.5" fill="currentColor" stroke="none"/>
+        <polyline points="1,12.5 5.5,7.5 8.5,10.5 11,7.5 15.25,12.5"/>
+      </svg>
+    </button>
+    <button class="btn" id="btn-find" title="찾기/바꾸기 (Ctrl+F)">
+      <svg width="15" height="15" viewBox="0 0 15 15" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round">
+        <circle cx="6" cy="6" r="5"/>
+        <line x1="10" y1="10" x2="14" y2="14"/>
+      </svg>
+    </button>
+    <button class="btn" id="btn-settings" title="파일 관리 / 자동저장">
+      <svg width="15" height="12" viewBox="0 0 15 12" fill="currentColor">
+        <rect x="0" y="0" width="15" height="2" rx="1"/>
+        <rect x="0" y="5" width="15" height="2" rx="1"/>
+        <rect x="0" y="10" width="15" height="2" rx="1"/>
+      </svg>
+    </button>
+  </div>
 </div>
 `;
 
@@ -207,7 +230,8 @@ export class PoaToolbar extends HTMLElement {
 
     // Format — mousedown + preventDefault keeps selection intact
     const bindFormat = (id: string, value: string) => {
-      s.getElementById(id)?.addEventListener('mousedown', (e) => {
+      const el = s.getElementById(id);
+      el?.addEventListener('mousedown', (e) => {
         e.preventDefault();
         dispatch('format', value);
       });
@@ -245,6 +269,9 @@ export class PoaToolbar extends HTMLElement {
     s.getElementById('btn-outdent')?.addEventListener('mousedown', (e) => { e.preventDefault(); dispatch('outdent'); });
     s.getElementById('btn-undo')?.addEventListener('mousedown', (e) => { e.preventDefault(); dispatch('undo'); });
     s.getElementById('btn-redo')?.addEventListener('mousedown', (e) => { e.preventDefault(); dispatch('redo'); });
+    s.getElementById('btn-image')?.addEventListener('mousedown', (e) => { e.preventDefault(); dispatch('image'); });
+    s.getElementById('btn-find')?.addEventListener('mousedown', (e) => { e.preventDefault(); dispatch('find-replace'); });
+    s.getElementById('btn-settings')?.addEventListener('mousedown', (e) => { e.preventDefault(); dispatch('settings'); });
 
     (s.getElementById('sel-family') as HTMLSelectElement).addEventListener('change', (e) => {
       dispatch('fontFamily', (e.target as HTMLSelectElement).value);
@@ -298,5 +325,15 @@ export class PoaToolbar extends HTMLElement {
       (s.getElementById('back-bar')   as HTMLElement).style.background = state.backColor;
       (s.getElementById('back-input') as HTMLInputElement).value = state.backColor;
     }
+  }
+
+  /** selection 없이 undo/redo 버튼만 갱신 — 입력 디바운스 후 호출 */
+  setHistoryState(canUndo: boolean, canRedo: boolean): void {
+    const s = this.shadow;
+    const btn = (id: string) => s.getElementById(id) as HTMLButtonElement | null;
+    const u = btn('btn-undo');
+    const r = btn('btn-redo');
+    if (u) u.disabled = !canUndo;
+    if (r) r.disabled = !canRedo;
   }
 }

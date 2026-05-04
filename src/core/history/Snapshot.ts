@@ -19,12 +19,13 @@ export class Snapshot {
 
     const cs = new CompressionStream('gzip');
     const writer = cs.writable.getWriter();
-    const reader = cs.readable.getReader();
 
-    await writer.write(bytes);
-    await writer.close();
-
-    return Snapshot.collectStream(reader);
+    // write/close를 await 없이 실행하고 readable을 동시에 소비한다.
+    // await writer.write() → await writer.close() → read 순서로 하면
+    // readable 측이 소비되지 않아 백프레셔로 인한 데드락이 발생한다.
+    void writer.write(bytes).then(() => writer.close());
+    const buffer = await new Response(cs.readable).arrayBuffer();
+    return new Uint8Array(buffer);
   }
 
   /**
@@ -40,33 +41,11 @@ export class Snapshot {
 
     const ds = new DecompressionStream('gzip');
     const writer = ds.writable.getWriter();
-    const reader = ds.readable.getReader();
 
-    await writer.write(new Uint8Array(data));
-    await writer.close();
-
-    const result = await Snapshot.collectStream(reader);
-    return new TextDecoder().decode(result);
+    void writer.write(new Uint8Array(data)).then(() => writer.close());
+    const buffer = await new Response(ds.readable).arrayBuffer();
+    return new TextDecoder().decode(buffer);
   }
 
-  private static async collectStream(
-    reader: ReadableStreamDefaultReader<Uint8Array>,
-  ): Promise<Uint8Array> {
-    const chunks: Uint8Array[] = [];
 
-    while (true) {
-      const { done, value } = await reader.read();
-      if (done) break;
-      chunks.push(value);
-    }
-
-    const totalLen = chunks.reduce((sum, c) => sum + c.length, 0);
-    const out = new Uint8Array(totalLen);
-    let offset = 0;
-    for (const chunk of chunks) {
-      out.set(chunk, offset);
-      offset += chunk.length;
-    }
-    return out;
-  }
 }

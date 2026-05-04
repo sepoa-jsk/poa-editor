@@ -24,7 +24,12 @@ export class EditorCore {
     if (this.inputTimer !== null) clearTimeout(this.inputTimer);
     this.inputTimer = setTimeout(() => {
       this.inputTimer = null;
-      if (this.root) void this.historyManager.push(this.root.innerHTML, 'input');
+      if (this.root) {
+        void this.historyManager.push(this.root.innerHTML, 'input').then(() => {
+          console.log('[EditorCore inputHandler] debounce push 완료 | canUndo:', this.historyManager.canUndo());
+          this.config.onHistoryPush?.();
+        });
+      }
     }, 800);
   };
 
@@ -41,6 +46,15 @@ export class EditorCore {
     } else if (e.key === 'y' || (e.key === 'z' && e.shiftKey)) {
       e.preventDefault();
       await this.redo();
+    } else if (e.key === 'b') {
+      e.preventDefault();
+      await this.bold();
+    } else if (e.key === 'i') {
+      e.preventDefault();
+      await this.italic();
+    } else if (e.key === 'u') {
+      e.preventDefault();
+      await this.underline();
     }
   };
 
@@ -92,6 +106,9 @@ export class EditorCore {
     await this.flushInput();
     this.commandManager.execute(cmd);
     await this.historyManager.push(this.root.innerHTML, cmd.name);
+    console.log('[EditorCore execute] push 완료 | canUndo:', this.historyManager.canUndo(),
+      '| canRedo:', this.historyManager.canRedo(),
+      '| stackSize:', this.historyManager.getStackSize());
   }
 
   /** 한 단계 이전 상태로 복원한다 */
@@ -154,6 +171,17 @@ export class EditorCore {
 
   async underline(): Promise<void> {
     await this.applyFormat('u');
+  }
+
+  /**
+   * 툴바에서 직접 Range를 전달해 서식을 적용한다.
+   * document.getSelection()의 Shadow DOM retarget 문제를 우회하기 위해
+   * PoaEditor가 직접 캡처한 savedRange를 주입받는다.
+   */
+  async applyFormatWithRange(tag: FormatTag, range: Range): Promise<void> {
+    if (!this.root) throw new Error('EditorCore가 마운트되지 않았습니다.');
+    const cmd = new FormatCommand(tag, range, this.root.ownerDocument);
+    await this.execute(cmd);
   }
 
   async strike(): Promise<void> {

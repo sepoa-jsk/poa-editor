@@ -260,8 +260,12 @@ export class PoaImageDialog extends HTMLElement {
         this.switchTab((btn as HTMLElement).dataset.tab as 'url' | 'file'));
     });
 
-    // URL 미리보기
-    s.getElementById('inp-src')?.addEventListener('input', () => this.updatePreview());
+    // URL 탭: src / alt 입력 시 버튼 상태 실시간 갱신
+    s.getElementById('inp-src')?.addEventListener('input', () => {
+      this.updatePreview();
+      this.syncConfirmBtn();
+    });
+    s.getElementById('inp-alt')?.addEventListener('input', () => this.syncConfirmBtn());
 
     // 파일 드롭 영역
     const drop = s.getElementById('file-drop')!;
@@ -290,6 +294,25 @@ export class PoaImageDialog extends HTMLElement {
       p.classList.toggle('active', p.id === `panel-${tab}`));
     (s.getElementById('btn-confirm') as HTMLButtonElement).textContent =
       tab === 'file' ? '업로드 · 삽입' : '삽입';
+    this.syncConfirmBtn();
+  }
+
+  /**
+   * 현재 활성 탭에 따라 삽입 버튼 활성화 여부를 결정한다.
+   * - URL 탭: src + alt 모두 비어있지 않을 때만 활성화
+   * - 파일 탭: 항상 활성화 (파일 미선택 · alt 빈값은 confirmUpload에서 검증)
+   */
+  private syncConfirmBtn(): void {
+    const s = this.shadow;
+    const btn = s.getElementById('btn-confirm') as HTMLButtonElement;
+    const activePanel = s.querySelector('.panel.active');
+    if (activePanel?.id === 'panel-url') {
+      const src = (s.getElementById('inp-src') as HTMLInputElement).value.trim();
+      const alt = (s.getElementById('inp-alt') as HTMLInputElement).value.trim();
+      btn.disabled = !src || !alt;
+    } else {
+      btn.disabled = false;
+    }
   }
 
   private updatePreview(): void {
@@ -378,10 +401,6 @@ export class PoaImageDialog extends HTMLElement {
   }
 
   private async confirmUpload(): Promise<void> {
-    if (!this.uploadConfig) {
-      alert('업로드 URL이 설정되지 않았습니다. 관리자에게 문의하세요.');
-      return;
-    }
     if (this.selectedFiles.length === 0) return;
 
     const alt = (this.shadow.getElementById('inp-file-alt') as HTMLInputElement).value.trim();
@@ -395,6 +414,26 @@ export class PoaImageDialog extends HTMLElement {
     this.busy = true;
     (this.shadow.getElementById('btn-confirm') as HTMLButtonElement).disabled = true;
 
+    if (!this.uploadConfig) {
+      // 업로드 서버 URL 미설정 → FileReader로 Base64 변환 후 직접 삽입
+      try {
+        for (const file of this.selectedFiles) {
+          const dataUrl = await this.readAsDataUrl(file);
+          this.dispatch('poa-image-insert', {
+            attrs: { src: dataUrl, alt } satisfies ImageAttributes,
+          });
+        }
+        this.busy = false;
+        this.close();
+      } catch (err) {
+        alert(err instanceof Error ? err.message : '파일 읽기에 실패했습니다.');
+        this.busy = false;
+        this.syncConfirmBtn();
+      }
+      return;
+    }
+
+    // 업로드 서버 URL 설정됨 → FormData REST API 업로드
     const results = await this.uploader.upload(this.selectedFiles, {
       ...this.uploadConfig,
       onProgress: (items) => this.renderUploadList(items),
@@ -410,11 +449,21 @@ export class PoaImageDialog extends HTMLElement {
 
     const hasError = results.some((r) => r.status === 'error');
     if (!hasError) {
+      this.busy = false;
       this.close();
     } else {
       this.busy = false;
-      (this.shadow.getElementById('btn-confirm') as HTMLButtonElement).disabled = false;
+      this.syncConfirmBtn();
     }
+  }
+
+  private readAsDataUrl(file: File): Promise<string> {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = () => resolve(reader.result as string);
+      reader.onerror = () => reject(new Error(`"${file.name}" 파일 읽기에 실패했습니다.`));
+      reader.readAsDataURL(file);
+    });
   }
 
   private dispatch(type: string, detail: object): void {

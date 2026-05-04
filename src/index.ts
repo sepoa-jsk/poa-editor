@@ -21,10 +21,12 @@ import { PoaFindReplaceDialog } from './components/dialogs/FindReplaceDialog.js'
 import { PoaImageEditDialog } from './components/dialogs/ImageEditDialog.js';
 import { PoaImageDialog } from './components/dialogs/ImageDialog.js';
 
+// poa-editor의 connectedCallback 시점에 모든 하위 요소가 이미 정의되어 있어야 한다.
+// poa-editor를 마지막으로 등록하면 shadow.innerHTML 파싱 시 child 요소가 즉시 업그레이드된다.
 if (!customElements.get('poa-toolbar'))              customElements.define('poa-toolbar',              PoaToolbar);
-if (!customElements.get('poa-editor'))               customElements.define('poa-editor',               PoaEditor);
 if (!customElements.get('poa-status-bar'))           customElements.define('poa-status-bar',           PoaStatusBar);
 if (!customElements.get('poa-settings-dialog'))      customElements.define('poa-settings-dialog',      PoaSettingsDialog);
 if (!customElements.get('poa-find-replace-dialog'))  customElements.define('poa-find-replace-dialog',  PoaFindReplaceDialog);
 if (!customElements.get('poa-image-edit-dialog'))    customElements.define('poa-image-edit-dialog',    PoaImageEditDialog);
 if (!customElements.get('poa-image-dialog'))         customElements.define('poa-image-dialog',         PoaImageDialog);
+if (!customElements.get('poa-editor'))               customElements.define('poa-editor',               PoaEditor);
