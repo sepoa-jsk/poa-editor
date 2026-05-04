@@ -3,6 +3,10 @@ import { EditorCore } from '../core/EditorCore.js';
 import { PoaToolbar } from './Toolbar.js';
 import { PoaStatusBar } from './StatusBar.js';
 import type { TextAlign, ToolbarState } from '../core/types.js';
+import { ClipboardHandler } from '../modules/edit/ClipboardHandler.js';
+import { FindReplace } from '../modules/edit/FindReplace.js';
+import type { PoaFindReplaceDialog } from './dialogs/FindReplaceDialog.js';
+import type { PoaImageEditDialog } from './dialogs/ImageEditDialog.js';
 
 const INDENT_STEP_EM = 2;
 const BLOCK_TAGS = new Set(['p', 'div', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'li', 'blockquote', 'pre']);
@@ -16,6 +20,10 @@ export class PoaEditor extends HTMLElement {
 
   /** 마지막으로 contentEl 안에 있던 선택 범위 — select/color-picker 포커스 이탈 후 복원에 사용 */
   private savedRange: Range | null = null;
+  private clipboardHandler!: ClipboardHandler;
+  private findReplace!: FindReplace;
+  private findDialog!: PoaFindReplaceDialog;
+  private imageDialog!: PoaImageEditDialog;
 
   private readonly selectionHandler = (): void => { this.syncToolbar(); };
 
@@ -47,11 +55,15 @@ export class PoaEditor extends HTMLElement {
 </style>
 <poa-toolbar></poa-toolbar>
 <div class="content" role="textbox" aria-multiline="true" spellcheck="true"></div>
-<poa-status-bar></poa-status-bar>`;
+<poa-status-bar></poa-status-bar>
+<poa-find-replace-dialog></poa-find-replace-dialog>
+<poa-image-edit-dialog></poa-image-edit-dialog>`;
 
-    this.toolbar    = this.shadow.querySelector('poa-toolbar')    as PoaToolbar;
-    this.contentEl  = this.shadow.querySelector('.content')       as HTMLDivElement;
-    this.statusBar  = this.shadow.querySelector('poa-status-bar') as PoaStatusBar;
+    this.toolbar     = this.shadow.querySelector('poa-toolbar')           as PoaToolbar;
+    this.contentEl   = this.shadow.querySelector('.content')              as HTMLDivElement;
+    this.statusBar   = this.shadow.querySelector('poa-status-bar')        as PoaStatusBar;
+    this.findDialog  = this.shadow.querySelector('poa-find-replace-dialog') as PoaFindReplaceDialog;
+    this.imageDialog = this.shadow.querySelector('poa-image-edit-dialog') as PoaImageEditDialog;
 
     const placeholder = this.getAttribute('placeholder') ?? '';
     if (placeholder) this.contentEl.dataset.placeholder = placeholder;
@@ -60,8 +72,82 @@ export class PoaEditor extends HTMLElement {
     this.core = new EditorCore({ placeholder, readonly });
     this.core.mount(this.contentEl);
 
+    this.clipboardHandler = new ClipboardHandler(this.contentEl, {
+      onPaste: () => {
+        void this.core.captureHistory('paste');
+        this.statusBar.update(this.contentEl.innerHTML);
+      },
+    });
+    this.clipboardHandler.register();
+
+    this.findReplace = new FindReplace(this.contentEl);
+
     this.shadow.addEventListener('poa-action', (e) => {
       void this.handleAction(e as CustomEvent<{ type: string; value?: string }>);
+    });
+
+    // 찾기/바꾸기 이벤트 처리
+    this.shadow.addEventListener('poa-find-search', (e) => {
+      const { query, caseSensitive, wholeWord } = (e as CustomEvent).detail as {
+        query: string; caseSensitive: boolean; wholeWord: boolean;
+      };
+      const state = this.findReplace.find(query, { caseSensitive, wholeWord });
+      this.findDialog.updateResult(state.count, state.current);
+    });
+    this.shadow.addEventListener('poa-find-next', () => {
+      const state = this.findReplace.next();
+      this.findDialog.updateResult(state.count, state.current);
+    });
+    this.shadow.addEventListener('poa-find-prev', () => {
+      const state = this.findReplace.prev();
+      this.findDialog.updateResult(state.count, state.current);
+    });
+    this.shadow.addEventListener('poa-find-replace', (e) => {
+      const { replacement } = (e as CustomEvent).detail as { replacement: string };
+      const state = this.findReplace.replaceCurrent(replacement);
+      void this.core.captureHistory('replace');
+      this.findDialog.updateResult(state.count, state.current);
+    });
+    this.shadow.addEventListener('poa-find-replace-all', (e) => {
+      const { query, replacement, caseSensitive, wholeWord } = (e as CustomEvent).detail as {
+        query: string; replacement: string; caseSensitive: boolean; wholeWord: boolean;
+      };
+      const count = this.findReplace.replaceAll(query, replacement, { caseSensitive, wholeWord });
+      void this.core.captureHistory('replaceAll');
+      this.findDialog.updateResult(0, -1);
+      this.statusBar.update(this.contentEl.innerHTML);
+      if (count > 0) alert(`${count}개 항목을 바꿨습니다.`);
+    });
+    this.shadow.addEventListener('poa-find-clear', () => {
+      this.findReplace.clearMarks();
+    });
+
+    // 이미지 편집 다이얼로그 결과 처리
+    this.shadow.addEventListener('poa-image-edit-confirm', (e) => {
+      const { original, edited } = (e as CustomEvent).detail as { original: string; edited: string };
+      const imgs = this.contentEl.querySelectorAll<HTMLImageElement>('img');
+      imgs.forEach((img) => {
+        if (img.src === original || img.getAttribute('src') === original) {
+          img.src = edited;
+        }
+      });
+      void this.core.captureHistory('imageEdit');
+    });
+
+    // 이미지 더블클릭 → 이미지 편집 다이얼로그 열기
+    this.contentEl.addEventListener('dblclick', (e) => {
+      const target = e.target as HTMLElement;
+      if (target.tagName === 'IMG') {
+        void this.imageDialog.open((target as HTMLImageElement).src);
+      }
+    });
+
+    // Ctrl+F → 찾기/바꾸기 열기
+    this.contentEl.addEventListener('keydown', (e) => {
+      if ((e.ctrlKey || e.metaKey) && e.key === 'f') {
+        e.preventDefault();
+        this.findDialog.open();
+      }
     });
 
     document.addEventListener('selectionchange', this.selectionHandler);
@@ -84,6 +170,8 @@ export class PoaEditor extends HTMLElement {
 
   disconnectedCallback(): void {
     document.removeEventListener('selectionchange', this.selectionHandler);
+    this.clipboardHandler.unregister();
+    this.findReplace.clearMarks();
     this.core.unmount();
   }
 
@@ -182,6 +270,9 @@ export class PoaEditor extends HTMLElement {
         this.applyInlineStyle('background-color', value ?? '');
         await this.core.captureHistory('backColor');
         break;
+      case 'find-replace':
+        this.findDialog.open();
+        return; // syncToolbar / statusBar 갱신 불필요
     }
 
     this.syncToolbar();
