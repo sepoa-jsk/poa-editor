@@ -121,7 +121,7 @@ poa-editor/
 | S9-S10 | 9-10주 | ClipboardHandler + FindReplace + ImageEditor | ✅ |
 | S11-S13 | 11-13주 | ImageInserter + MultiImageUploader | ✅ |
 | S14-S17 | 14-17주 | TableBuilder + CellMerger + TableNavigator + TableResizer + TableSelector + TableHandle + TableContextMenu + TablePresets + CellSplitDialog | ✅ |
-| S18-S19 | 18-19주 | LinkInserter + BookmarkManager | [ ] |
+| S18-S19 | 18-19주 | LinkInserter + BookmarkManager | ✅ |
 | S20-S22 | 20-22주 | ViewManager (5-Mode) + PageView | [ ] |
 | S23-S24 | 23-24주 | FormatPainter + ListManager + 통합 QA | [ ] |
 | S25-S26 | 25-26주 | 빌드·배포·문서화 | [ ] |

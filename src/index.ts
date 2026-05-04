@@ -8,6 +8,9 @@ export { FindReplace } from './modules/edit/FindReplace.js';
 export { ImageEditor } from './modules/edit/ImageEditor.js';
 export { ImageInserter, ALLOWED_IMG_EXTENSIONS } from './modules/insert/ImageInserter.js';
 export { MultiImageUploader, MULTI_ALLOWED_EXTENSIONS } from './modules/insert/MultiImageUploader.js';
+export { LinkInserter, validateLinkUrl } from './modules/insert/LinkInserter.js';
+export { BookmarkManager } from './modules/insert/BookmarkManager.js';
+export { ImageResizer } from './modules/insert/ImageResizer.js';
 export { TableBuilder } from './modules/table/TableBuilder.js';
 export { CellMerger, buildGridMap } from './modules/table/CellMerger.js';
 export { TableNavigator } from './modules/table/TableNavigator.js';
@@ -26,6 +29,9 @@ export type { FindOptions, FindState } from './modules/edit/FindReplace.js';
 export type { CropRect, RotateDegrees, FlipDirection } from './modules/edit/ImageEditor.js';
 export type { ImageAttributes, UploadConfig } from './modules/insert/ImageInserter.js';
 export type { UploadItem, MultiUploadOptions, ValidationResult } from './modules/insert/MultiImageUploader.js';
+export type { LinkAttributes } from './modules/insert/LinkInserter.js';
+export type { BookmarkEntry } from './modules/insert/BookmarkManager.js';
+export type { ImageResizerCallbacks } from './modules/insert/ImageResizer.js';
 
 import { PoaMenuBar } from './components/MenuBar.js';
 import { PoaContextToolbar } from './components/ContextToolbar.js';
@@ -38,6 +44,8 @@ import { PoaImageEditDialog } from './components/dialogs/ImageEditDialog.js';
 import { PoaImageDialog } from './components/dialogs/ImageDialog.js';
 import { PoaTableDialog } from './components/dialogs/TableDialog.js';
 import { PoaCellSplitDialog } from './components/dialogs/CellSplitDialog.js';
+import { PoaLinkDialog } from './components/dialogs/LinkDialog.js';
+import { PoaImageToolbar } from './components/ImageToolbar.js';
 
 // poa-editor의 connectedCallback 시점에 모든 하위 요소가 이미 정의되어 있어야 한다.
 // poa-editor를 마지막으로 등록하면 shadow.innerHTML 파싱 시 child 요소가 즉시 업그레이드된다.
@@ -51,4 +59,6 @@ if (!customElements.get('poa-image-edit-dialog'))    customElements.define('poa-
 if (!customElements.get('poa-image-dialog'))         customElements.define('poa-image-dialog',         PoaImageDialog);
 if (!customElements.get('poa-table-dialog'))         customElements.define('poa-table-dialog',         PoaTableDialog);
 if (!customElements.get('poa-cell-split-dialog'))    customElements.define('poa-cell-split-dialog',    PoaCellSplitDialog);
+if (!customElements.get('poa-link-dialog'))          customElements.define('poa-link-dialog',          PoaLinkDialog);
+if (!customElements.get('poa-image-toolbar'))        customElements.define('poa-image-toolbar',        PoaImageToolbar);
 if (!customElements.get('poa-editor'))               customElements.define('poa-editor',               PoaEditor);

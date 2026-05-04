@@ -28,6 +28,12 @@ import { TableHandle } from '../modules/table/TableHandle.js';
 import { TableContextMenu } from '../modules/table/TableContextMenu.js';
 import type { TableContextCallbacks } from '../modules/table/TableContextMenu.js';
 import { applyPreset } from '../modules/table/TablePresets.js';
+import { LinkInserter } from '../modules/insert/LinkInserter.js';
+import type { LinkAttributes } from '../modules/insert/LinkInserter.js';
+import { BookmarkManager } from '../modules/insert/BookmarkManager.js';
+import type { PoaLinkDialog } from './dialogs/LinkDialog.js';
+import { ImageResizer } from '../modules/insert/ImageResizer.js';
+import type { PoaImageToolbar } from './ImageToolbar.js';
 
 const INDENT_STEP_EM = 2;
 const BLOCK_TAGS = new Set(['p', 'div', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'li', 'blockquote', 'pre']);
@@ -58,6 +64,13 @@ export class PoaEditor extends HTMLElement {
   private tableSelector!: TableSelector;
   private tableHandle!: TableHandle;
   private tableContextMenu!: TableContextMenu;
+  private linkInserter!: LinkInserter;
+  private bookmarkManager!: BookmarkManager;
+  private linkDialog!: PoaLinkDialog;
+  private imageResizer!: ImageResizer;
+  private imageToolbar!: PoaImageToolbar;
+  private imgContextMenu: HTMLDivElement | null = null;
+  private linkContextMenu: HTMLDivElement | null = null;
   /** 표 컨텍스트 진입 직전 탭 — 표에서 벗어날 때 복귀에 사용 */
   private previousMenuTab: MenuTab = 'edit';
   private inTableContext = false;
@@ -110,7 +123,9 @@ slot[name="content"] { display: contents; }
 <poa-image-dialog></poa-image-dialog>
 <poa-settings-dialog></poa-settings-dialog>
 <poa-table-dialog></poa-table-dialog>
-<poa-cell-split-dialog></poa-cell-split-dialog>`;
+<poa-cell-split-dialog></poa-cell-split-dialog>
+<poa-link-dialog></poa-link-dialog>
+<poa-image-toolbar></poa-image-toolbar>`;
 
     // contentEl을 light DOM(poa-editor의 직계 자식)으로 생성 — Selection API가 정상 작동
     this.contentEl = (this.querySelector('.poa-editor-content') as HTMLDivElement | null)
@@ -141,6 +156,8 @@ slot[name="content"] { display: contents; }
     this.settingsDialog    = this.shadow.querySelector('poa-settings-dialog')     as PoaSettingsDialog;
     this.tableDialog       = this.shadow.querySelector('poa-table-dialog')        as PoaTableDialog;
     this.cellSplitDialog   = this.shadow.querySelector('poa-cell-split-dialog')  as PoaCellSplitDialog;
+    this.linkDialog        = this.shadow.querySelector('poa-link-dialog')        as PoaLinkDialog;
+    this.imageToolbar      = this.shadow.querySelector('poa-image-toolbar')      as PoaImageToolbar;
 
     const placeholder = this.getAttribute('placeholder') ?? '';
     if (placeholder) this.contentEl.dataset.placeholder = placeholder;
@@ -153,7 +170,30 @@ slot[name="content"] { display: contents; }
     });
     this.core.mount(this.contentEl);
 
-    this.imageInserter = new ImageInserter(this.contentEl);
+    this.imageInserter    = new ImageInserter(this.contentEl);
+    this.linkInserter     = new LinkInserter(this.contentEl);
+    this.bookmarkManager  = new BookmarkManager(this.contentEl);
+
+    this.imageResizer = new ImageResizer(this.contentEl, {
+      onActivate: (img) => {
+        this.imageToolbar.show(img);
+      },
+      onResize: (img) => {
+        this.imageToolbar.update(img);
+      },
+      onResizeEnd: () => {
+        void this.core.captureHistory('imageResize');
+        this.statusBar.update(this.contentEl.innerHTML);
+      },
+      onDeactivate: () => {
+        this.imageToolbar.hide();
+        this.hideImgContextMenu();
+      },
+      onContextMenu: (img, x, y) => {
+        this.showImgContextMenu(img, x, y);
+      },
+    });
+    this.imageResizer.attach();
 
     this.fileManager = new FileManager();
     this.autoSave    = new AutoSave();
@@ -278,6 +318,104 @@ slot[name="content"] { display: contents; }
       }
     });
 
+    // 이미지 툴바: 너비/높이 직접 입력
+    this.shadow.addEventListener('poa-img-size-change', (e) => {
+      const { width, height } = (e as CustomEvent).detail as { width: number; height: number };
+      const img = this.imageResizer.getActiveImage();
+      if (!img) return;
+      img.style.width  = `${width}px`;
+      img.style.height = `${height}px`;
+      this.imageResizer.syncOverlay();
+      void this.core.captureHistory('imageResize');
+      this.statusBar.update(this.contentEl.innerHTML);
+    });
+
+    // 이미지 툴바: 원본크기 복원
+    this.shadow.addEventListener('poa-img-reset-size', () => {
+      const img = this.imageResizer.getActiveImage();
+      if (!img) return;
+      img.style.width  = img.naturalWidth  ? `${img.naturalWidth}px`  : '';
+      img.style.height = img.naturalHeight ? `${img.naturalHeight}px` : '';
+      this.imageResizer.syncOverlay();
+      this.imageToolbar.update(img);
+      void this.core.captureHistory('imageResize');
+      this.statusBar.update(this.contentEl.innerHTML);
+    });
+
+    // 하이퍼링크 삽입
+    this.shadow.addEventListener('poa-link-insert', (e) => {
+      const { attrs } = (e as CustomEvent).detail as { attrs: LinkAttributes };
+      try {
+        this.linkInserter.insertLink(attrs);
+        void this.core.captureHistory('insertLink');
+        this.statusBar.update(this.contentEl.innerHTML);
+      } catch { /* validateLinkUrl 실패 — 다이얼로그에서 이미 검증 */ }
+    });
+
+    // 하이퍼링크 수정
+    this.shadow.addEventListener('poa-link-update', (e) => {
+      const { anchor, attrs } = (e as CustomEvent).detail as { anchor: HTMLAnchorElement; attrs: LinkAttributes };
+      try {
+        this.linkInserter.updateLink(anchor, attrs);
+        void this.core.captureHistory('updateLink');
+        this.statusBar.update(this.contentEl.innerHTML);
+      } catch { /* 무시 */ }
+    });
+
+    // 책갈피로 링크 삽입 (#bookmark-id)
+    this.shadow.addEventListener('poa-bookmark-link-insert', (e) => {
+      const { bookmarkId, text } = (e as CustomEvent).detail as { bookmarkId: string; text: string };
+      try {
+        this.linkInserter.insertLink({ href: `#${bookmarkId}`, text, target: '_self' });
+        void this.core.captureHistory('insertBookmarkLink');
+        this.statusBar.update(this.contentEl.innerHTML);
+      } catch { /* 무시 */ }
+    });
+
+    // 책갈피 생성
+    this.shadow.addEventListener('poa-bookmark-create', (e) => {
+      const { label } = (e as CustomEvent).detail as { label: string };
+      this.bookmarkManager.insert(label);
+      void this.core.captureHistory('insertBookmark');
+      this.statusBar.update(this.contentEl.innerHTML);
+      this.linkDialog.setBookmarks(this.bookmarkManager.getAll());
+    });
+
+    // 책갈피 수정
+    this.shadow.addEventListener('poa-bookmark-update', (e) => {
+      const { id, label } = (e as CustomEvent).detail as { id: string; label: string };
+      try {
+        this.bookmarkManager.update(id, label);
+        void this.core.captureHistory('updateBookmark');
+        this.linkDialog.setBookmarks(this.bookmarkManager.getAll());
+      } catch { /* 존재하지 않는 id */ }
+    });
+
+    // 책갈피 삭제
+    this.shadow.addEventListener('poa-bookmark-delete', (e) => {
+      const { id } = (e as CustomEvent).detail as { id: string };
+      this.bookmarkManager.remove(id);
+      void this.core.captureHistory('deleteBookmark');
+      this.statusBar.update(this.contentEl.innerHTML);
+      this.linkDialog.setBookmarks(this.bookmarkManager.getAll());
+    });
+
+    // 날짜·시간 삽입
+    this.shadow.addEventListener('poa-datetime-insert', (e) => {
+      const { text } = (e as CustomEvent).detail as { text: string };
+      const ownerDoc = this.contentEl.ownerDocument;
+      const sel = ownerDoc.getSelection();
+      if (!sel || sel.rangeCount === 0) return;
+      const range = sel.getRangeAt(0);
+      range.deleteContents();
+      range.insertNode(ownerDoc.createTextNode(text));
+      range.collapse(false);
+      sel.removeAllRanges();
+      sel.addRange(range);
+      void this.core.captureHistory('insertDatetime');
+      this.statusBar.update(this.contentEl.innerHTML);
+    });
+
     // 이미지 편집 다이얼로그 결과 처리 (canvas 편집 + 속성 변경)
     this.shadow.addEventListener('poa-image-edit-confirm', (e) => {
       const { original, edited, attrs } = (e as CustomEvent).detail as {
@@ -346,10 +484,10 @@ slot[name="content"] { display: contents; }
       }
     });
 
-    // 이미지 더블클릭 → 편집 다이얼로그 열기 (기존 속성 전달)
+    // 이미지 더블클릭 → 편집 다이얼로그 열기 (리사이즈 핸들 위는 제외)
     this.contentEl.addEventListener('dblclick', (e) => {
       const target = e.target as HTMLElement;
-      if (target.tagName === 'IMG') {
+      if (target.tagName === 'IMG' && !target.dataset.dir) {
         const img = target as HTMLImageElement;
         void this.imageDialog.open(img.src, {
           alt:       img.alt,
@@ -362,6 +500,26 @@ slot[name="content"] { display: contents; }
           className: img.className || undefined,
         });
       }
+    });
+
+    // 하이퍼링크 클릭 → 기본 탐색 차단 + 수정 다이얼로그 열기
+    this.contentEl.addEventListener('click', (e) => {
+      const anchor = (e.target as Element).closest<HTMLAnchorElement>('a[href]:not(.poa-bookmark)');
+      if (!anchor) return;
+      e.preventDefault();
+      this.linkInserter.saveSelection();
+      this.bookmarkManager.saveSelection();
+      this.linkDialog.setBookmarks(this.bookmarkManager.getAll());
+      this.linkDialog.open('link', anchor);
+    });
+
+    // 하이퍼링크 우클릭 → 링크 컨텍스트 메뉴
+    this.contentEl.addEventListener('contextmenu', (e) => {
+      const anchor = (e.target as Element).closest<HTMLAnchorElement>('a[href]:not(.poa-bookmark)');
+      if (!anchor) return;
+      e.preventDefault();
+      e.stopPropagation();
+      this.showLinkContextMenu(anchor, e.clientX, e.clientY);
     });
 
     // Ctrl+F → 찾기/바꾸기 열기
@@ -494,13 +652,19 @@ slot[name="content"] { display: contents; }
     this.tableContextMenu.detach();
     this.tableResizer.detach();
     this.tableHandle.detach();
+    this.imageResizer.detach();
+    this.hideImgContextMenu();
+    this.hideLinkContextMenu();
     this.core.unmount();
   }
 
   // ── Public API ──────────────────────────────────────────────────────────
 
   getHTML(): string {
-    return DOMPurify.sanitize(this.contentEl.innerHTML);
+    // 리사이즈 오버레이 등 data-poa-temp 요소를 클론에서 제거한 뒤 직렬화
+    const clone = this.contentEl.cloneNode(true) as HTMLDivElement;
+    clone.querySelectorAll('[data-poa-temp]').forEach((el) => el.remove());
+    return DOMPurify.sanitize(clone.innerHTML);
   }
 
   setHTML(html: string): void {
@@ -708,6 +872,22 @@ slot[name="content"] { display: contents; }
           await this.core.captureHistory('formatClear');
         } break;
       }
+      case 'insert:link':
+        this.linkInserter.saveSelection();
+        this.bookmarkManager.saveSelection();
+        this.linkDialog.setBookmarks(this.bookmarkManager.getAll());
+        this.linkDialog.open('link');
+        return;
+      case 'insert:bookmark':
+        this.linkInserter.saveSelection();
+        this.bookmarkManager.saveSelection();
+        this.linkDialog.setBookmarks(this.bookmarkManager.getAll());
+        this.linkDialog.open('bookmark');
+        return;
+      case 'insert:datetime':
+        this.linkDialog.open('datetime');
+        return;
+
       case 'format:ul':
       case 'format:ol':
       case 'format:sup':
@@ -717,7 +897,6 @@ slot[name="content"] { display: contents; }
       case 'view:design': case 'view:html': case 'view:preview':
       case 'view:text': case 'view:page': case 'view:fullscreen':
       case 'view:ruler': case 'view:grid':
-      case 'insert:link': case 'insert:bookmark': case 'insert:datetime':
       case 'insert:hr': case 'insert:symbol': case 'insert:multi-image':
       case 'misc:a11y': case 'misc:privacy': case 'misc:form': case 'misc:calc':
       case 'help:shortcuts': case 'help:guide': case 'help:about':
@@ -955,7 +1134,205 @@ slot[name="content"] { display: contents; }
       '  pointer-events: none;',
       '  display: block;',
       '}',
+      /* 하이퍼링크 hover 툴팁 — CSS Popover 방식 */
+      '.poa-editor-content a[href]:not(.poa-bookmark) {',
+      '  position: relative;',
+      '}',
+      '.poa-editor-content a[href]:not(.poa-bookmark)::after {',
+      '  content: attr(href);',
+      '  position: absolute;',
+      '  top: 100%;',
+      '  left: 0;',
+      '  margin-top: 3px;',
+      '  background: #1a1a1a;',
+      '  color: #fff;',
+      '  padding: 3px 8px;',
+      '  border-radius: 3px;',
+      '  font-size: 11px;',
+      '  font-style: normal;',
+      '  text-decoration: none;',
+      '  white-space: nowrap;',
+      '  max-width: 320px;',
+      '  overflow: hidden;',
+      '  text-overflow: ellipsis;',
+      '  opacity: 0;',
+      '  pointer-events: none;',
+      '  transition: opacity 0.15s;',
+      '  z-index: 9999;',
+      '}',
+      '.poa-editor-content a[href]:not(.poa-bookmark):hover::after {',
+      '  opacity: 1;',
+      '}',
+      /* 책갈피 앵커 스타일 */
+      '.poa-editor-content a.poa-bookmark {',
+      '  color: #9e9e9e;',
+      '  font-size: 12px;',
+      '  border: 1px dashed #bdbdbd;',
+      '  border-radius: 2px;',
+      '  padding: 0 3px;',
+      '  cursor: default;',
+      '  user-select: none;',
+      '  -webkit-user-select: none;',
+      '}',
     ].join('\n');
     document.head.appendChild(style);
+  }
+
+  // ── 이미지 컨텍스트 메뉴 ─────────────────────────────────────────────────
+
+  private showImgContextMenu(img: HTMLImageElement, x: number, y: number): void {
+    this.hideImgContextMenu();
+
+    const menu = document.createElement('div');
+    menu.dataset.poaImgMenu = 'true';
+    menu.style.cssText =
+      `position:fixed;top:${y}px;left:${x}px;` +
+      'background:#fff;border:1px solid #ccc;border-radius:4px;' +
+      'box-shadow:0 4px 12px rgba(0,0,0,.2);z-index:9999;' +
+      'padding:4px 0;min-width:150px;font-size:13px;';
+
+    const items: Array<{ label: string; action: () => void; danger?: boolean }> = [
+      {
+        label: '이미지 속성',
+        action: () => {
+          void this.imageDialog.open(img.src, {
+            alt: img.alt, title: img.title || undefined,
+            width: img.style.width || undefined, height: img.style.height || undefined,
+            border: img.style.border || undefined,
+            align: (img.style.float as 'left' | 'right' | '') || undefined,
+            id: img.id || undefined, className: img.className || undefined,
+          });
+        },
+      },
+      {
+        label: '이미지 편집',
+        action: () => { void this.imageDialog.open(img.src, {}); },
+      },
+      {
+        label: '원본 크기로',
+        action: () => {
+          img.style.width  = img.naturalWidth  ? `${img.naturalWidth}px`  : '';
+          img.style.height = img.naturalHeight ? `${img.naturalHeight}px` : '';
+          this.imageResizer.syncOverlay();
+          this.imageToolbar.update(img);
+          void this.core.captureHistory('imageResize');
+        },
+      },
+      {
+        label: '너비 맞춤 (100%)',
+        action: () => {
+          const maxW = this.contentEl.clientWidth;
+          img.style.width  = `${maxW}px`;
+          img.style.height = '';
+          this.imageResizer.syncOverlay();
+          this.imageToolbar.update(img);
+          void this.core.captureHistory('imageResize');
+        },
+      },
+      {
+        label: '이미지 삭제',
+        danger: true,
+        action: () => {
+          this.imageResizer.deactivate();
+          img.remove();
+          void this.core.captureHistory('imageDelete');
+          this.statusBar.update(this.contentEl.innerHTML);
+          this.checkAltWarning();
+        },
+      },
+    ];
+
+    for (const item of items) {
+      const btn = document.createElement('button');
+      btn.textContent = item.label;
+      btn.style.cssText =
+        'display:block;width:100%;padding:6px 14px;border:none;background:transparent;' +
+        `cursor:pointer;text-align:left;font-size:13px;color:${item.danger ? '#d32f2f' : '#222'};`;
+      btn.addEventListener('mouseenter', () => { btn.style.background = '#f5f5f5'; });
+      btn.addEventListener('mouseleave', () => { btn.style.background = 'transparent'; });
+      btn.addEventListener('click', () => { item.action(); this.hideImgContextMenu(); });
+      menu.appendChild(btn);
+    }
+
+    document.body.appendChild(menu);
+    this.imgContextMenu = menu;
+
+    // 외부 클릭 시 닫기
+    const close = (): void => {
+      this.hideImgContextMenu();
+      document.removeEventListener('mousedown', close, { capture: true });
+    };
+    // setTimeout으로 현재 이벤트 루프가 끝난 뒤 등록 (바로 닫히는 것 방지)
+    setTimeout(() => document.addEventListener('mousedown', close, { capture: true, once: true }), 0);
+  }
+
+  private hideImgContextMenu(): void {
+    this.imgContextMenu?.remove();
+    this.imgContextMenu = null;
+  }
+
+  // ── 링크 컨텍스트 메뉴 ──────────────────────────────────────────────────
+
+  private showLinkContextMenu(anchor: HTMLAnchorElement, x: number, y: number): void {
+    this.hideLinkContextMenu();
+
+    const menu = document.createElement('div');
+    menu.dataset.poaLinkMenu = 'true';
+    menu.style.cssText =
+      `position:fixed;top:${y}px;left:${x}px;` +
+      'background:#fff;border:1px solid #ccc;border-radius:4px;' +
+      'box-shadow:0 4px 12px rgba(0,0,0,.2);z-index:9999;' +
+      'padding:4px 0;min-width:140px;font-size:13px;';
+
+    const items: Array<{ label: string; action: () => void; danger?: boolean }> = [
+      {
+        label: '링크 수정',
+        action: () => {
+          this.linkInserter.saveSelection();
+          this.bookmarkManager.saveSelection();
+          this.linkDialog.setBookmarks(this.bookmarkManager.getAll());
+          this.linkDialog.open('link', anchor);
+        },
+      },
+      {
+        label: '링크 제거',
+        danger: true,
+        action: () => {
+          this.linkInserter.removeLink(anchor);
+          void this.core.captureHistory('removeLink');
+          this.statusBar.update(this.contentEl.innerHTML);
+        },
+      },
+      {
+        label: '링크 열기',
+        action: () => {
+          window.open(anchor.href, anchor.target || '_blank', 'noopener,noreferrer');
+        },
+      },
+    ];
+
+    for (const item of items) {
+      const btn = document.createElement('button');
+      btn.textContent = item.label;
+      btn.style.cssText =
+        'display:block;width:100%;padding:6px 14px;border:none;background:transparent;' +
+        `cursor:pointer;text-align:left;font-size:13px;color:${item.danger ? '#d32f2f' : '#222'};`;
+      btn.addEventListener('mouseenter', () => { btn.style.background = '#f5f5f5'; });
+      btn.addEventListener('mouseleave', () => { btn.style.background = 'transparent'; });
+      btn.addEventListener('click', () => { item.action(); this.hideLinkContextMenu(); });
+      menu.appendChild(btn);
+    }
+
+    document.body.appendChild(menu);
+    this.linkContextMenu = menu;
+
+    setTimeout(() => document.addEventListener('mousedown', () => this.hideLinkContextMenu(), {
+      capture: true, once: true,
+    }), 0);
+  }
+
+  private hideLinkContextMenu(): void {
+    this.linkContextMenu?.remove();
+    this.linkContextMenu = null;
   }
 }
