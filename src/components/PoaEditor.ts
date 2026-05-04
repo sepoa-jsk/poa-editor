@@ -5,8 +5,11 @@ import { PoaStatusBar } from './StatusBar.js';
 import type { TextAlign, ToolbarState } from '../core/types.js';
 import { ClipboardHandler } from '../modules/edit/ClipboardHandler.js';
 import { FindReplace } from '../modules/edit/FindReplace.js';
+import { ImageInserter } from '../modules/insert/ImageInserter.js';
+import type { ImageAttributes } from '../modules/insert/ImageInserter.js';
 import type { PoaFindReplaceDialog } from './dialogs/FindReplaceDialog.js';
 import type { PoaImageEditDialog } from './dialogs/ImageEditDialog.js';
+import type { PoaImageDialog } from './dialogs/ImageDialog.js';
 
 const INDENT_STEP_EM = 2;
 const BLOCK_TAGS = new Set(['p', 'div', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'li', 'blockquote', 'pre']);
@@ -22,8 +25,10 @@ export class PoaEditor extends HTMLElement {
   private savedRange: Range | null = null;
   private clipboardHandler!: ClipboardHandler;
   private findReplace!: FindReplace;
+  private imageInserter!: ImageInserter;
   private findDialog!: PoaFindReplaceDialog;
   private imageDialog!: PoaImageEditDialog;
+  private imageInsertDialog!: PoaImageDialog;
 
   private readonly selectionHandler = (): void => { this.syncToolbar(); };
 
@@ -57,13 +62,15 @@ export class PoaEditor extends HTMLElement {
 <div class="content" role="textbox" aria-multiline="true" spellcheck="true"></div>
 <poa-status-bar></poa-status-bar>
 <poa-find-replace-dialog></poa-find-replace-dialog>
-<poa-image-edit-dialog></poa-image-edit-dialog>`;
+<poa-image-edit-dialog></poa-image-edit-dialog>
+<poa-image-dialog></poa-image-dialog>`;
 
     this.toolbar     = this.shadow.querySelector('poa-toolbar')           as PoaToolbar;
     this.contentEl   = this.shadow.querySelector('.content')              as HTMLDivElement;
     this.statusBar   = this.shadow.querySelector('poa-status-bar')        as PoaStatusBar;
-    this.findDialog  = this.shadow.querySelector('poa-find-replace-dialog') as PoaFindReplaceDialog;
-    this.imageDialog = this.shadow.querySelector('poa-image-edit-dialog') as PoaImageEditDialog;
+    this.findDialog        = this.shadow.querySelector('poa-find-replace-dialog') as PoaFindReplaceDialog;
+    this.imageDialog       = this.shadow.querySelector('poa-image-edit-dialog')   as PoaImageEditDialog;
+    this.imageInsertDialog = this.shadow.querySelector('poa-image-dialog')        as PoaImageDialog;
 
     const placeholder = this.getAttribute('placeholder') ?? '';
     if (placeholder) this.contentEl.dataset.placeholder = placeholder;
@@ -71,6 +78,8 @@ export class PoaEditor extends HTMLElement {
     const readonly = this.hasAttribute('readonly');
     this.core = new EditorCore({ placeholder, readonly });
     this.core.mount(this.contentEl);
+
+    this.imageInserter = new ImageInserter(this.contentEl);
 
     this.clipboardHandler = new ClipboardHandler(this.contentEl, {
       onPaste: () => {
@@ -122,23 +131,59 @@ export class PoaEditor extends HTMLElement {
       this.findReplace.clearMarks();
     });
 
-    // 이미지 편집 다이얼로그 결과 처리
+    // 이미지 삽입 다이얼로그 → ImageInserter로 삽입
+    this.shadow.addEventListener('poa-image-insert', (e) => {
+      const { attrs } = (e as CustomEvent).detail as { attrs: ImageAttributes };
+      try {
+        this.imageInserter.insertFromUrl(attrs);
+        void this.core.captureHistory('insertImage');
+        this.statusBar.update(this.contentEl.innerHTML);
+        this.checkAltWarning();
+      } catch {
+        // alt 비어있는 경우 등 — 다이얼로그에서 이미 검증하므로 도달하지 않음
+      }
+    });
+
+    // 이미지 편집 다이얼로그 결과 처리 (canvas 편집 + 속성 변경)
     this.shadow.addEventListener('poa-image-edit-confirm', (e) => {
-      const { original, edited } = (e as CustomEvent).detail as { original: string; edited: string };
+      const { original, edited, attrs } = (e as CustomEvent).detail as {
+        original: string; edited: string; attrs?: Partial<ImageAttributes>;
+      };
       const imgs = this.contentEl.querySelectorAll<HTMLImageElement>('img');
       imgs.forEach((img) => {
         if (img.src === original || img.getAttribute('src') === original) {
-          img.src = edited;
+          if (edited !== original) img.src = edited;
+          if (attrs) {
+            if (attrs.alt   !== undefined) img.alt   = attrs.alt;
+            if (attrs.title !== undefined) img.title = attrs.title;
+            if (attrs.width)  img.style.width  = attrs.width;
+            if (attrs.height) img.style.height = attrs.height;
+            if (attrs.border) img.style.border = attrs.border;
+            if (attrs.align === 'left' || attrs.align === 'right') img.style.float = attrs.align;
+            if (attrs.id)        img.id        = attrs.id;
+            if (attrs.className) img.className = attrs.className;
+          }
         }
       });
       void this.core.captureHistory('imageEdit');
+      this.checkAltWarning();
     });
 
-    // 이미지 더블클릭 → 이미지 편집 다이얼로그 열기
+    // 이미지 더블클릭 → 편집 다이얼로그 열기 (기존 속성 전달)
     this.contentEl.addEventListener('dblclick', (e) => {
       const target = e.target as HTMLElement;
       if (target.tagName === 'IMG') {
-        void this.imageDialog.open((target as HTMLImageElement).src);
+        const img = target as HTMLImageElement;
+        void this.imageDialog.open(img.src, {
+          alt:       img.alt,
+          title:     img.title || undefined,
+          width:     img.style.width || undefined,
+          height:    img.style.height || undefined,
+          border:    img.style.border || undefined,
+          align:     (img.style.float as 'left' | 'right' | '') || undefined,
+          id:        img.id || undefined,
+          className: img.className || undefined,
+        });
       }
     });
 
@@ -272,7 +317,11 @@ export class PoaEditor extends HTMLElement {
         break;
       case 'find-replace':
         this.findDialog.open();
-        return; // syncToolbar / statusBar 갱신 불필요
+        return;
+      case 'image':
+        this.imageInserter.saveSelection();
+        this.imageInsertDialog.open();
+        return;
     }
 
     this.syncToolbar();
@@ -314,6 +363,23 @@ export class PoaEditor extends HTMLElement {
     const current = parseFloat(block.style.paddingLeft) || 0;
     const next = Math.max(0, current + delta * INDENT_STEP_EM);
     block.style.paddingLeft = next === 0 ? '' : `${next}em`;
+  }
+
+  /** alt 없는 이미지가 있으면 경고 배너를 표시 */
+  checkAltWarning(): void {
+    const noAlt = this.contentEl.querySelectorAll('img:not([alt]), img[alt=""]').length > 0;
+    let banner = this.shadow.getElementById('alt-warning-banner');
+    if (noAlt && !banner) {
+      banner = document.createElement('div');
+      banner.id = 'alt-warning-banner';
+      banner.style.cssText =
+        'background:#fff3cd;color:#856404;padding:5px 12px;font-size:12px;' +
+        'border-top:1px solid #ffc107;';
+      banner.textContent = '⚠ alt 텍스트가 없는 이미지가 있습니다. 접근성을 위해 설명을 추가하세요.';
+      this.contentEl.insertAdjacentElement('afterend', banner);
+    } else if (!noAlt && banner) {
+      banner.remove();
+    }
   }
 
   private findBlockAncestor(node: Node | null): Element {

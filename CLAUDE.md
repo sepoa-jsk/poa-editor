@@ -119,7 +119,7 @@ poa-editor/
 | S5-S6 | 5-6주 | `<poa-toolbar>` Web Component + 기본 서식 | ✅ |
 | S7-S8 | 7-8주 | FileManager + AutoSave (IndexedDB) | ✅ |
 | S9-S10 | 9-10주 | ClipboardHandler + FindReplace + ImageEditor | ✅ |
-| S11-S13 | 11-13주 | ImageInserter + MultiImageUploader | [ ] |
+| S11-S13 | 11-13주 | ImageInserter + MultiImageUploader | ✅ |
 | S14-S17 | 14-17주 | TableBuilder + CellMerger + TableNavigator | [ ] |
 | S18-S19 | 18-19주 | LinkInserter + BookmarkManager | [ ] |
 | S20-S22 | 20-22주 | ViewManager (5-Mode) + PageView | [ ] |
