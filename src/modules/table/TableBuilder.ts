@@ -173,7 +173,7 @@ export class TableBuilder {
       else table.removeAttribute('border');
     }
     if (borderColor !== undefined) {
-      const bw = border ?? parseInt(table.getAttribute('border') || '1', 10) || 1;
+      const bw = border ?? (parseInt(table.getAttribute('border') || '1', 10) || 1);
       const bStyle = bw > 0 ? `${bw}px solid ${borderColor}` : 'none';
       for (const cell of Array.from(table.querySelectorAll<HTMLElement>('td, th'))) {
         cell.style.border = bStyle;
