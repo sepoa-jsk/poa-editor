@@ -21,6 +21,11 @@ import type { TableOptions } from '../modules/table/TableBuilder.js';
 import { CellMerger } from '../modules/table/CellMerger.js';
 import { TableNavigator } from '../modules/table/TableNavigator.js';
 import type { TableNavigatorCallbacks } from '../modules/table/TableNavigator.js';
+import { TableResizer } from '../modules/table/TableResizer.js';
+import { TableSelector } from '../modules/table/TableSelector.js';
+import { TableHandle } from '../modules/table/TableHandle.js';
+import { TableContextMenu } from '../modules/table/TableContextMenu.js';
+import type { TableContextCallbacks } from '../modules/table/TableContextMenu.js';
 
 const INDENT_STEP_EM = 2;
 const BLOCK_TAGS = new Set(['p', 'div', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'li', 'blockquote', 'pre']);
@@ -46,6 +51,10 @@ export class PoaEditor extends HTMLElement {
   private tableDialog!: PoaTableDialog;
   private cellMerger!: CellMerger;
   private tableNavigator!: TableNavigator;
+  private tableResizer!: TableResizer;
+  private tableSelector!: TableSelector;
+  private tableHandle!: TableHandle;
+  private tableContextMenu!: TableContextMenu;
   /** 표 컨텍스트 진입 직전 탭 — 표에서 벗어날 때 복귀에 사용 */
   private previousMenuTab: MenuTab = 'edit';
   private inTableContext = false;
@@ -147,21 +156,57 @@ slot[name="content"] { display: contents; }
     this.settingsDialog.setFileManager(this.fileManager);
     this.autoSave.start(() => this.contentEl.innerHTML);
 
+    // ── 표 모듈 초기화 ─────────────────────────────────────────────
     this.cellMerger = new CellMerger();
     this.cellMerger.attach(this.contentEl);
 
+    this.tableSelector = new TableSelector(this.cellMerger);
+    this.tableSelector.attach(this.contentEl);
+
+    const onTableModified = (): void => {
+      void this.core.captureHistory('tableModified');
+      this.statusBar.update(this.contentEl.innerHTML);
+    };
+
     const navCallbacks: TableNavigatorCallbacks = {
-      onMerge: () => this.cellMerger.merge(),
+      onMerge: () => {
+        const cells = this.cellMerger.getSelectedCells();
+        const tbl   = this.cellMerger.getSelectedTable();
+        if (!cells.length || !tbl) return { success: false, message: '선택된 셀이 없습니다.' };
+        const res = CellMerger.mergeCells(cells, tbl);
+        if (res.success) this.cellMerger.clearSelection();
+        return res;
+      },
       onSplitH: (cell, table) => CellMerger.splitCellHorizontal(cell, table),
       onSplitV: (cell, table) => CellMerger.splitCellVertical(cell, table),
       onOpenTableProps: (table) => this.tableDialog.open(table),
-      onModified: () => {
-        void this.core.captureHistory('tableModified');
-        this.statusBar.update(this.contentEl.innerHTML);
-      },
+      onModified: onTableModified,
     };
-    this.tableNavigator = new TableNavigator(navCallbacks);
+    this.tableNavigator = new TableNavigator(navCallbacks, { noMenu: true });
     this.tableNavigator.attach(this.contentEl);
+
+    const ctxCallbacks: TableContextCallbacks = {
+      onMerge:          navCallbacks.onMerge,
+      onSplitH:         navCallbacks.onSplitH,
+      onSplitV:         navCallbacks.onSplitV,
+      onOpenTableProps: navCallbacks.onOpenTableProps,
+      onModified:       onTableModified,
+      canMerge:         () => this.tableSelector.canMerge,
+    };
+    this.tableContextMenu = new TableContextMenu(this.tableNavigator, ctxCallbacks);
+    this.tableContextMenu.attach(this.contentEl);
+
+    this.tableResizer = new TableResizer(onTableModified);
+    this.tableResizer.attach(this.contentEl);
+
+    this.tableHandle = new TableHandle((table) => {
+      // 표 전체 셀 선택
+      this.cellMerger.clearSelection();
+      for (const cell of Array.from(table.querySelectorAll<HTMLTableCellElement>('td, th'))) {
+        cell.classList.add('poa-cell-selected');
+      }
+    });
+    this.tableHandle.attach(this.contentEl);
 
     this.clipboardHandler = new ClipboardHandler(this.contentEl, {
       onPaste: () => {
@@ -269,6 +314,18 @@ slot[name="content"] { display: contents; }
       TableBuilder.applyOptions(table, options);
       void this.core.captureHistory('tableUpdate');
       this.statusBar.update(this.contentEl.innerHTML);
+    });
+
+    // 표 셀 클릭 시 즉시 메뉴바 전환 (selectionchange는 비동기라 mousedown으로 선처리)
+    this.contentEl.addEventListener('mousedown', (e) => {
+      const cell = this.findCellNode(e.target as Node);
+      if (cell && !this.inTableContext) {
+        this.inTableContext = true;
+        eventBus.emit(BusEvent.MENUBAR_CHANGE, { tab: 'table' as MenuTab });
+      } else if (!cell && this.inTableContext) {
+        this.inTableContext = false;
+        eventBus.emit(BusEvent.MENUBAR_CHANGE, { tab: this.previousMenuTab });
+      }
     });
 
     // 이미지 더블클릭 → 편집 다이얼로그 열기 (기존 속성 전달)
@@ -414,7 +471,11 @@ slot[name="content"] { display: contents; }
     this.autoSave.stop();
     this.fileManager.destroy();
     this.cellMerger.detach();
+    this.tableSelector.detach();
     this.tableNavigator.detach();
+    this.tableContextMenu.detach();
+    this.tableResizer.detach();
+    this.tableHandle.detach();
     this.core.unmount();
   }
 
@@ -821,6 +882,20 @@ slot[name="content"] { display: contents; }
       '| startContainer.nodeName:', r.startContainer.nodeName,
       '| inContentEl:', this.contentEl.contains(r.startContainer));
     return r;
+  }
+
+  /** 임의 Node 에서 가장 가까운 td/th 반환 */
+  private findCellNode(node: Node): HTMLTableCellElement | null {
+    let cur: Node | null = node;
+    while (cur && cur !== this.contentEl) {
+      if (cur.nodeType === Node.ELEMENT_NODE) {
+        const tag = (cur as Element).tagName.toLowerCase();
+        if (tag === 'td' || tag === 'th') return cur as HTMLTableCellElement;
+        if (tag === 'table') break;
+      }
+      cur = cur.parentNode;
+    }
+    return null;
   }
 
   /** 커서가 위치한 td/th 반환 — 없으면 null */

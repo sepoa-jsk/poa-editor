@@ -27,9 +27,12 @@ export class TableNavigator {
   private contentEl: HTMLElement | null = null;
   private menuEl: HTMLElement | null = null;
   private readonly cb: TableNavigatorCallbacks;
+  /** true 면 내장 우클릭 메뉴를 표시하지 않는다 (TableContextMenu 가 대신 처리) */
+  private readonly noMenu: boolean;
 
-  constructor(callbacks: TableNavigatorCallbacks = {}) {
+  constructor(callbacks: TableNavigatorCallbacks = {}, options: { noMenu?: boolean } = {}) {
     this.cb = callbacks;
+    this.noMenu = options.noMenu ?? false;
   }
 
   private readonly keydownHandler = (e: KeyboardEvent): void => {
@@ -41,6 +44,7 @@ export class TableNavigator {
   };
 
   private readonly contextmenuHandler = (e: MouseEvent): void => {
+    if (this.noMenu) return;
     const cell = this.findCell(e.target as Node);
     if (!cell) return;
     e.preventDefault();
@@ -440,7 +444,8 @@ export class TableNavigator {
       case 'table:merge':      this.doMerge(ownerDoc);            break;
       case 'table:split-h':    this.doSplitH(cell, table);        break;
       case 'table:split-v':    this.doSplitV(cell, table);        break;
-      case 'table:cell-props': this.showCellPropsModal(cell);     break;
+      case 'table:cell-props':  this.showCellPropsModal(cell);          break;
+      case 'table:table-props': this.cb.onOpenTableProps?.(table);      break;
     }
   }
 

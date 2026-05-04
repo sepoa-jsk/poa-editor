@@ -51,7 +51,11 @@ export class TableBuilder {
     const table = ownerDoc.createElement('table');
 
     // ── 테이블 인라인 스타일 ────────────────────────────────────────
-    const styleMap: Record<string, string> = { 'border-collapse': 'collapse' };
+    const styleMap: Record<string, string> = {
+      'border-collapse': 'collapse',
+      'table-layout':    'fixed',      // 셀 내용에 의한 자동 늘어남 방지
+      'word-break':      'break-word', // 긴 단어 줄바꿈
+    };
     if (width)  styleMap['width']  = width;
     if (height) styleMap['height'] = height;
     if (bgColor) styleMap['background-color'] = bgColor;
@@ -67,6 +71,16 @@ export class TableBuilder {
     }
 
     table.style.cssText = Object.entries(styleMap).map(([k, v]) => `${k}:${v}`).join(';');
+
+    // ── colgroup: table-layout:fixed 에서 열 너비를 균등 배분 ───────
+    const colgroup = ownerDoc.createElement('colgroup');
+    const colWidthPct = (100 / cols).toFixed(4);
+    for (let c = 0; c < cols; c++) {
+      const col = ownerDoc.createElement('col');
+      col.style.width = `${colWidthPct}%`;
+      colgroup.appendChild(col);
+    }
+    table.appendChild(colgroup);
 
     // ── HTML 속성 ──────────────────────────────────────────────────
     if (border > 0) table.setAttribute('border', String(border));
@@ -86,8 +100,8 @@ export class TableBuilder {
 
     // ── 셀 공통 스타일 ─────────────────────────────────────────────
     const cellBase = border > 0
-      ? `border:${border}px solid ${borderColor};padding:4px;min-width:40px;`
-      : 'border:none;padding:4px;min-width:40px;';
+      ? `border:${border}px solid ${borderColor};padding:4px;overflow:hidden;word-break:break-word;`
+      : `border:none;padding:4px;overflow:hidden;word-break:break-word;`;
     const headerStyle = cellBase + 'background:#f5f5f5;font-weight:bold;';
 
     // ── THEAD (상단 헤더) ──────────────────────────────────────────
@@ -144,6 +158,8 @@ export class TableBuilder {
       caption, captionVisible, summary,
     } = options;
 
+    table.style.tableLayout = 'fixed';
+    table.style.wordBreak   = 'break-word';
     if (width !== undefined)  table.style.width  = width;
     if (height !== undefined) table.style.height = height || '';
     if (bgColor !== undefined) table.style.backgroundColor = bgColor || '';

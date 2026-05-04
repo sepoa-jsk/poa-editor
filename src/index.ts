@@ -11,9 +11,14 @@ export { MultiImageUploader, MULTI_ALLOWED_EXTENSIONS } from './modules/insert/M
 export { TableBuilder } from './modules/table/TableBuilder.js';
 export { CellMerger, buildGridMap } from './modules/table/CellMerger.js';
 export { TableNavigator } from './modules/table/TableNavigator.js';
+export { TableResizer } from './modules/table/TableResizer.js';
+export { TableSelector } from './modules/table/TableSelector.js';
+export { TableHandle } from './modules/table/TableHandle.js';
+export { TableContextMenu } from './modules/table/TableContextMenu.js';
 export type { TableOptions, HeaderPosition } from './modules/table/TableBuilder.js';
 export type { GridCell, CellProperties, MergeResult } from './modules/table/CellMerger.js';
 export type { TableNavigatorCallbacks } from './modules/table/TableNavigator.js';
+export type { TableContextCallbacks } from './modules/table/TableContextMenu.js';
 export type { FindOptions, FindState } from './modules/edit/FindReplace.js';
 export type { CropRect, RotateDegrees, FlipDirection } from './modules/edit/ImageEditor.js';
 export type { ImageAttributes, UploadConfig } from './modules/insert/ImageInserter.js';

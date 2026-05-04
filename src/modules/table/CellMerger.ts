@@ -109,6 +109,26 @@ export class CellMerger {
   getSelectedCells(): HTMLTableCellElement[] { return Array.from(this.selectedCells); }
   getSelectedTable(): HTMLTableElement | null { return this.currentTable; }
 
+  /** TableSelector 에서 드래그 도중 범위를 확장할 때 호출 */
+  selectTo(target: HTMLTableCellElement): void {
+    if (!this.anchorCell) {
+      this.clearSelection();
+      this.anchorCell   = target;
+      this.currentTable = target.closest('table') as HTMLTableElement | null;
+      this.selectCell(target);
+    } else {
+      this.selectRange(this.anchorCell, target);
+    }
+  }
+
+  /** 드래그 시작 셀을 앵커로 지정 (clearSelection 포함) */
+  setAnchor(cell: HTMLTableCellElement): void {
+    this.clearSelection();
+    this.currentTable = cell.closest('table') as HTMLTableElement | null;
+    this.anchorCell   = cell;
+    this.selectCell(cell);
+  }
+
   clearSelection(): void {
     for (const cell of this.selectedCells) cell.classList.remove('poa-cell-selected');
     this.selectedCells.clear();
@@ -394,7 +414,11 @@ export class CellMerger {
     CellMerger._stylesInjected = true;
     const s = ownerDoc.createElement('style');
     s.id = 'poa-cell-merger-styles';
-    s.textContent = '.poa-cell-selected{outline:2px solid #1565c0!important;background:rgba(21,101,192,0.08)!important;}';
+    s.textContent = [
+      '.poa-cell-selected{outline:2px solid #1565c0!important;background:rgba(21,101,192,0.12)!important;}',
+      '.poa-cell-sel-ok{outline:2px solid #2e7d32!important;background:rgba(46,125,50,0.12)!important;}',
+      '.poa-cell-sel-bad{outline:2px solid #c62828!important;background:rgba(198,40,40,0.10)!important;}',
+    ].join('');
     ownerDoc.head.appendChild(s);
   }
 }
