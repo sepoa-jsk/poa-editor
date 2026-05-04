@@ -417,6 +417,33 @@ export class TableNavigator {
     });
   }
 
+  // ── Public action dispatcher (컨텍스트 툴바에서 호출) ────────────
+
+  /**
+   * 컨텍스트 툴바 버튼 클릭 시 PoaEditor가 호출한다.
+   * action 문자열로 내부 private 메서드를 분기한다.
+   */
+  executeAction(
+    action: string,
+    cell: HTMLTableCellElement,
+    table: HTMLTableElement,
+  ): void {
+    const ownerDoc = cell.ownerDocument;
+    switch (action) {
+      case 'table:row-above':  this.insertRowAbove(cell, table);  break;
+      case 'table:row-below':  this.insertRowBelow(cell, table);  break;
+      case 'table:col-left':   this.insertColLeft(cell, table);   break;
+      case 'table:col-right':  this.insertColRight(cell, table);  break;
+      case 'table:row-delete': this.deleteRow(cell, table);       break;
+      case 'table:col-delete': this.deleteCol(cell, table);       break;
+      case 'table:delete':     this.deleteTable(table);           break;
+      case 'table:merge':      this.doMerge(ownerDoc);            break;
+      case 'table:split-h':    this.doSplitH(cell, table);        break;
+      case 'table:split-v':    this.doSplitV(cell, table);        break;
+      case 'table:cell-props': this.showCellPropsModal(cell);     break;
+    }
+  }
+
   // ── Utilities ────────────────────────────────────────────────────
 
   private findCell(node: Node): HTMLTableCellElement | null {

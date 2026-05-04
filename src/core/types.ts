@@ -32,6 +32,9 @@ export type FormatName = keyof typeof FORMAT_TAG_MAP;
 /** 텍스트 정렬 타입 */
 export type TextAlign = 'left' | 'center' | 'right' | 'justify';
 
+/** 메뉴바 탭 ID */
+export type MenuTab = 'file' | 'edit' | 'insert' | 'view' | 'table' | 'format' | 'misc' | 'help';
+
 /** 툴바 상태 스냅샷 — selectionchange 시 PoaEditor가 계산하여 toolbar.setState()에 전달 */
 export interface ToolbarState {
   bold: boolean;
@@ -47,4 +50,6 @@ export interface ToolbarState {
   letterSpacing: string;
   foreColor: string;
   backColor: string;
+  /** 커서가 표 셀 안에 있으면 true — 컨텍스트 툴바 자동 전환에 사용 */
+  inTable: boolean;
 }

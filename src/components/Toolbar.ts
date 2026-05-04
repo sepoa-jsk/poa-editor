@@ -136,38 +136,6 @@ const HTML = `
     <button class="btn" id="btn-undo" title="실행 취소 (Ctrl+Z)">↩</button>
     <button class="btn" id="btn-redo" title="다시 실행 (Ctrl+Y)">↪</button>
   </div>
-  <div class="sep"></div>
-  <div class="group">
-    <button class="btn" id="btn-table" title="표 삽입">
-      <svg width="15" height="13" viewBox="0 0 15 13" fill="none" stroke="currentColor" stroke-width="1.3">
-        <rect x="0.65" y="0.65" width="13.7" height="11.7" rx="1"/>
-        <line x1="0.65" y1="4.3" x2="14.35" y2="4.3"/>
-        <line x1="0.65" y1="8.0" x2="14.35" y2="8.0"/>
-        <line x1="5.0" y1="0.65" x2="5.0" y2="12.35"/>
-        <line x1="10.0" y1="0.65" x2="10.0" y2="12.35"/>
-      </svg>
-    </button>
-    <button class="btn" id="btn-image" title="이미지 삽입">
-      <svg width="16" height="14" viewBox="0 0 16 14" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round">
-        <rect x="0.75" y="0.75" width="14.5" height="12.5" rx="1"/>
-        <circle cx="5" cy="4.5" r="1.5" fill="currentColor" stroke="none"/>
-        <polyline points="1,12.5 5.5,7.5 8.5,10.5 11,7.5 15.25,12.5"/>
-      </svg>
-    </button>
-    <button class="btn" id="btn-find" title="찾기/바꾸기 (Ctrl+F)">
-      <svg width="15" height="15" viewBox="0 0 15 15" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round">
-        <circle cx="6" cy="6" r="5"/>
-        <line x1="10" y1="10" x2="14" y2="14"/>
-      </svg>
-    </button>
-    <button class="btn" id="btn-settings" title="파일 관리 / 자동저장">
-      <svg width="15" height="12" viewBox="0 0 15 12" fill="currentColor">
-        <rect x="0" y="0" width="15" height="2" rx="1"/>
-        <rect x="0" y="5" width="15" height="2" rx="1"/>
-        <rect x="0" y="10" width="15" height="2" rx="1"/>
-      </svg>
-    </button>
-  </div>
 </div>
 `;
 
@@ -278,10 +246,6 @@ export class PoaToolbar extends HTMLElement {
     s.getElementById('btn-outdent')?.addEventListener('mousedown', (e) => { e.preventDefault(); dispatch('outdent'); });
     s.getElementById('btn-undo')?.addEventListener('mousedown', (e) => { e.preventDefault(); dispatch('undo'); });
     s.getElementById('btn-redo')?.addEventListener('mousedown', (e) => { e.preventDefault(); dispatch('redo'); });
-    s.getElementById('btn-table')?.addEventListener('mousedown', (e) => { e.preventDefault(); dispatch('table'); });
-    s.getElementById('btn-image')?.addEventListener('mousedown', (e) => { e.preventDefault(); dispatch('image'); });
-    s.getElementById('btn-find')?.addEventListener('mousedown', (e) => { e.preventDefault(); dispatch('find-replace'); });
-    s.getElementById('btn-settings')?.addEventListener('mousedown', (e) => { e.preventDefault(); dispatch('settings'); });
 
     (s.getElementById('sel-family') as HTMLSelectElement).addEventListener('change', (e) => {
       dispatch('fontFamily', (e.target as HTMLSelectElement).value);

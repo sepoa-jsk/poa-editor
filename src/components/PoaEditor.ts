@@ -2,8 +2,9 @@ import DOMPurify from 'dompurify';
 import { EditorCore } from '../core/EditorCore.js';
 import { PoaToolbar } from './Toolbar.js';
 import { PoaStatusBar } from './StatusBar.js';
-import type { TextAlign, ToolbarState, FormatName } from '../core/types.js';
+import type { TextAlign, ToolbarState, FormatName, MenuTab } from '../core/types.js';
 import { FORMAT_TAG_MAP } from '../core/types.js';
+import { eventBus, BusEvent } from '../utils/eventBus.js';
 import { ClipboardHandler } from '../modules/edit/ClipboardHandler.js';
 import { FindReplace } from '../modules/edit/FindReplace.js';
 import { ImageInserter } from '../modules/insert/ImageInserter.js';
@@ -45,6 +46,9 @@ export class PoaEditor extends HTMLElement {
   private tableDialog!: PoaTableDialog;
   private cellMerger!: CellMerger;
   private tableNavigator!: TableNavigator;
+  /** 표 컨텍스트 진입 직전 탭 — 표에서 벗어날 때 복귀에 사용 */
+  private previousMenuTab: MenuTab = 'edit';
+  private inTableContext = false;
 
   /**
    * 커서만 있을 때 설정한 인라인 스타일 — 다음 키 입력 시 span으로 감싸 적용.
@@ -84,6 +88,8 @@ export class PoaEditor extends HTMLElement {
 }
 slot[name="content"] { display: contents; }
 </style>
+<poa-menubar></poa-menubar>
+<poa-context-toolbar></poa-context-toolbar>
 <poa-toolbar></poa-toolbar>
 <slot name="content"></slot>
 <poa-status-bar></poa-status-bar>
@@ -392,6 +398,11 @@ slot[name="content"] { display: contents; }
       void this.core.captureHistory('autoSaveRestore');
     });
 
+    // 사용자가 직접 메뉴 탭을 클릭할 때 previousMenuTab 갱신 (표 탭 제외)
+    eventBus.on<{ tab: MenuTab }>(BusEvent.MENUBAR_CHANGE, ({ tab }) => {
+      if (tab !== 'table') this.previousMenuTab = tab;
+    });
+
     this.statusBar.update(this.contentEl.innerHTML);
     this.syncToolbar();
   }
@@ -538,6 +549,96 @@ slot[name="content"] { display: contents; }
       case 'settings':
         void this.settingsDialog.show();
         return;
+
+      // ── 파일 탭 액션 ─────────────────────────────────────────────
+      case 'file:new':
+        if (this.fileManager.isDirty() && !confirm('저장되지 않은 변경사항이 있습니다. 계속할까요?')) return;
+        this.fileManager.newDocument(); this.setHTML('');
+        void this.core.captureHistory('fileNew'); return;
+      case 'file:open':
+        void this.fileManager.openFile().then((file) => {
+          if (!file) return;
+          this.setHTML(file.html);
+          void this.core.captureHistory('fileOpen');
+        }); return;
+      case 'file:save':
+        void this.fileManager.saveFile(this.getHTML()); return;
+      case 'file:saveas':
+        void this.fileManager.saveAsFile(this.getHTML()); return;
+      case 'file:print':
+        window.print(); return;
+
+      // ── 편집 탭 액션 ─────────────────────────────────────────────
+      case 'edit:cut':
+        document.execCommand('cut'); return;
+      case 'edit:copy':
+        document.execCommand('copy'); return;
+      case 'edit:paste':
+        void navigator.clipboard.readText().then((text) => {
+          this.restoreSelection();
+          document.execCommand('insertText', false, text);
+        }); return;
+      case 'edit:paste-plain': {
+        const sel = this.contentEl.ownerDocument.getSelection();
+        if (sel?.rangeCount) {
+          void navigator.clipboard.readText().then((text) => {
+            this.restoreSelection();
+            document.execCommand('insertText', false, text);
+          });
+        } return;
+      }
+      case 'edit:select-all':
+        this.contentEl.focus();
+        this.contentEl.ownerDocument.execCommand('selectAll'); return;
+
+      // ── 표 탭 액션 ───────────────────────────────────────────────
+      case 'table:table-props': {
+        const t = this.getFocusedTable();
+        if (t) this.tableDialog.open(t); return;
+      }
+      case 'table:cell-props':
+      case 'table:merge':
+      case 'table:split-h':
+      case 'table:split-v':
+      case 'table:row-above':
+      case 'table:row-below':
+      case 'table:col-left':
+      case 'table:col-right':
+      case 'table:row-delete':
+      case 'table:col-delete':
+      case 'table:delete': {
+        const cell = this.getFocusedCell();
+        const tbl  = cell?.closest('table') as HTMLTableElement | null;
+        if (cell && tbl) this.tableNavigator.executeAction(type, cell, tbl);
+        return;
+      }
+
+      // ── 서식 탭 액션 (스텁) ──────────────────────────────────────
+      case 'format:clear': {
+        const sel2 = this.contentEl.ownerDocument.getSelection();
+        if (sel2?.rangeCount) {
+          const range2 = sel2.getRangeAt(0);
+          const text = range2.toString();
+          range2.deleteContents();
+          range2.insertNode(this.contentEl.ownerDocument.createTextNode(text));
+          await this.core.captureHistory('formatClear');
+        } break;
+      }
+      case 'format:ul':
+      case 'format:ol':
+      case 'format:sup':
+      case 'format:sub':
+      case 'format:painter-copy':
+      case 'format:painter-paste':
+      case 'view:design': case 'view:html': case 'view:preview':
+      case 'view:text': case 'view:page': case 'view:fullscreen':
+      case 'view:ruler': case 'view:grid':
+      case 'insert:link': case 'insert:bookmark': case 'insert:datetime':
+      case 'insert:hr': case 'insert:symbol': case 'insert:multi-image':
+      case 'misc:a11y': case 'misc:privacy': case 'misc:form': case 'misc:calc':
+      case 'help:shortcuts': case 'help:guide': case 'help:about':
+        alert(`'${type}' 기능은 준비 중입니다.`);
+        return;
     }
 
     this.syncToolbar();
@@ -637,6 +738,16 @@ slot[name="content"] { display: contents; }
       return;
     }
 
+    // 표 컨텍스트 자동 전환
+    const inTable = this.getFocusedCell() !== null;
+    if (inTable && !this.inTableContext) {
+      this.inTableContext = true;
+      eventBus.emit(BusEvent.MENUBAR_CHANGE, { tab: 'table' as MenuTab });
+    } else if (!inTable && this.inTableContext) {
+      this.inTableContext = false;
+      eventBus.emit(BusEvent.MENUBAR_CHANGE, { tab: this.previousMenuTab });
+    }
+
     // selectionchange가 올 때마다 최신 범위를 보관 (blur보다 먼저 저장됨)
     this.savedRange = range;
 
@@ -655,6 +766,7 @@ slot[name="content"] { display: contents; }
       letterSpacing: this.getInlineStyle(anchor, 'letter-spacing') || '0px',
       foreColor:    this.rgbToHex(this.getComputedStyle(anchor, 'color')) || '#000000',
       backColor:    '#ffff00',
+      inTable,
     };
 
     console.log('[syncToolbar] → setState (canUndo:', canUndo, ')');
@@ -709,6 +821,27 @@ slot[name="content"] { display: contents; }
       '| startContainer.nodeName:', r.startContainer.nodeName,
       '| inContentEl:', this.contentEl.contains(r.startContainer));
     return r;
+  }
+
+  /** 커서가 위치한 td/th 반환 — 없으면 null */
+  private getFocusedCell(): HTMLTableCellElement | null {
+    const range = this.getActualRange();
+    if (!range) return null;
+    let node: Node | null = range.startContainer;
+    while (node && node !== this.contentEl) {
+      if (node.nodeType === Node.ELEMENT_NODE) {
+        const tag = (node as Element).tagName.toLowerCase();
+        if (tag === 'td' || tag === 'th') return node as HTMLTableCellElement;
+        if (tag === 'table') break;
+      }
+      node = node.parentNode;
+    }
+    return null;
+  }
+
+  /** 커서가 위치한 테이블 반환 — 없으면 null */
+  private getFocusedTable(): HTMLTableElement | null {
+    return this.getFocusedCell()?.closest('table') as HTMLTableElement | null ?? null;
   }
 
   private static _stylesInjected = false;

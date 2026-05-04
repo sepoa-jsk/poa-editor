@@ -1,5 +1,5 @@
 export { EditorCore } from './core/EditorCore.js';
-export type { EditorConfig, Command, FormatTag, TextAlign, ToolbarState, FormatName } from './core/types.js';
+export type { EditorConfig, Command, FormatTag, TextAlign, ToolbarState, FormatName, MenuTab } from './core/types.js';
 export { HistoryManager } from './core/history/HistoryManager.js';
 export { Snapshot } from './core/history/Snapshot.js';
 export { FormatCommand } from './core/commands/FormatCommand.js';
@@ -19,6 +19,8 @@ export type { CropRect, RotateDegrees, FlipDirection } from './modules/edit/Imag
 export type { ImageAttributes, UploadConfig } from './modules/insert/ImageInserter.js';
 export type { UploadItem, MultiUploadOptions, ValidationResult } from './modules/insert/MultiImageUploader.js';
 
+import { PoaMenuBar } from './components/MenuBar.js';
+import { PoaContextToolbar } from './components/ContextToolbar.js';
 import { PoaToolbar } from './components/Toolbar.js';
 import { PoaEditor } from './components/PoaEditor.js';
 import { PoaStatusBar } from './components/StatusBar.js';
@@ -30,6 +32,8 @@ import { PoaTableDialog } from './components/dialogs/TableDialog.js';
 
 // poa-editor의 connectedCallback 시점에 모든 하위 요소가 이미 정의되어 있어야 한다.
 // poa-editor를 마지막으로 등록하면 shadow.innerHTML 파싱 시 child 요소가 즉시 업그레이드된다.
+if (!customElements.get('poa-menubar'))              customElements.define('poa-menubar',              PoaMenuBar);
+if (!customElements.get('poa-context-toolbar'))      customElements.define('poa-context-toolbar',      PoaContextToolbar);
 if (!customElements.get('poa-toolbar'))              customElements.define('poa-toolbar',              PoaToolbar);
 if (!customElements.get('poa-status-bar'))           customElements.define('poa-status-bar',           PoaStatusBar);
 if (!customElements.get('poa-settings-dialog'))      customElements.define('poa-settings-dialog',      PoaSettingsDialog);

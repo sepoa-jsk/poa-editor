@@ -28,4 +28,6 @@ export const BusEvent = {
   FILE_DIRTY:  'file:dirty',    // payload: boolean
   AUTOSAVE_SAVED:    'autosave:saved',    // payload: { savedAt: number }
   AUTOSAVE_RESTORED: 'autosave:restored', // payload: { html: string }
+  /** 메뉴바 탭 변경 — payload: { tab: MenuTab } */
+  MENUBAR_CHANGE: 'menubar:change',
 } as const;
