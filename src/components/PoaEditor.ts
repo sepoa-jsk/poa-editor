@@ -14,6 +14,11 @@ import type { PoaFindReplaceDialog } from './dialogs/FindReplaceDialog.js';
 import type { PoaImageEditDialog } from './dialogs/ImageEditDialog.js';
 import type { PoaImageDialog } from './dialogs/ImageDialog.js';
 import type { PoaSettingsDialog } from './dialogs/SettingsDialog.js';
+import type { PoaTableDialog } from './dialogs/TableDialog.js';
+import { TableBuilder } from '../modules/table/TableBuilder.js';
+import type { TableOptions } from '../modules/table/TableBuilder.js';
+import { CellMerger } from '../modules/table/CellMerger.js';
+import { TableNavigator } from '../modules/table/TableNavigator.js';
 
 const INDENT_STEP_EM = 2;
 const BLOCK_TAGS = new Set(['p', 'div', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'li', 'blockquote', 'pre']);
@@ -36,6 +41,9 @@ export class PoaEditor extends HTMLElement {
   private imageDialog!: PoaImageEditDialog;
   private imageInsertDialog!: PoaImageDialog;
   private settingsDialog!: PoaSettingsDialog;
+  private tableDialog!: PoaTableDialog;
+  private cellMerger!: CellMerger;
+  private tableNavigator!: TableNavigator;
 
   /**
    * 커서만 있을 때 설정한 인라인 스타일 — 다음 키 입력 시 span으로 감싸 적용.
@@ -81,7 +89,8 @@ slot[name="content"] { display: contents; }
 <poa-find-replace-dialog></poa-find-replace-dialog>
 <poa-image-edit-dialog></poa-image-edit-dialog>
 <poa-image-dialog></poa-image-dialog>
-<poa-settings-dialog></poa-settings-dialog>`;
+<poa-settings-dialog></poa-settings-dialog>
+<poa-table-dialog></poa-table-dialog>`;
 
     // contentEl을 light DOM(poa-editor의 직계 자식)으로 생성 — Selection API가 정상 작동
     this.contentEl = (this.querySelector('.poa-editor-content') as HTMLDivElement | null)
@@ -110,6 +119,7 @@ slot[name="content"] { display: contents; }
     this.imageDialog       = this.shadow.querySelector('poa-image-edit-dialog')   as PoaImageEditDialog;
     this.imageInsertDialog = this.shadow.querySelector('poa-image-dialog')        as PoaImageDialog;
     this.settingsDialog    = this.shadow.querySelector('poa-settings-dialog')     as PoaSettingsDialog;
+    this.tableDialog       = this.shadow.querySelector('poa-table-dialog')        as PoaTableDialog;
 
     const placeholder = this.getAttribute('placeholder') ?? '';
     if (placeholder) this.contentEl.dataset.placeholder = placeholder;
@@ -129,6 +139,12 @@ slot[name="content"] { display: contents; }
     this.settingsDialog.setAutoSave(this.autoSave);
     this.settingsDialog.setFileManager(this.fileManager);
     this.autoSave.start(() => this.contentEl.innerHTML);
+
+    this.cellMerger = new CellMerger();
+    this.cellMerger.attach(this.contentEl);
+
+    this.tableNavigator = new TableNavigator();
+    this.tableNavigator.attach(this.contentEl);
 
     this.clipboardHandler = new ClipboardHandler(this.contentEl, {
       onPaste: () => {
@@ -218,6 +234,16 @@ slot[name="content"] { display: contents; }
       });
       void this.core.captureHistory('imageEdit');
       this.checkAltWarning();
+    });
+
+    // 표 삽입 다이얼로그 → TableBuilder로 삽입
+    this.shadow.addEventListener('poa-table-insert', (e) => {
+      const { options } = (e as CustomEvent).detail as { options: TableOptions };
+      const table = TableBuilder.build(options, this.contentEl.ownerDocument);
+      this.restoreSelection();
+      TableBuilder.insert(table, this.contentEl);
+      void this.core.captureHistory('insertTable');
+      this.statusBar.update(this.contentEl.innerHTML);
     });
 
     // 이미지 더블클릭 → 편집 다이얼로그 열기 (기존 속성 전달)
@@ -357,6 +383,8 @@ slot[name="content"] { display: contents; }
     this.findReplace.clearMarks();
     this.autoSave.stop();
     this.fileManager.destroy();
+    this.cellMerger.detach();
+    this.tableNavigator.detach();
     this.core.unmount();
   }
 
@@ -484,6 +512,9 @@ slot[name="content"] { display: contents; }
       case 'image':
         this.imageInserter.saveSelection();
         this.imageInsertDialog.open();
+        return;
+      case 'table':
+        this.tableDialog.open();
         return;
       case 'settings':
         void this.settingsDialog.show();

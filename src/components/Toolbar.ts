@@ -138,6 +138,15 @@ const HTML = `
   </div>
   <div class="sep"></div>
   <div class="group">
+    <button class="btn" id="btn-table" title="표 삽입">
+      <svg width="15" height="13" viewBox="0 0 15 13" fill="none" stroke="currentColor" stroke-width="1.3">
+        <rect x="0.65" y="0.65" width="13.7" height="11.7" rx="1"/>
+        <line x1="0.65" y1="4.3" x2="14.35" y2="4.3"/>
+        <line x1="0.65" y1="8.0" x2="14.35" y2="8.0"/>
+        <line x1="5.0" y1="0.65" x2="5.0" y2="12.35"/>
+        <line x1="10.0" y1="0.65" x2="10.0" y2="12.35"/>
+      </svg>
+    </button>
     <button class="btn" id="btn-image" title="이미지 삽입">
       <svg width="16" height="14" viewBox="0 0 16 14" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round">
         <rect x="0.75" y="0.75" width="14.5" height="12.5" rx="1"/>
@@ -269,6 +278,7 @@ export class PoaToolbar extends HTMLElement {
     s.getElementById('btn-outdent')?.addEventListener('mousedown', (e) => { e.preventDefault(); dispatch('outdent'); });
     s.getElementById('btn-undo')?.addEventListener('mousedown', (e) => { e.preventDefault(); dispatch('undo'); });
     s.getElementById('btn-redo')?.addEventListener('mousedown', (e) => { e.preventDefault(); dispatch('redo'); });
+    s.getElementById('btn-table')?.addEventListener('mousedown', (e) => { e.preventDefault(); dispatch('table'); });
     s.getElementById('btn-image')?.addEventListener('mousedown', (e) => { e.preventDefault(); dispatch('image'); });
     s.getElementById('btn-find')?.addEventListener('mousedown', (e) => { e.preventDefault(); dispatch('find-replace'); });
     s.getElementById('btn-settings')?.addEventListener('mousedown', (e) => { e.preventDefault(); dispatch('settings'); });
