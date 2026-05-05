@@ -122,20 +122,24 @@ export function formatResult(
  * - 계산식을 결과 셀의 data-formula 속성에 직렬화하여 저장
  * - MutationObserver로 셀 변경을 감지하고 자동 재계산
  * - 표당 Observer 1개만 등록 (중복 방지)
+ * - DOM 쓰기 전 disconnect / 쓰기 후 reconnect 로 무한 루프 방지
  */
 export class TableFormulaManager {
-  private observers   = new Map<string, MutationObserver>();
-  private recalcSet   = new Set<string>(); // 재진입 방지
+  private observers = new Map<string, MutationObserver>();
+
+  private static readonly OBS_CONFIG: MutationObserverInit = {
+    subtree: true,
+    characterData: true,
+    childList: true,
+  };
 
   /** 표에 MutationObserver 등록 (이미 등록됐으면 무시) */
   attach(table: HTMLTableElement): void {
     const id = ensureTableId(table);
     if (this.observers.has(id)) return;
 
-    const obs = new MutationObserver(() => {
-      if (!this.recalcSet.has(id)) this.recalculateTable(table);
-    });
-    obs.observe(table, { subtree: true, characterData: true, childList: true });
+    const obs = new MutationObserver(() => this.recalculateTable(table));
+    obs.observe(table, TableFormulaManager.OBS_CONFIG);
     this.observers.set(id, obs);
   }
 
@@ -163,36 +167,48 @@ export class TableFormulaManager {
     const targetCell = getCellAt(table, formula.targetRow, formula.targetCol);
     if (!targetCell) return 'invalid';
 
+    const obs = this.observers.get(ensureTableId(table));
+
     if (isCircularRef(formula)) {
-      targetCell.textContent    = '#REF!';
-      targetCell.style.color    = '#DC2626';
+      obs?.disconnect();
+      targetCell.textContent     = '#REF!';
+      targetCell.style.color     = '#DC2626';
       targetCell.dataset.formula = JSON.stringify(formula);
+      obs?.observe(table, TableFormulaManager.OBS_CONFIG);
       return 'circular';
     }
 
-    const id = ensureTableId(table);
-    this.recalcSet.add(id);
-    try {
-      const [sr, sc, er, ec] = formula.range;
-      const values    = extractRangeValues(table, sr, sc, er, ec, targetCell);
-      const result    = calculate(formula.fn, values);
-      const formatted = formatResult(result, formula.format, formula.decimalPlaces);
+    const [sr, sc, er, ec] = formula.range;
 
+    // 범위 유효성 검사
+    const rows = table.querySelectorAll('tr');
+    if (sr < 1 || er > rows.length || sc < 1) return 'invalid';
+
+    const values    = extractRangeValues(table, sr, sc, er, ec, targetCell);
+    const result    = calculate(formula.fn, values);
+    const formatted = formatResult(result, formula.format, formula.decimalPlaces);
+
+    // Observer를 일시 해제한 상태에서 DOM 쓰기 → 콜백 미발생
+    obs?.disconnect();
+    try {
       targetCell.textContent     = formatted;
       targetCell.dataset.formula = JSON.stringify(formula);
       if (formula.style?.backgroundColor) targetCell.style.backgroundColor = formula.style.backgroundColor;
       if (formula.style?.color)           targetCell.style.color           = formula.style.color;
-      return 'ok';
     } finally {
-      this.recalcSet.delete(id);
+      obs?.observe(table, TableFormulaManager.OBS_CONFIG);
     }
+
+    return 'ok';
   }
 
   /** 표 내 data-formula 셀을 모두 재계산한다 */
   recalculateTable(table: HTMLTableElement): void {
-    const id = ensureTableId(table);
-    if (this.recalcSet.has(id)) return;
-    this.recalcSet.add(id);
+    const id  = ensureTableId(table);
+    const obs = this.observers.get(id);
+
+    // DOM 쓰기 전 감지 중단 → 재진입·무한 루프 원천 차단
+    obs?.disconnect();
     try {
       table.querySelectorAll<HTMLTableCellElement>('[data-formula]').forEach(cell => {
         try {
@@ -209,13 +225,12 @@ export class TableFormulaManager {
           }
 
           const [sr, sc, er, ec] = formula.range;
-          const values = extractRangeValues(table, sr, sc, er, ec, cell);
-          cell.textContent = formatResult(calculate(formula.fn, values), formula.format, formula.decimalPlaces);
+          cell.textContent = formatResult(calculate(formula.fn, extractRangeValues(table, sr, sc, er, ec, cell)), formula.format, formula.decimalPlaces);
           if (cell.style.color === 'rgb(220, 38, 38)') cell.style.color = '';
         } catch { /* data-formula JSON 파싱 실패 무시 */ }
       });
     } finally {
-      this.recalcSet.delete(id);
+      obs?.observe(table, TableFormulaManager.OBS_CONFIG);
     }
   }
 
