@@ -147,9 +147,9 @@ export class FindReplace {
   private applyHighlight(): void {
     this.marks.forEach((mark, i) => {
       const isCurrent = i === this.currentIndex;
-      mark.style.background = isCurrent ? '#ff9800' : '#ffeb3b';
-      mark.style.color = '#000';
-      mark.style.outline = isCurrent ? '2px solid #e65100' : '';
+      mark.style.background = isCurrent ? '#F59E0B' : '#FEF3C7';
+      mark.style.color = isCurrent ? '#FFFFFF' : '';
+      mark.style.outline = '';
     });
     this.marks[this.currentIndex]?.scrollIntoView?.({ block: 'nearest', behavior: 'smooth' });
   }
