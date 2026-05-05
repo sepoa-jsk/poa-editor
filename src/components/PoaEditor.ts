@@ -37,6 +37,8 @@ import type { PoaImageToolbar } from './ImageToolbar.js';
 import { ViewManager } from '../modules/view/ViewManager.js';
 import type { ViewMode } from '../modules/view/ViewManager.js';
 import { getSelectedBlocks, getImageAlign, getTableAlign } from '../utils/dom.js';
+import { TableWholeResizer } from '../modules/table/TableWholeResizer.js';
+import { TableInlineToolbar } from '../modules/table/TableInlineToolbar.js';
 
 const INDENT_STEP_EM = 2;
 const BLOCK_TAGS = new Set(['p', 'div', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'li', 'blockquote', 'pre']);
@@ -75,6 +77,8 @@ export class PoaEditor extends HTMLElement {
   private imgContextMenu: HTMLDivElement | null = null;
   private linkContextMenu: HTMLDivElement | null = null;
   private viewManager!: ViewManager;
+  private tableWholeResizer!: TableWholeResizer;
+  private tableInlineToolbar!: TableInlineToolbar;
   /** 현재 선택(파란 outline)된 표 — null이면 미선택 */
   private selectedTable: HTMLTableElement | null = null;
   /** 표 컨텍스트 진입 직전 탭 — 표에서 벗어날 때 복귀에 사용 */
@@ -209,6 +213,21 @@ slot[name="content"] { display: contents; }
       getBookmarks: () => this.bookmarkManager.getAll(),
     });
     this.viewManager.attach();
+
+    this.tableWholeResizer = new TableWholeResizer(this.contentEl, {
+      onResizeEnd: () => {
+        void this.core.captureHistory('tableWholeResize');
+        this.statusBar.update(this.contentEl.innerHTML);
+        this.tableInlineToolbar.syncPosition();
+      },
+    });
+    this.tableInlineToolbar = new TableInlineToolbar({
+      onApply: () => {
+        void this.core.captureHistory('tableResize');
+        this.statusBar.update(this.contentEl.innerHTML);
+        this.tableWholeResizer.syncHandles();
+      },
+    });
 
     this.fileManager = new FileManager();
     this.autoSave    = new AutoSave();
@@ -682,6 +701,8 @@ slot[name="content"] { display: contents; }
     this.tableHandle.detach();
     this.imageResizer.detach();
     this.viewManager.detach();
+    this.tableWholeResizer.detach();
+    this.tableInlineToolbar.hide();
     this.deselectTable();
     this.hideImgContextMenu();
     this.hideLinkContextMenu();
@@ -1237,18 +1258,22 @@ slot[name="content"] { display: contents; }
     return null;
   }
 
-  /** 표 선택 테두리 표시 */
+  /** 표 선택 테두리 + 리사이즈 핸들 + 인라인 툴바 표시 */
   private selectTable(table: HTMLTableElement): void {
     if (this.selectedTable === table) return;
     this.deselectTable();
     this.selectedTable = table;
     table.classList.add('poa-table-selected');
+    this.tableWholeResizer.attach(table);
+    this.tableInlineToolbar.show(table, this.contentEl);
   }
 
-  /** 표 선택 해제 */
+  /** 표 선택 해제 — 핸들 + 인라인 툴바 제거 */
   private deselectTable(): void {
     this.selectedTable?.classList.remove('poa-table-selected');
     this.selectedTable = null;
+    this.tableWholeResizer.detach();
+    this.tableInlineToolbar.hide();
   }
 
   private static _stylesInjected = false;
