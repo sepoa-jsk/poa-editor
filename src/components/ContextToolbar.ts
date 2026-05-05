@@ -40,7 +40,7 @@ const TABS: Record<MenuTab, ReadonlyArray<GroupDef>> = {
   ],
   misc: [
     [['웹 접근성 체크','misc:a11y'],['개인정보 체크','misc:privacy']],
-    [['폼 컨트롤','misc:form'],['계산식','misc:calc']],
+    [['폼 컨트롤','misc:form'],['계산식','misc:calc'],['템플릿','misc:template']],
   ],
   help: [
     [['단축키','help:shortcuts'],['사용자 가이드','help:guide'],['제품 정보','help:about']],
