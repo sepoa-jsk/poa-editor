@@ -6,6 +6,7 @@ export interface FindOptions {
 export interface FindState {
   count: number;
   current: number;
+  replaced?: boolean;
 }
 
 /**
@@ -78,11 +79,11 @@ export class FindReplace {
 
     if (this.marks.length === 0) {
       this.currentIndex = -1;
-      return { count: 0, current: -1 };
+      return { count: 0, current: -1, replaced: true };
     }
     this.currentIndex = Math.min(this.currentIndex, this.marks.length - 1);
     this.applyHighlight();
-    return { count: this.marks.length, current: this.currentIndex };
+    return { count: this.marks.length, current: this.currentIndex, replaced: true };
   }
 
   /** 모든 매칭을 replacement로 교체하고 교체 횟수를 반환 */

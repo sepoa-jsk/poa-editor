@@ -12,6 +12,8 @@ export interface TableNavigatorCallbacks {
   onOpenTableProps?: (table: HTMLTableElement) => void;
   /** 행/열/셀 조작 후 히스토리 캡처 트리거 */
   onModified?: () => void;
+  /** 오류 메시지 표시 — 미제공 시 무시 */
+  onError?: (message: string) => void;
 }
 
 type MenuSeparator = '---';
@@ -150,7 +152,7 @@ export class TableNavigator {
       { label: '열 삭제', action: () => this.deleteCol(cell, table), disabled: colCount <= 1 },
       { label: '표 삭제', action: () => this.deleteTable(table) },
       '---',
-      { label: '셀 병합',     action: () => this.doMerge(ownerDoc),           disabled: !canMerge },
+      { label: '셀 병합',     action: () => this.doMerge(),           disabled: !canMerge },
       { label: '수평 분할',   action: () => this.doSplitH(cell, table),       disabled: !canSplitH },
       { label: '수직 분할',   action: () => this.doSplitV(cell, table),       disabled: !canSplitV },
       '---',
@@ -216,11 +218,11 @@ export class TableNavigator {
 
   // ── 병합 / 분할 ──────────────────────────────────────────────────
 
-  private doMerge(ownerDoc: Document): void {
+  private doMerge(): void {
     if (!this.cb.onMerge) return;
     const result = this.cb.onMerge();
     if (!result.success && result.message) {
-      ownerDoc.defaultView?.alert(result.message);
+      this.cb.onError?.(result.message);
     } else if (result.success) {
       this.cb.onModified?.();
     }
@@ -432,7 +434,6 @@ export class TableNavigator {
     cell: HTMLTableCellElement,
     table: HTMLTableElement,
   ): void {
-    const ownerDoc = cell.ownerDocument;
     switch (action) {
       case 'table:row-above':  this.insertRowAbove(cell, table);  break;
       case 'table:row-below':  this.insertRowBelow(cell, table);  break;
@@ -441,7 +442,7 @@ export class TableNavigator {
       case 'table:row-delete': this.deleteRow(cell, table);       break;
       case 'table:col-delete': this.deleteCol(cell, table);       break;
       case 'table:delete':     this.deleteTable(table);           break;
-      case 'table:merge':      this.doMerge(ownerDoc);            break;
+      case 'table:merge':      this.doMerge();            break;
       case 'table:split-h':    this.doSplitH(cell, table);        break;
       case 'table:split-v':    this.doSplitV(cell, table);        break;
       case 'table:cell-props':  this.showCellPropsModal(cell);          break;

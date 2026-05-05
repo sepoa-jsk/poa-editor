@@ -108,6 +108,11 @@ export class PoaImageDialog extends HTMLElement {
   private uploadConfig: UploadConfig | null = null;
   private selectedFiles: File[] = [];
   private busy = false;
+  private onErrorFn: ((msg: string) => void) | null = null;
+
+  setOnError(fn: (msg: string) => void): void {
+    this.onErrorFn = fn;
+  }
 
   constructor() {
     super();
@@ -426,7 +431,7 @@ export class PoaImageDialog extends HTMLElement {
         this.busy = false;
         this.close();
       } catch (err) {
-        alert(err instanceof Error ? err.message : '파일 읽기에 실패했습니다.');
+        (this.onErrorFn ?? ((m) => console.error(m)))(err instanceof Error ? err.message : '파일 읽기에 실패했습니다.');
         this.busy = false;
         this.syncConfirmBtn();
       }

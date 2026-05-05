@@ -41,6 +41,8 @@ import { TableWholeResizer } from '../modules/table/TableWholeResizer.js';
 import { TableInlineToolbar } from '../modules/table/TableInlineToolbar.js';
 import { FormatPainter } from '../modules/format/FormatPainter.js';
 import { ListManager } from '../modules/format/ListManager.js';
+import { PoaToast } from './Toast.js';
+import type { PoaConfirmDialog } from './ConfirmDialog.js';
 
 const INDENT_STEP_EM = 2;
 const BLOCK_TAGS = new Set(['p', 'div', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'li', 'blockquote', 'pre']);
@@ -96,6 +98,8 @@ export class PoaEditor extends HTMLElement {
   private tableInlineToolbar!: TableInlineToolbar;
   private formatPainter!: FormatPainter;
   private listManager!: ListManager;
+  private toast!: PoaToast;
+  private confirmDialog!: PoaConfirmDialog;
   /** 현재 선택(파란 outline)된 표 — null이면 미선택 */
   private selectedTable: HTMLTableElement | null = null;
   /** 표 컨텍스트 진입 직전 탭 — 표에서 벗어날 때 복귀에 사용 */
@@ -152,7 +156,8 @@ slot[name="content"] { display: contents; }
 <poa-table-dialog></poa-table-dialog>
 <poa-cell-split-dialog></poa-cell-split-dialog>
 <poa-link-dialog></poa-link-dialog>
-<poa-image-toolbar></poa-image-toolbar>`;
+<poa-image-toolbar></poa-image-toolbar>
+<poa-confirm-dialog></poa-confirm-dialog>`;
 
     // contentEl을 light DOM(poa-editor의 직계 자식)으로 생성 — Selection API가 정상 작동
     this.contentEl = (this.querySelector('.poa-editor-content') as HTMLDivElement | null)
@@ -185,6 +190,9 @@ slot[name="content"] { display: contents; }
     this.cellSplitDialog   = this.shadow.querySelector('poa-cell-split-dialog')  as PoaCellSplitDialog;
     this.linkDialog        = this.shadow.querySelector('poa-link-dialog')        as PoaLinkDialog;
     this.imageToolbar      = this.shadow.querySelector('poa-image-toolbar')      as PoaImageToolbar;
+    this.confirmDialog     = this.shadow.querySelector('poa-confirm-dialog')     as PoaConfirmDialog;
+    this.toast = new PoaToast();
+    this.imageInsertDialog.setOnError((msg) => this.toast.show(msg, 'error'));
 
     const placeholder = this.getAttribute('placeholder') ?? '';
     if (placeholder) this.contentEl.dataset.placeholder = placeholder;
@@ -284,6 +292,7 @@ slot[name="content"] { display: contents; }
       onSplitV: (cell, table) => CellMerger.splitCellVertical(cell, table),
       onOpenTableProps: (table) => this.tableDialog.open(table),
       onModified: onTableModified,
+      onError: (msg) => this.toast.show(msg, 'error'),
     };
     this.tableNavigator = new TableNavigator(navCallbacks, { noMenu: true });
     this.tableNavigator.attach(this.contentEl);
@@ -295,6 +304,7 @@ slot[name="content"] { display: contents; }
       onModified:       onTableModified,
       canMerge:         () => this.tableSelector.canMerge,
       getSelectedCells: () => this.tableSelector.getCellSelection(),
+      onError:          (msg) => this.toast.show(msg, 'error'),
     };
     this.tableContextMenu = new TableContextMenu(this.tableNavigator, ctxCallbacks);
     this.tableContextMenu.attach(this.contentEl);
@@ -348,6 +358,7 @@ slot[name="content"] { display: contents; }
       const state = this.findReplace.replaceCurrent(replacement);
       void this.core.captureHistory('replace');
       this.findDialog.updateResult(state.count, state.current);
+      if (state.replaced) this.toast.show('바꿨습니다.', 'success', 1500);
     });
     this.shadow.addEventListener('poa-find-replace-all', (e) => {
       const { query, replacement, caseSensitive, wholeWord } = (e as CustomEvent).detail as {
@@ -357,7 +368,11 @@ slot[name="content"] { display: contents; }
       void this.core.captureHistory('replaceAll');
       this.findDialog.updateResult(0, -1);
       this.statusBar.update(this.contentEl.innerHTML);
-      if (count > 0) alert(`${count}개 항목을 바꿨습니다.`);
+      if (count > 0) {
+        this.toast.show(`${count}개 항목을 바꿨습니다.`, 'success');
+      } else {
+        this.toast.show('바꿀 항목이 없습니다.', 'info');
+      }
     });
     this.shadow.addEventListener('poa-find-clear', () => {
       this.findReplace.clearMarks();
@@ -687,10 +702,15 @@ slot[name="content"] { display: contents; }
 
     // 파일 관리 이벤트
     this.shadow.addEventListener('poa-file-new', () => {
-      if (this.fileManager.isDirty() && !confirm('저장되지 않은 변경사항이 있습니다. 계속할까요?')) return;
-      this.fileManager.newDocument();
-      this.setHTML('');
-      void this.core.captureHistory('fileNew');
+      void (async () => {
+        if (this.fileManager.isDirty()) {
+          const ok = await this.confirmDialog.show('저장되지 않은 변경사항이 있습니다. 계속할까요?');
+          if (!ok) return;
+        }
+        this.fileManager.newDocument();
+        this.setHTML('');
+        void this.core.captureHistory('fileNew');
+      })();
     });
     this.shadow.addEventListener('poa-file-open', () => {
       void this.fileManager.openFile().then((file) => {
@@ -888,7 +908,10 @@ slot[name="content"] { display: contents; }
 
       // ── 파일 탭 액션 ─────────────────────────────────────────────
       case 'file:new':
-        if (this.fileManager.isDirty() && !confirm('저장되지 않은 변경사항이 있습니다. 계속할까요?')) return;
+        if (this.fileManager.isDirty()) {
+          const ok = await this.confirmDialog.show('저장되지 않은 변경사항이 있습니다. 계속할까요?');
+          if (!ok) return;
+        }
         this.fileManager.newDocument(); this.setHTML('');
         void this.core.captureHistory('fileNew'); return;
       case 'file:open':
@@ -1024,7 +1047,7 @@ slot[name="content"] { display: contents; }
       case 'insert:hr': case 'insert:symbol': case 'insert:multi-image':
       case 'misc:a11y': case 'misc:privacy': case 'misc:form': case 'misc:calc':
       case 'help:shortcuts': case 'help:guide': case 'help:about':
-        alert(`'${type}' 기능은 준비 중입니다.`);
+        this.toast.show(`'${type}' 기능은 준비 중입니다.`, 'info');
         return;
     }
 

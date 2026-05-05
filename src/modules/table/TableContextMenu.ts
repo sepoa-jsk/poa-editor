@@ -10,6 +10,8 @@ export interface TableContextCallbacks {
   canMerge?:          () => boolean;
   /** 현재 다중 선택된 셀 목록 반환 — 없으면 우클릭 셀 단독 적용 */
   getSelectedCells?:  () => HTMLTableCellElement[];
+  /** 오류 메시지 표시 — 미제공 시 무시 */
+  onError?:           (message: string) => void;
 }
 
 type MenuEntry =
@@ -71,7 +73,7 @@ export class TableContextMenu {
     const nav = this.navigator;
 
     const entries: MenuEntry[] = [
-      { label: '셀 병합',    action: () => this.doMerge(ownerDoc),          disabled: !canMerge },
+      { label: '셀 병합',    action: () => this.doMerge(),          disabled: !canMerge },
       { label: '셀 나누기',  action: () => this.cb.onSplitCell?.(cell),     disabled: !canSplitCell },
       '---',
       { label: '위에 행 삽입',      action: () => nav.executeAction('table:row-above',  cell, table) },
@@ -147,10 +149,10 @@ export class TableContextMenu {
 
   // ── 셀 병합 ─────────────────────────────────────────────────────
 
-  private doMerge(ownerDoc: Document): void {
+  private doMerge(): void {
     if (!this.cb.onMerge) return;
     const result = this.cb.onMerge();
-    if (!result.success && result.message) ownerDoc.defaultView?.alert(result.message);
+    if (!result.success && result.message) this.cb.onError?.(result.message);
     if (result.success) this.cb.onModified?.();
   }
 
