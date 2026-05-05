@@ -16,16 +16,6 @@ function makeTextarea(): HTMLTextAreaElement {
   return ta;
 }
 
-function makeCell(inp: HTMLElement): HTMLTableCellElement {
-  const td = document.createElement('td');
-  td.appendChild(inp);
-  const tr = document.createElement('tr');
-  tr.appendChild(td);
-  const table = document.createElement('table');
-  table.appendChild(tr);
-  document.body.appendChild(table);
-  return td;
-}
 
 describe('InputResizer', () => {
   let resizer: InputResizer;

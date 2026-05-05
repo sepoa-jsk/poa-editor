@@ -1,18 +1,22 @@
 type ResizableInput = HTMLInputElement | HTMLTextAreaElement;
 
 /**
- * 셀 안 input/textarea에 너비 조절 기능을 제공한다.
+ * input/textarea에 너비 조절 기능을 제공한다 (표 안/밖 공통).
  *
  * - 방법 1: CSS resize:horizontal → 브라우저 기본 핸들(우측 하단 ◢) 활성화
  * - 방법 2: 커스텀 드래그 핸들(우측 중앙 파란 막대) → mousemove로 너비 직접 조절
  * - ResizeObserver로 네이티브 리사이즈 감지 → onResized 콜백 발화
  * - position:fixed → document.body 부착으로 contentEl 레이아웃에 영향 없음
+ *
+ * 표 밖 input: contentEl 너비 기준으로 maxWidth 제한
+ * 표 안  input: 셀(td/th) 너비 기준으로 maxWidth 제한
  */
 export class InputResizer {
-  private input:    ResizableInput | null = null;
-  private handle:   HTMLDivElement  | null = null;
-  private observer: ResizeObserver  | null = null;
-  private onResized: (() => void) | null = null;
+  private input:      ResizableInput | null = null;
+  private handle:     HTMLDivElement  | null = null;
+  private observer:   ResizeObserver  | null = null;
+  private onResized:  (() => void) | null = null;
+  private contentEl:  HTMLElement | null = null;
 
   private _dragStart = 0;
   private _dragInitW = 0;
@@ -25,20 +29,31 @@ export class InputResizer {
    * input을 활성화한다.
    * CSS resize + 커스텀 핸들 동시 활성화.
    *
-   * @param input - 대상 input 또는 textarea
-   * @param onResized - 너비가 변경될 때 호출되는 콜백
+   * @param input      - 대상 input 또는 textarea
+   * @param onResized  - 너비가 변경될 때 호출되는 콜백
+   * @param contentEl  - 에디터 컨텐츠 영역 (표 밖 input의 maxWidth 제한용)
    */
-  attach(input: ResizableInput, onResized?: () => void): void {
+  attach(input: ResizableInput, onResized?: () => void, contentEl?: HTMLElement): void {
     this.detach();
-    this.input    = input;
+    this.input     = input;
     this.onResized = onResized ?? null;
+    this.contentEl = contentEl ?? null;
 
     // ── 방법 1: CSS resize ────────────────────────────────────────────
     input.style.resize    = 'horizontal';
     input.style.overflow  = 'hidden';
     input.style.minWidth  = '60px';
-    input.style.maxWidth  = '100%';
     input.style.boxSizing = 'border-box';
+
+    // 표 안: 셀 너비 기준 / 표 밖: 에디터 너비 기준
+    const isInCell = !!(input as HTMLElement).closest('td, th');
+    if (isInCell) {
+      input.style.maxWidth = '100%';
+    } else if (contentEl) {
+      input.style.maxWidth = `${contentEl.clientWidth - 32}px`;
+    } else {
+      input.style.maxWidth = '100%';
+    }
 
     // 네이티브 리사이즈 감지
     if (typeof ResizeObserver !== 'undefined') {
@@ -59,17 +74,19 @@ export class InputResizer {
   /** input을 비활성화하고 핸들과 CSS를 정리한다 */
   detach(): void {
     if (this.input) {
-      this.input.style.resize = 'none';
+      this.input.style.resize   = 'none';
+      this.input.style.maxWidth = '';
       this.input = null;
     }
     this.observer?.disconnect();
-    this.observer = null;
+    this.observer  = null;
+    this.contentEl = null;
     this._hideHandle();
     this.onResized = null;
     window.removeEventListener('scroll', this.scrollHandler, true);
   }
 
-  /** 핸들 위치를 input의 현재 위치에 맞게 갱신한다 (외부에서 스크롤 시 호출) */
+  /** 핸들 위치를 input의 현재 위치에 맞게 갱신한다 */
   syncHandle(): void {
     const h   = this.handle;
     const inp = this.input;
@@ -111,8 +128,12 @@ export class InputResizer {
       e.stopPropagation();
       this._dragStart = e.clientX;
       this._dragInitW = (input as HTMLElement).getBoundingClientRect().width;
+
+      // 표 안: 셀 너비 / 표 밖: 에디터 너비 (저장된 contentEl 사용)
       const cell = (input as HTMLElement).closest('td, th') as HTMLElement | null;
-      const maxW = cell ? cell.getBoundingClientRect().width - 4 : 9999;
+      const maxW = cell
+        ? cell.getBoundingClientRect().width - 4
+        : (this.contentEl ? this.contentEl.clientWidth - 32 : 9999);
 
       const onMove = (me: MouseEvent): void => {
         const newW = Math.max(60, Math.min(maxW, this._dragInitW + (me.clientX - this._dragStart)));

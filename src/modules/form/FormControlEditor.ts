@@ -6,8 +6,16 @@ type CellInput = HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement | HT
 
 /**
  * contenteditable 내 폼 컨트롤 편집기.
- * - .poa-form-group: 래퍼 그룹 클릭/우클릭 → 선택 + 편집 다이얼로그
- * - 셀 직접 삽입 input (data-poa-form): 선택 + 리사이즈 핸들 + 인라인 툴바 + 컨텍스트 메뉴
+ *
+ * 삽입 경로에 따른 DOM 구조 차이:
+ *   표 안 삽입 → <td><input data-poa-form="..."></td>   (래퍼 없음)
+ *   표 밖 삽입 → <div class="poa-form-group" data-poa-form="..."><label/><input/></div>
+ *
+ * 클릭 감지 통일 전략:
+ *   1. 클릭 대상이 input/textarea(data-poa-form) 또는 poa-form-group 내부 input/textarea
+ *      → InputResizer + InputInlineToolbar 활성화
+ *   2. 그 외 poa-form-group (체크박스·라디오·버튼 등)
+ *      → 그룹만 선택
  */
 export class FormControlEditor {
   private selectedEl:    HTMLElement | null = null;
@@ -72,39 +80,67 @@ export class FormControlEditor {
   private _onClick(e: MouseEvent): void {
     const target = e.target as HTMLElement;
     const group  = target.closest<HTMLElement>('.poa-form-group');
-    const ci     = group ? null : this._findCellInput(target);
 
-    if (group) {
+    // 표 안/밖 공통으로 리사이즈 가능한 input/textarea 탐색
+    const ri = this._findResizableInput(target);
+
+    if (ri) {
+      // input / textarea — 리사이저 + 툴바 활성화
+      e.stopPropagation();
+      this.deselectAll();
+      if (group) {
+        this.selectedEl = group;
+        group.classList.add('poa-form-selected');
+      }
+      this.selectedInput = ri;
+      ri.classList.add('poa-input-selected');
+      this.inputResizer.attach(ri, () => this._dispatchResized(), this.contentEl);
+      this.inputToolbar.show(ri, this.contentEl);
+      this.contentEl.dispatchEvent(new CustomEvent('poa-input-select', {
+        bubbles: true, detail: { el: ri },
+      }));
+    } else if (group) {
+      // select / checkbox / radio / button 등 나머지 그룹 컨트롤
       e.stopPropagation();
       this.deselectAll();
       this.selectedEl = group;
       group.classList.add('poa-form-selected');
-    } else if (ci) {
-      e.stopPropagation();
-      this.deselectAll();
-      this.selectedInput = ci;
-      ci.classList.add('poa-input-selected');
-
-      // 리사이즈 + 인라인 툴바 활성화 (input / textarea만)
-      if (ci instanceof HTMLInputElement || ci instanceof HTMLTextAreaElement) {
-        this.inputResizer.attach(ci, () => this._dispatchResized());
-        this.inputToolbar.show(ci, this.contentEl);
-      }
-
-      this.contentEl.dispatchEvent(new CustomEvent('poa-input-select', {
-        bubbles: true, detail: { el: ci },
-      }));
     } else {
-      this.deselectAll();
+      // 직접 삽입 select/button (data-poa-form, 셀 안)
+      const ci = this._findCellInput(target);
+      if (ci) {
+        e.stopPropagation();
+        this.deselectAll();
+        this.selectedInput = ci;
+        ci.classList.add('poa-input-selected');
+        this.contentEl.dispatchEvent(new CustomEvent('poa-input-select', {
+          bubbles: true, detail: { el: ci },
+        }));
+      } else {
+        this.deselectAll();
+      }
     }
   }
 
   private _onContextMenu(e: MouseEvent): void {
     const target = e.target as HTMLElement;
     const group  = target.closest<HTMLElement>('.poa-form-group');
-    const ci     = group ? null : this._findCellInput(target);
+    const ri     = this._findResizableInput(target);
 
-    if (group) {
+    if (ri) {
+      // input / textarea
+      e.preventDefault(); e.stopPropagation();
+      this.deselectAll();
+      if (group) {
+        this.selectedEl = group;
+        group.classList.add('poa-form-selected');
+      }
+      this.selectedInput = ri;
+      ri.classList.add('poa-input-selected');
+      this.inputResizer.attach(ri, () => this._dispatchResized(), this.contentEl);
+      this.inputToolbar.show(ri, this.contentEl);
+      this._showCtxMenu(ri, e.clientX, e.clientY);
+    } else if (group) {
       e.preventDefault(); e.stopPropagation();
       this.deselectAll();
       this.selectedEl = group;
@@ -113,18 +149,15 @@ export class FormControlEditor {
         bubbles: true,
         detail: { el: group, x: e.clientX, y: e.clientY },
       }));
-    } else if (ci) {
-      e.preventDefault(); e.stopPropagation();
-      this.deselectAll();
-      this.selectedInput = ci;
-      ci.classList.add('poa-input-selected');
-
-      if (ci instanceof HTMLInputElement || ci instanceof HTMLTextAreaElement) {
-        this.inputResizer.attach(ci, () => this._dispatchResized());
-        this.inputToolbar.show(ci, this.contentEl);
+    } else {
+      const ci = this._findCellInput(target);
+      if (ci) {
+        e.preventDefault(); e.stopPropagation();
+        this.deselectAll();
+        this.selectedInput = ci;
+        ci.classList.add('poa-input-selected');
+        this._showCtxMenu(ci, e.clientX, e.clientY);
       }
-
-      this._showCtxMenu(ci, e.clientX, e.clientY);
     }
   }
 
@@ -134,8 +167,31 @@ export class FormControlEditor {
     this.deselectAll();
   }
 
-  // ── 셀 input 감지 ───────────────────────────────────────────────────────────
+  // ── 입력 요소 탐색 ──────────────────────────────────────────────────────────
 
+  /**
+   * 리사이즈 가능한 input/textarea를 찾는다.
+   *
+   * 두 경로를 통일 처리:
+   * - 표 안 직접 삽입: `input[data-poa-form]` / `textarea[data-poa-form]`
+   * - 표 밖 그룹 삽입: `.poa-form-group` 내부 input / textarea
+   */
+  private _findResizableInput(target: HTMLElement): HTMLInputElement | HTMLTextAreaElement | null {
+    // 1) 직접 삽입 (셀 안) — data-poa-form이 element 자신에게 있음
+    const direct = target.closest<HTMLInputElement | HTMLTextAreaElement>(
+      'input[data-poa-form], textarea[data-poa-form]',
+    );
+    if (direct) return direct;
+
+    // 2) 그룹 래퍼 안의 input/textarea (표 밖 삽입)
+    const group = target.closest<HTMLElement>('.poa-form-group');
+    if (group) {
+      return group.querySelector<HTMLInputElement | HTMLTextAreaElement>('input, textarea') ?? null;
+    }
+    return null;
+  }
+
+  /** select / button 등 나머지 셀 직접 삽입 컨트롤 */
   private _findCellInput(target: HTMLElement): CellInput | null {
     return target.closest<CellInput>(
       'input[data-poa-form], textarea[data-poa-form], select[data-poa-form], button[data-poa-form]',
@@ -220,7 +276,8 @@ export class FormControlEditor {
       dispatch('poa-input-contextmenu', { el: input, x, y });
     });
     makeItem('입력 요소 삭제', () => {
-      (input as HTMLElement).remove();
+      (input as HTMLElement).closest('.poa-form-group')?.remove()
+        ?? (input as HTMLElement).remove();
       this.deselectAll();
       dispatch('poa-input-resized');
     }, true);
