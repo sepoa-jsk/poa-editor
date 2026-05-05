@@ -1053,6 +1053,9 @@ slot[name="content"] { display: contents; }
       img.style.marginLeft = 'auto';
       img.style.marginRight = 'auto';
     }
+    // float 변경은 플로우 레이아웃을 재계산하므로, 브라우저가 새 위치를 확정한
+    // 다음 프레임에 오버레이를 재배치해야 빈 파란 박스가 잔존하지 않는다.
+    requestAnimationFrame(() => this.imageResizer.syncOverlay());
   }
 
   private applyTableAlign(table: HTMLTableElement, align: TextAlign): void {
