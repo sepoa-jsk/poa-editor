@@ -20,8 +20,10 @@
   "scripts": {
     "dev": "vite",
     "build": "tsc -b && vite build",
+    "build:demo": "vite build --config vite.demo.config.ts",
     "build:watch": "vite build --watch",
     "preview": "vite preview",
+    "preview:demo": "vite preview --config vite.demo.config.ts",
     "test": "vitest run",
     "test:watch": "vitest",
     "coverage": "vitest run --coverage",
