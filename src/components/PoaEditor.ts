@@ -39,6 +39,8 @@ import type { ViewMode } from '../modules/view/ViewManager.js';
 import { getSelectedBlocks, getImageAlign, getTableAlign } from '../utils/dom.js';
 import { TableWholeResizer } from '../modules/table/TableWholeResizer.js';
 import { TableInlineToolbar } from '../modules/table/TableInlineToolbar.js';
+import { FormatPainter } from '../modules/format/FormatPainter.js';
+import { ListManager } from '../modules/format/ListManager.js';
 
 const INDENT_STEP_EM = 2;
 const BLOCK_TAGS = new Set(['p', 'div', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'li', 'blockquote', 'pre']);
@@ -79,6 +81,8 @@ export class PoaEditor extends HTMLElement {
   private viewManager!: ViewManager;
   private tableWholeResizer!: TableWholeResizer;
   private tableInlineToolbar!: TableInlineToolbar;
+  private formatPainter!: FormatPainter;
+  private listManager!: ListManager;
   /** 현재 선택(파란 outline)된 표 — null이면 미선택 */
   private selectedTable: HTMLTableElement | null = null;
   /** 표 컨텍스트 진입 직전 탭 — 표에서 벗어날 때 복귀에 사용 */
@@ -228,6 +232,13 @@ slot[name="content"] { display: contents; }
         this.tableWholeResizer.syncHandles();
       },
     });
+
+    this.formatPainter = new FormatPainter(this.contentEl, {
+      onModeChange: (active) => {
+        this.contentEl.style.cursor = active ? 'crosshair' : '';
+      },
+    });
+    this.listManager = new ListManager(this.contentEl);
 
     this.fileManager = new FileManager();
     this.autoSave    = new AutoSave();
@@ -569,12 +580,15 @@ slot[name="content"] { display: contents; }
       this.showLinkContextMenu(anchor, e.clientX, e.clientY);
     });
 
-    // Ctrl+F → 찾기/바꾸기 열기
+    // Ctrl+F → 찾기/바꾸기 열기 / ESC → 서식 페인터 해제 / Tab → 목록 들여쓰기
     this.contentEl.addEventListener('keydown', (e) => {
       if ((e.ctrlKey || e.metaKey) && e.key === 'f') {
         e.preventDefault();
         this.findDialog.open();
+        return;
       }
+      this.formatPainter.handleKeydown(e);
+      if (e.key === 'Tab') this.listManager.handleTab(e);
     });
 
     document.addEventListener('selectionchange', this.selectionHandler);
@@ -611,6 +625,7 @@ slot[name="content"] { display: contents; }
       }
     };
     this.contentEl.addEventListener('mouseup', captureRange);
+    this.contentEl.addEventListener('mouseup', () => this.formatPainter.handleMouseUp());
     this.contentEl.addEventListener('keyup', captureRange);
 
     this.contentEl.addEventListener('input', () => {
@@ -921,17 +936,11 @@ slot[name="content"] { display: contents; }
         return;
       }
 
-      // ── 서식 탭 액션 (스텁) ──────────────────────────────────────
-      case 'format:clear': {
-        const sel2 = this.contentEl.ownerDocument.getSelection();
-        if (sel2?.rangeCount) {
-          const range2 = sel2.getRangeAt(0);
-          const text = range2.toString();
-          range2.deleteContents();
-          range2.insertNode(this.contentEl.ownerDocument.createTextNode(text));
-          await this.core.captureHistory('formatClear');
-        } break;
-      }
+      // ── 서식 탭 액션 ─────────────────────────────────────────────
+      case 'format:clear':
+        this.formatPainter.clear();
+        await this.core.captureHistory('formatClear');
+        break;
       case 'insert:link':
         this.linkInserter.saveSelection();
         this.bookmarkManager.saveSelection();
@@ -971,12 +980,29 @@ slot[name="content"] { display: contents; }
         this.viewManager.toggleHiddenBorder();
         return;
 
-      case 'format:ul':
-      case 'format:ol':
-      case 'format:sup':
-      case 'format:sub':
       case 'format:painter-copy':
+        this.formatPainter.copy(false);
+        return;
       case 'format:painter-paste':
+        this.formatPainter.paste();
+        await this.core.captureHistory('formatPainterPaste');
+        break;
+      case 'format:ul':
+        this.listManager.toggleList('ul');
+        await this.core.captureHistory('formatUl');
+        break;
+      case 'format:ol':
+        this.listManager.toggleList('ol');
+        await this.core.captureHistory('formatOl');
+        break;
+      case 'format:sup':
+        this.listManager.toggleSuperSub('sup');
+        await this.core.captureHistory('formatSup');
+        break;
+      case 'format:sub':
+        this.listManager.toggleSuperSub('sub');
+        await this.core.captureHistory('formatSub');
+        break;
       case 'insert:hr': case 'insert:symbol': case 'insert:multi-image':
       case 'misc:a11y': case 'misc:privacy': case 'misc:form': case 'misc:calc':
       case 'help:shortcuts': case 'help:guide': case 'help:about':
