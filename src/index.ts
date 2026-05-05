@@ -54,6 +54,10 @@ export type { Formula, FormulaFn, FormulaFormat } from './modules/table/TableFor
 export { VideoInserter, parseEmbedUrl, buildVideoHtml, buildEmbedHtml } from './modules/insert/VideoInserter.js';
 export type { VideoAttributes, EmbedAttributes, ParsedEmbed, VideoMimeType, EmbedProvider } from './modules/insert/VideoInserter.js';
 export { PoaVideoDialog } from './components/dialogs/VideoDialog.js';
+export { FormControlInserter, buildFormControlHtml, generateControlId } from './modules/form/FormControlInserter.js';
+export type { FormControl, ControlType, ButtonType, ButtonStyle, ResizeMode, RadioOption, SelectOption } from './modules/form/FormControlInserter.js';
+export { FormControlEditor } from './modules/form/FormControlEditor.js';
+export { PoaFormControlDialog } from './components/dialogs/FormControlDialog.js';
 
 // ── Web Components 등록 ───────────────────────────────────────────────────────
 
@@ -75,6 +79,7 @@ import { PoaAccessibilityDialog } from './components/dialogs/AccessibilityDialog
 import { PoaPrivacyDialog } from './components/dialogs/PrivacyDialog.js';
 import { PoaFormulaDialog } from './components/dialogs/FormulaDialog.js';
 import { PoaVideoDialog as _PoaVideoDialog } from './components/dialogs/VideoDialog.js';
+import { PoaFormControlDialog as _PoaFormControlDialog } from './components/dialogs/FormControlDialog.js';
 
 // poa-editor의 connectedCallback 시점에 모든 하위 요소가 이미 정의되어 있어야 한다.
 // poa-editor를 마지막으로 등록하면 shadow.innerHTML 파싱 시 child 요소가 즉시 업그레이드된다.
@@ -94,8 +99,9 @@ if (!customElements.get('poa-confirm-dialog'))         customElements.define('po
 if (!customElements.get('poa-accessibility-dialog'))   customElements.define('poa-accessibility-dialog',   PoaAccessibilityDialog);
 if (!customElements.get('poa-privacy-dialog'))         customElements.define('poa-privacy-dialog',         PoaPrivacyDialog);
 if (!customElements.get('poa-formula-dialog'))         customElements.define('poa-formula-dialog',         PoaFormulaDialog);
-if (!customElements.get('poa-video-dialog'))           customElements.define('poa-video-dialog',           _PoaVideoDialog);
-if (!customElements.get('poa-editor'))                 customElements.define('poa-editor',                 PoaEditor);
+if (!customElements.get('poa-video-dialog'))             customElements.define('poa-video-dialog',             _PoaVideoDialog);
+if (!customElements.get('poa-form-control-dialog'))      customElements.define('poa-form-control-dialog',      _PoaFormControlDialog);
+if (!customElements.get('poa-editor'))                   customElements.define('poa-editor',                   PoaEditor);
 
 // ── 팩토리 함수 ───────────────────────────────────────────────────────────────
 

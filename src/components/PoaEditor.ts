@@ -51,6 +51,10 @@ import type { PoaFormulaDialog } from './dialogs/FormulaDialog.js';
 import { TableFormulaManager } from '../modules/table/TableFormula.js';
 import type { PoaVideoDialog } from './dialogs/VideoDialog.js';
 import { VideoInserter } from '../modules/insert/VideoInserter.js';
+import type { PoaFormControlDialog } from './dialogs/FormControlDialog.js';
+import { FormControlInserter } from '../modules/form/FormControlInserter.js';
+import type { FormControl } from '../modules/form/FormControlInserter.js';
+import { FormControlEditor } from '../modules/form/FormControlEditor.js';
 
 const INDENT_STEP_EM = 2;
 const BLOCK_TAGS = new Set(['p', 'div', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'li', 'blockquote', 'pre']);
@@ -115,6 +119,9 @@ export class PoaEditor extends HTMLElement {
   private formulaPickMode = false;
   private videoDialog!: PoaVideoDialog;
   private videoInserter!: VideoInserter;
+  private formControlDialog!: PoaFormControlDialog;
+  private formControlInserter!: FormControlInserter;
+  private formControlEditor!: FormControlEditor;
   /** 현재 선택(파란 outline)된 표 — null이면 미선택 */
   private selectedTable: HTMLTableElement | null = null;
   /** 표 컨텍스트 진입 직전 탭 — 표에서 벗어날 때 복귀에 사용 */
@@ -176,7 +183,8 @@ slot[name="content"] { display: contents; }
 <poa-accessibility-dialog></poa-accessibility-dialog>
 <poa-privacy-dialog></poa-privacy-dialog>
 <poa-formula-dialog></poa-formula-dialog>
-<poa-video-dialog></poa-video-dialog>`;
+<poa-video-dialog></poa-video-dialog>
+<poa-form-control-dialog></poa-form-control-dialog>`;
 
     // contentEl을 light DOM(poa-editor의 직계 자식)으로 생성 — Selection API가 정상 작동
     this.contentEl = (this.querySelector('.poa-editor-content') as HTMLDivElement | null)
@@ -221,6 +229,10 @@ slot[name="content"] { display: contents; }
     this.formulaDialog  = this.shadow.querySelector('poa-formula-dialog') as unknown as PoaFormulaDialog;
     this.videoInserter  = new VideoInserter(this.contentEl);
     this.videoDialog    = this.shadow.querySelector('poa-video-dialog') as unknown as PoaVideoDialog;
+    this.formControlInserter = new FormControlInserter(this.contentEl);
+    this.formControlEditor   = new FormControlEditor(this.contentEl);
+    this.formControlEditor.attach();
+    this.formControlDialog = this.shadow.querySelector('poa-form-control-dialog') as unknown as PoaFormControlDialog;
 
     this.toast = new PoaToast();
     this.imageInsertDialog.setOnError((msg) => this.toast.show(msg, 'error'));
@@ -447,6 +459,30 @@ slot[name="content"] { display: contents; }
       this.videoInserter.insert(html);
       void this.core.captureHistory('videoInsert');
       this.statusBar.update(this.contentEl.innerHTML);
+    });
+
+    // 폼 컨트롤 삽입/편집 다이얼로그 → FormControlInserter로 삽입
+    this.shadow.addEventListener('poa-form-insert', (e) => {
+      const { config } = (e as CustomEvent).detail as { config: FormControl };
+      const existing = this.formControlEditor.getSelected();
+      if (existing) {
+        // 편집 모드: 기존 요소를 새로 만든 것으로 교체
+        const newEl = this.formControlInserter.buildElement(config);
+        if (newEl) existing.replaceWith(newEl);
+        this.formControlEditor.deselect();
+      } else {
+        this.restoreSelection();
+        this.formControlInserter.insert(config);
+      }
+      void this.core.captureHistory('formControlInsert');
+      this.statusBar.update(this.contentEl.innerHTML);
+    });
+
+    // 폼 컨트롤 우클릭 → 편집 다이얼로그 열기
+    this.contentEl.addEventListener('poa-form-contextmenu', (e) => {
+      const { el } = (e as CustomEvent).detail as { el: HTMLElement };
+      const cfg = this.formControlEditor.getConfig(el);
+      if (cfg) this.formControlDialog.open(cfg);
     });
 
     // 이미지 삽입 다이얼로그 → ImageInserter로 삽입
@@ -832,6 +868,7 @@ slot[name="content"] { display: contents; }
     this.hideLinkContextMenu();
     PrivacyChecker.removeHighlights(this.contentEl);
     this.formulaManager.detachAll();
+    this.formControlEditor.detach();
     this.core.unmount();
   }
 
@@ -1134,8 +1171,11 @@ slot[name="content"] { display: contents; }
         this.restoreSelection();
         this.videoDialog.open('embed');
         return;
-      case 'insert:hr': case 'insert:symbol': case 'insert:multi-image':
       case 'misc:form':
+        this.restoreSelection();
+        this.formControlDialog.open();
+        return;
+      case 'insert:hr': case 'insert:symbol': case 'insert:multi-image':
       case 'help:shortcuts': case 'help:guide': case 'help:about':
         this.toast.show(`'${type}' 기능은 준비 중입니다.`, 'info');
         return;
