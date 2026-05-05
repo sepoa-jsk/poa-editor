@@ -235,6 +235,52 @@ describe('TableResizer', () => {
     expect(rows[0]!.style.height).toBe('55px');
   });
 
+  it('행 드래그 시 행 내 모든 td 에도 height 동기화된다', () => {
+    const { table, rows, cells } = makeTable(2, 3);  // 2행 3열
+    contentEl.appendChild(table);
+    const cell = cells[0]![0]!;
+    mockCellBCR(cell, 0, 0, 100, 40);
+
+    fireMousedown(cell, 50, 40);
+    fireMousemove(50, 60);  // +20px → 40 + 20 = 60px
+
+    // tr 과 같은 행의 모든 td 에 높이 동기화
+    expect(rows[0]!.style.height).toBe('60px');
+    expect(cells[0]![0]!.style.height).toBe('60px');
+    expect(cells[0]![1]!.style.height).toBe('60px');
+    expect(cells[0]![2]!.style.height).toBe('60px');
+    // 다른 행은 변경 없음
+    expect(rows[1]!.style.height).toBe('');
+  });
+
+  it('startHeight 는 mousedown 시점 tr.offsetHeight 를 사용한다', () => {
+    const { table, rows, cells } = makeTable();
+    contentEl.appendChild(table);
+    const cell = cells[0]![0]!;
+    mockCellBCR(cell, 0, 0, 100, 40);
+
+    // mousedown 시 tr.offsetHeight = 40 (mocked)
+    fireMousedown(cell, 50, 40);
+    // threshold 초과 후 첫 이동: delta = 55 - 40 = 15
+    fireMousemove(50, 55);
+
+    // startHeight(mousedown 시 40) + delta(15) = 55
+    expect(rows[0]!.style.height).toBe('55px');
+  });
+
+  it('행 드래그 후 mouseup 시 onModified 호출', () => {
+    const { table, rows, cells } = makeTable();
+    contentEl.appendChild(table);
+    const cell = cells[0]![0]!;
+    mockCellBCR(cell, 0, 0, 100, 40);
+
+    fireMousedown(cell, 50, 40);
+    fireMousemove(50, 55);
+    fireMouseup();
+
+    expect(modified).toHaveBeenCalledTimes(1);
+  });
+
   it('행 높이 MIN_ROW_HEIGHT(20) 미만으로 축소되지 않는다', () => {
     const { table, rows, cells } = makeTable();
     contentEl.appendChild(table);
@@ -245,6 +291,8 @@ describe('TableResizer', () => {
     fireMousemove(50, 15);  // -25px → 40 - 25 = 15 < 20
 
     expect(rows[0]!.style.height).toBe('20px');
+    // 셀에도 동일하게 적용
+    expect(cells[0]![0]!.style.height).toBe('20px');
   });
 
   it('500px 초과 비정상 row delta 감지 시 드래그 중단', () => {

@@ -5,39 +5,57 @@ const MIN_ROW_HEIGHT   = 20;  // 행 최소 높이 (px)
 const MAX_DELTA        = 500; // 비정상 delta 감지 임계값 (px)
 
 interface PendingDrag {
-  type:   'col' | 'row';
-  cell:   HTMLTableCellElement;
-  table:  HTMLTableElement;
-  startX: number;
-  startY: number;
+  type:        'col' | 'row';
+  cell:        HTMLTableCellElement;
+  table:       HTMLTableElement;
+  startX:      number;
+  startY:      number;
+  /** mousedown 시점의 셀 offsetWidth (col 모드) */
+  startWidth:  number;
+  /** mousedown 시점의 tr.offsetHeight (row 모드) */
+  startHeight: number;
+  /** row 모드 전용: mousedown 시점에 바인딩된 tr */
+  rowEl:       HTMLTableRowElement | null;
 }
 
-interface DragState {
-  type:       'col' | 'row';
-  startCoord: number;                   // clientX (col) 또는 clientY (row)
-  startSize:  number;                   // offsetWidth 또는 offsetHeight
-  colCells:   HTMLTableCellElement[];   // col 모드: 같은 열의 모든 셀
-  rowEl:      HTMLTableRowElement | null; // row 모드: 대상 tr
+interface ColDragState {
+  type:       'col';
+  startX:     number;
+  startWidth: number;
+  colCells:   HTMLTableCellElement[];
   table:      HTMLTableElement;
   onModified: () => void;
 }
+
+interface RowDragState {
+  type:        'row';
+  startY:      number;
+  startHeight: number;
+  rowEl:       HTMLTableRowElement;
+  rowCells:    HTMLTableCellElement[];
+  table:       HTMLTableElement;
+  onModified:  () => void;
+}
+
+type DragState = ColDragState | RowDragState;
 
 /**
  * 셀 우측/하단 경계 드래그로 열 너비·행 높이를 조절한다.
  *
  * 설계 원칙:
  * - offsetWidth/offsetHeight 만 사용 (getBoundingClientRect 는 경계 감지에만 사용)
- * - 열 리사이즈: cell.style.width 만 변경
- * - 행 리사이즈: tr.style.height 만 변경
- * - table.style.width 는 드래그 시작 시 현재값으로 잠금하고 이후 절대 변경 안 함
- * - <colgroup>/<col> 조작 완전 불사용 (getBoundingClientRect width = 0 문제 회피)
+ * - 열 리사이즈: cell.style.width 만 변경, table.style.width 는 절대 변경 안 함
+ * - 행 리사이즈: tr.style.height + 행 내 모든 td/th.style.height 동기화
+ *   (tr.style.height 단독은 브라우저에서 min-height로만 동작)
+ * - startWidth/startHeight 는 mousedown 시점에 저장 (threshold 초과 시점 X)
+ * - clientX/clientY 만 사용 (pageX/pageY/screenX 혼용 금지)
  */
 export class TableResizer {
-  private contentEl:       HTMLElement | null = null;
-  private dragState:       DragState | null = null;
-  private pendingDrag:     PendingDrag | null = null;
-  private lastCursorCell:  HTMLTableCellElement | null = null;
-  private onModified:      () => void = () => { /* noop */ };
+  private contentEl:      HTMLElement | null = null;
+  private dragState:      DragState | null = null;
+  private pendingDrag:    PendingDrag | null = null;
+  private lastCursorCell: HTMLTableCellElement | null = null;
+  private onModified:     () => void = () => { /* noop */ };
 
   constructor(onModified: () => void = () => { /* noop */ }) {
     this.onModified = onModified;
@@ -89,7 +107,7 @@ export class TableResizer {
     }
   }
 
-  // ── 마우스 다운: 대기 상태만 기록, 테이블 절대 수정 금지 ─────────
+  // ── 마우스 다운: mousedown 시점 기준값 저장, 테이블 절대 수정 금지 ─
 
   private readonly mdownHandler = (e: MouseEvent): void => {
     if (e.button !== 0) return;
@@ -102,82 +120,97 @@ export class TableResizer {
     if (!nearR && !nearB) return;
 
     e.preventDefault();
+
+    // rowEl 과 startHeight 를 mousedown 시점에 바인딩 (threshold 초과 후 재조회 금지)
+    const rowEl = cell.closest('tr') as HTMLTableRowElement | null;
     this.pendingDrag = {
-      type:   nearR ? 'col' : 'row',
+      type:        nearR ? 'col' : 'row',
       cell, table,
-      startX: e.clientX,
-      startY: e.clientY,
+      startX:      e.clientX,
+      startY:      e.clientY,
+      startWidth:  cell.offsetWidth,             // mousedown 시점 고정
+      startHeight: rowEl ? rowEl.offsetHeight : cell.offsetHeight,  // mousedown 시점 고정
+      rowEl,
     };
     document.body.style.userSelect = 'none';
   };
 
-  // ── 드래그 중: 임계값 초과 시 시작, offsetWidth/Height 기반 계산 ─
+  // ── 드래그 중 ────────────────────────────────────────────────────
 
   private readonly dragHandler = (e: MouseEvent): void => {
-    // pendingDrag → DRAG_THRESHOLD 초과 시 실제 드래그 상태로 전환
+    // pendingDrag → DRAG_THRESHOLD 초과 시 실제 dragState 로 전환
     if (!this.dragState && this.pendingDrag) {
-      const { type, cell, table, startX, startY } = this.pendingDrag;
+      const { type, cell, table, startX, startY, startWidth, startHeight, rowEl } = this.pendingDrag;
       const moved = Math.abs(e.clientX - startX) + Math.abs(e.clientY - startY);
       if (moved < DRAG_THRESHOLD) return;
 
-      // 표 전체 너비를 현재값으로 고정 (드래그 중 table 팽창 방지)
-      table.style.width       = `${table.offsetWidth}px`;
-      table.style.tableLayout = 'fixed';
-
       if (type === 'col') {
-        const colCells = this.getColumnCells(cell, table);
+        // 표 전체 너비를 현재값으로 고정 (col 리사이즈 중 table 팽창 방지)
+        table.style.width       = `${table.offsetWidth}px`;
+        table.style.tableLayout = 'fixed';
         this.dragState = {
           type:       'col',
-          startCoord: startX,
-          startSize:  cell.offsetWidth,  // offsetWidth 고정 사용
-          colCells,
-          rowEl:      null,
+          startX,
+          startWidth,
+          colCells:   this.getColumnCells(cell, table),
           table,
           onModified: this.onModified,
         };
-      } else {
-        const rowEl = cell.closest('tr') as HTMLTableRowElement | null;
+        document.body.style.cursor = 'col-resize';
+
+      } else if (rowEl) {
+        // row 모드: rowEl 은 mousedown 시점 참조 사용 (재조회 금지)
+        const rowCells = Array.from(rowEl.cells) as HTMLTableCellElement[];
         this.dragState = {
-          type:       'row',
-          startCoord: startY,
-          startSize:  rowEl ? rowEl.offsetHeight : cell.offsetHeight,  // offsetHeight 고정 사용
-          colCells:   [],
+          type:        'row',
+          startY,
+          startHeight,
           rowEl,
+          rowCells,
           table,
-          onModified: this.onModified,
+          onModified:  this.onModified,
         };
+        document.body.style.cursor = 'row-resize';
       }
       this.pendingDrag = null;
-      document.body.style.cursor = type === 'col' ? 'col-resize' : 'row-resize';
     }
 
     if (!this.dragState) return;
-    const { type, startCoord, startSize, colCells, rowEl } = this.dragState;
 
-    if (type === 'col') {
-      const deltaX = e.clientX - startCoord;  // clientX 고정 사용
-      if (Math.abs(deltaX) > MAX_DELTA) {
-        console.warn('[TableResizer] 비정상 col delta 감지, resize 중단');
-        this.cancelDrag();
-        return;
-      }
-      const maxW  = this.contentEl ? this.contentEl.offsetWidth : 9999;
-      const newW  = Math.min(maxW, Math.max(MIN_COL_WIDTH, startSize + deltaX));
-      // cell.style.width 만 변경 — table.style.width 는 절대 건드리지 않음
-      for (const c of colCells) c.style.width = `${newW}px`;
-
+    if (this.dragState.type === 'col') {
+      this.applyColResize(e, this.dragState);
     } else {
-      const deltaY = e.clientY - startCoord;  // clientY 고정 사용
-      if (Math.abs(deltaY) > MAX_DELTA) {
-        console.warn('[TableResizer] 비정상 row delta 감지, resize 중단');
-        this.cancelDrag();
-        return;
-      }
-      const newH = Math.max(MIN_ROW_HEIGHT, startSize + deltaY);
-      // tr.style.height 만 변경 — table.style.height 는 절대 건드리지 않음
-      if (rowEl) rowEl.style.height = `${newH}px`;
+      this.applyRowResize(e, this.dragState);
     }
   };
+
+  private applyColResize(e: MouseEvent, state: ColDragState): void {
+    const deltaX = e.clientX - state.startX;  // clientX 고정 사용
+    if (Math.abs(deltaX) > MAX_DELTA) {
+      console.warn('[TableResizer] 비정상 col delta 감지, resize 중단');
+      this.cancelDrag();
+      return;
+    }
+    const maxW = this.contentEl ? this.contentEl.offsetWidth : 9999;
+    const newW = Math.min(maxW, Math.max(MIN_COL_WIDTH, state.startWidth + deltaX));
+    // cell.style.width 만 변경 — table.style.width 는 절대 건드리지 않음
+    for (const c of state.colCells) c.style.width = `${newW}px`;
+  }
+
+  private applyRowResize(e: MouseEvent, state: RowDragState): void {
+    const deltaY = e.clientY - state.startY;  // clientY 고정 사용
+    if (Math.abs(deltaY) > MAX_DELTA) {
+      console.warn('[TableResizer] 비정상 row delta 감지, resize 중단');
+      this.cancelDrag();
+      return;
+    }
+    const newH = Math.max(MIN_ROW_HEIGHT, state.startHeight + deltaY);
+
+    // tr.style.height 단독 적용은 브라우저에서 min-height 로만 동작하므로
+    // 행 내 모든 td/th 에 height 를 동기화해야 실제 높이가 변경됨
+    state.rowEl.style.height = `${newH}px`;
+    for (const c of state.rowCells) (c as HTMLElement).style.height = `${newH}px`;
+  }
 
   // ── 마우스 업 ────────────────────────────────────────────────────
 
@@ -233,7 +266,7 @@ export class TableResizer {
     const row = targetCell.parentElement as HTMLTableRowElement | null;
     if (!row) return [targetCell];
 
-    // targetCell의 실제 열 시작 인덱스(colSpan 누적 기준)
+    // targetCell 의 실제 열 시작 인덱스 (colSpan 누적 기준)
     let colIdx = -1;
     let span   = 0;
     for (let i = 0; i < row.cells.length; i++) {
