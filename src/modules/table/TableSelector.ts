@@ -10,6 +10,10 @@ type SelState = 'drag' | 'ok' | 'bad';
  * - 비직사각형: 빨간색(poa-cell-sel-bad)
  * - 드래그 중: 파란색(poa-cell-selected)
  * CellMerger 인스턴스와 연동하여 앵커·범위를 공유한다.
+ *
+ * 드래그 완료 후 브라우저가 click을 발사하면 CellMerger.clickHandler가
+ * 다중 선택을 단일 셀로 덮어쓰는 문제를 방지하기 위해
+ * 캡처 단계 clickGuard로 드래그 직후 click을 차단한다.
  */
 export class TableSelector {
   private contentEl: HTMLElement | null = null;
@@ -17,6 +21,8 @@ export class TableSelector {
 
   private anchor: HTMLTableCellElement | null = null;
   private isDragging = false;
+  /** 드래그 완료 직후 발사되는 click 이벤트를 한 번만 차단하는 플래그 */
+  private justDragged = false;
 
   constructor(merger: CellMerger) {
     this.merger = merger;
@@ -26,6 +32,8 @@ export class TableSelector {
     this.detach();
     this.contentEl = contentEl;
     contentEl.addEventListener('mousedown', this.mdownHandler);
+    // 캡처 단계에서 드래그 직후 click을 차단 (CellMerger.clickHandler 보호)
+    contentEl.addEventListener('click',     this.clickGuard, true);
     document.addEventListener('mousemove',  this.mmoveHandler);
     document.addEventListener('mouseup',    this.mupHandler);
   }
@@ -33,12 +41,14 @@ export class TableSelector {
   detach(): void {
     if (this.contentEl) {
       this.contentEl.removeEventListener('mousedown', this.mdownHandler);
+      this.contentEl.removeEventListener('click',     this.clickGuard, true);
       this.contentEl = null;
     }
     document.removeEventListener('mousemove', this.mmoveHandler);
     document.removeEventListener('mouseup',   this.mupHandler);
-    this.anchor = null;
-    this.isDragging = false;
+    this.anchor      = null;
+    this.isDragging  = false;
+    this.justDragged = false;
   }
 
   // ── 이벤트 핸들러 ────────────────────────────────────────────────
@@ -50,8 +60,9 @@ export class TableSelector {
     if (e.button !== 0) return;
     if ((e.target as HTMLElement).style?.cursor?.includes('resize')) return;
 
-    this.anchor     = cell;
-    this.isDragging = false;
+    this.anchor      = cell;
+    this.isDragging  = false;
+    this.justDragged = false;
     // CellMerger 앵커도 동기화
     this.merger.setAnchor(cell);
     this.applyFeedback('drag');
@@ -77,11 +88,25 @@ export class TableSelector {
 
   private readonly mupHandler = (): void => {
     if (!this.isDragging) { this.anchor = null; return; }
-    this.isDragging = false;
+    this.isDragging  = false;
+    this.justDragged = true;   // 드래그 완료 — 다음 click 차단 준비
     // 최종 상태 색상 유지
     const state = this.isRectangular() ? 'ok' : 'bad';
     this.applyFeedback(state);
     this.anchor = null;
+  };
+
+  /**
+   * 캡처 단계 click 가드.
+   * 드래그 완료 직후 발사되는 click을 차단하여 CellMerger.clickHandler가
+   * 다중 선택을 단일 셀로 덮어쓰는 것을 방지한다.
+   */
+  private readonly clickGuard = (e: MouseEvent): void => {
+    if (!this.justDragged) return;
+    this.justDragged = false;
+    // 셀 범위 안에서 발사된 click만 차단 (표 바깥 click은 통과)
+    const cell = this.findCell(e.target as Node);
+    if (cell) e.stopPropagation();
   };
 
   // ── 직사각형 검증 ────────────────────────────────────────────────
