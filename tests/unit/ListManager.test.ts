@@ -1,4 +1,5 @@
-import { describe, it, expect, beforeEach } from 'vitest';
+import { describe, it, expect } from 'vitest';
+// @ts-ignore — jsdom types not installed
 import { JSDOM } from 'jsdom';
 import { ListManager } from '../../src/modules/format/ListManager.js';
 
@@ -76,9 +77,8 @@ describe('ListManager', () => {
     });
 
     it('이미 ul인 경우 목록을 해제하여 p로 변환한다', () => {
-      const { document, contentEl, manager, selectAll } = setup();
+      const { contentEl, manager, selectAll } = setup();
       contentEl.innerHTML = '<ul><li>item</li></ul>';
-      const li = contentEl.querySelector('li')!;
       selectAll();
 
       manager.toggleList('ul');
@@ -89,7 +89,7 @@ describe('ListManager', () => {
     });
 
     it('ol을 선택했을 때 ul로 전환한다', () => {
-      const { document, contentEl, manager, selectAll } = setup();
+      const { contentEl, manager, selectAll } = setup();
       contentEl.innerHTML = '<ol><li>item</li></ol>';
       selectAll();
 
@@ -115,7 +115,7 @@ describe('ListManager', () => {
     });
 
     it('이미 ol인 경우 목록을 해제한다', () => {
-      const { document, contentEl, manager, selectAll } = setup();
+      const { contentEl, manager, selectAll } = setup();
       contentEl.innerHTML = '<ol><li>step</li></ol>';
       selectAll();
 
@@ -227,7 +227,7 @@ describe('ListManager', () => {
     });
 
     it('li 안에서 Tab → 하위 목록으로 들여쓰기한다', () => {
-      const { document, contentEl, manager, collapseInto } = setup();
+      const { contentEl, manager, collapseInto } = setup();
       contentEl.innerHTML = '<ul><li>item1</li><li id="tgt">item2</li></ul>';
       const li2 = contentEl.querySelector('#tgt') as HTMLLIElement;
       collapseInto(li2.firstChild!, 0);
@@ -242,7 +242,7 @@ describe('ListManager', () => {
     });
 
     it('li 안에서 Shift+Tab → 상위 목록으로 내어쓰기한다', () => {
-      const { document, contentEl, manager, collapseInto } = setup();
+      const { contentEl, manager, collapseInto } = setup();
       contentEl.innerHTML = '<ul><li>item1<ul><li id="nested">nested</li></ul></li></ul>';
       const nestedLi = contentEl.querySelector('#nested') as HTMLLIElement;
       collapseInto(nestedLi.firstChild!, 0);

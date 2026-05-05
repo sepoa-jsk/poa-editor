@@ -2,13 +2,22 @@ import type { TextAlign, ToolbarState } from '../core/types.js';
 import { Icons } from '../utils/icons.js';
 
 const FONT_FAMILIES: Array<{ label: string; value: string }> = [
-  { label: '기본',       value: 'inherit' },
-  { label: 'Arial',     value: 'Arial, sans-serif' },
-  { label: 'Georgia',   value: 'Georgia, serif' },
-  { label: '바탕',      value: '바탕, serif' },
-  { label: '굴림',      value: '굴림, sans-serif' },
-  { label: '맑은 고딕', value: '맑은 고딕, sans-serif' },
-  { label: 'Courier New', value: 'Courier New, monospace' },
+  { label: '기본',             value: 'inherit' },
+  // 한글 폰트
+  { label: '맑은 고딕',       value: '맑은 고딕, sans-serif' },
+  { label: '나눔고딕',        value: '나눔고딕, sans-serif' },
+  { label: '나눔명조',        value: '나눔명조, serif' },
+  { label: '굴림',            value: '굴림, sans-serif' },
+  { label: '돋움',            value: '돋움, sans-serif' },
+  { label: '바탕',            value: '바탕, serif' },
+  { label: '궁서',            value: '궁서, serif' },
+  // 영문 폰트
+  { label: 'Arial',           value: 'Arial, sans-serif' },
+  { label: 'Times New Roman', value: 'Times New Roman, serif' },
+  { label: 'Courier New',     value: 'Courier New, monospace' },
+  { label: 'Georgia',         value: 'Georgia, serif' },
+  { label: 'Verdana',         value: 'Verdana, sans-serif' },
+  { label: 'Tahoma',          value: 'Tahoma, sans-serif' },
 ];
 const FONT_SIZES       = ['8','9','10','11','12','14','16','18','20','24','28','32','36','48','72'];
 const LINE_HEIGHTS     = ['1','1.2','1.4','1.5','1.6','1.8','2.0','2.5'];
@@ -310,7 +319,12 @@ export class PoaToolbar extends HTMLElement {
     setDisabled('btn-undo', !state.canUndo);
     setDisabled('btn-redo', !state.canRedo);
 
-    if (state.fontFamily) (s.getElementById('sel-family') as HTMLSelectElement).value = state.fontFamily;
+    if (state.fontFamily) {
+      // 브라우저가 공백 포함 폰트명에 따옴표를 자동 삽입하므로 제거 후 비교
+      // e.g. '"맑은 고딕", sans-serif' → '맑은 고딕, sans-serif'
+      const normalized = state.fontFamily.replace(/['"]/g, '').replace(/\s*,\s*/g, ', ').trim();
+      (s.getElementById('sel-family') as HTMLSelectElement).value = normalized;
+    }
     if (state.fontSize)   (s.getElementById('sel-size')   as HTMLSelectElement).value = state.fontSize;
     if (state.lineHeight) (s.getElementById('sel-lh')      as HTMLSelectElement).value = state.lineHeight;
     if (state.letterSpacing) (s.getElementById('sel-ls')   as HTMLSelectElement).value = state.letterSpacing;

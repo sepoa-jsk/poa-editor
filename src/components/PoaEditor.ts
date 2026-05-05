@@ -45,6 +45,19 @@ import { ListManager } from '../modules/format/ListManager.js';
 const INDENT_STEP_EM = 2;
 const BLOCK_TAGS = new Set(['p', 'div', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'li', 'blockquote', 'pre']);
 
+/**
+ * 공백이 포함된 폰트명을 CSS font-family 값으로 안전하게 변환한다.
+ * 각 폰트명에 공백이 있으면 따옴표로 감싼다.
+ * e.g. '맑은 고딕, sans-serif' → '"맑은 고딕", sans-serif'
+ */
+function normalizeFontFamilyCss(value: string): string {
+  if (!value || value === 'inherit') return value;
+  return value.split(',').map(part => {
+    const name = part.trim().replace(/^['"](.*)['"]\s*$/, '$1'); // 기존 따옴표 제거
+    return /\s/.test(name) ? `"${name}"` : name;
+  }).join(', ');
+}
+
 export class PoaEditor extends HTMLElement {
   private shadow: ShadowRoot;
   private core!: EditorCore;
@@ -831,7 +844,7 @@ slot[name="content"] { display: contents; }
         break;
 
       case 'fontFamily':
-        this.applyInlineStyle('font-family', value ?? '');
+        this.applyInlineStyle('font-family', normalizeFontFamilyCss(value ?? ''));
         await this.core.captureHistory('fontFamily');
         break;
       case 'fontSize':

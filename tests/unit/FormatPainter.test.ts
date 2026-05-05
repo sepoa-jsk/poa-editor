@@ -1,4 +1,6 @@
-import { describe, it, expect, beforeEach } from 'vitest';
+import { describe, it, expect } from 'vitest';
+// eslint-disable-next-line @typescript-eslint/ban-ts-comment
+// @ts-ignore — jsdom types not installed; runtime only
 import { JSDOM } from 'jsdom';
 import { FormatPainter } from '../../src/modules/format/FormatPainter.js';
 
@@ -126,8 +128,6 @@ describe('FormatPainter', () => {
 
       painter.paste();
 
-      // target의 내용이 span으로 감싸져야 한다
-      const spans = target.querySelectorAll('span') as NodeListOf<HTMLElement>;
       // paste가 range의 내용을 교체하므로 p 내부 또는 인근에 span이 생성됨
       const allSpans = contentEl.querySelectorAll('span') as NodeListOf<HTMLElement>;
       const styled = Array.from(allSpans).find(s => s.style.fontSize === '18pt');
@@ -217,7 +217,7 @@ describe('FormatPainter', () => {
     });
 
     it('collapsed 선택에서는 아무 동작도 하지 않는다', () => {
-      const { document, contentEl, painter, makeCollapsedRange } = setup();
+      const { contentEl, painter, makeCollapsedRange } = setup();
       contentEl.innerHTML = '<span style="color:red">hello</span>';
       const text = contentEl.querySelector('span')!.firstChild as Text;
       makeCollapsedRange(text, 2);
