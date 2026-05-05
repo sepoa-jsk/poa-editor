@@ -49,6 +49,8 @@ export { AccessibilityChecker } from './modules/accessibility/AccessibilityCheck
 export type { AccessibilityIssue, AccessibilityResult, IssueLevel } from './modules/accessibility/AccessibilityChecker.js';
 export { PrivacyChecker } from './modules/privacy/PrivacyChecker.js';
 export type { PrivacyMatch, PrivacyType, RiskLevel } from './modules/privacy/PrivacyChecker.js';
+export { TableFormulaManager, calculate, formatResult, getCellAt, getCellPosition } from './modules/table/TableFormula.js';
+export type { Formula, FormulaFn, FormulaFormat } from './modules/table/TableFormula.js';
 
 // ── Web Components 등록 ───────────────────────────────────────────────────────
 
@@ -68,6 +70,7 @@ import { PoaImageToolbar } from './components/ImageToolbar.js';
 import { PoaConfirmDialog } from './components/ConfirmDialog.js';
 import { PoaAccessibilityDialog } from './components/dialogs/AccessibilityDialog.js';
 import { PoaPrivacyDialog } from './components/dialogs/PrivacyDialog.js';
+import { PoaFormulaDialog } from './components/dialogs/FormulaDialog.js';
 
 // poa-editor의 connectedCallback 시점에 모든 하위 요소가 이미 정의되어 있어야 한다.
 // poa-editor를 마지막으로 등록하면 shadow.innerHTML 파싱 시 child 요소가 즉시 업그레이드된다.
@@ -86,6 +89,7 @@ if (!customElements.get('poa-image-toolbar'))        customElements.define('poa-
 if (!customElements.get('poa-confirm-dialog'))         customElements.define('poa-confirm-dialog',         PoaConfirmDialog);
 if (!customElements.get('poa-accessibility-dialog'))   customElements.define('poa-accessibility-dialog',   PoaAccessibilityDialog);
 if (!customElements.get('poa-privacy-dialog'))         customElements.define('poa-privacy-dialog',         PoaPrivacyDialog);
+if (!customElements.get('poa-formula-dialog'))         customElements.define('poa-formula-dialog',         PoaFormulaDialog);
 if (!customElements.get('poa-editor'))                 customElements.define('poa-editor',                 PoaEditor);
 
 // ── 팩토리 함수 ───────────────────────────────────────────────────────────────

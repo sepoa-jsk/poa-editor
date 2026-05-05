@@ -47,6 +47,8 @@ import type { PoaAccessibilityDialog } from './dialogs/AccessibilityDialog.js';
 import { AccessibilityChecker } from '../modules/accessibility/AccessibilityChecker.js';
 import type { PoaPrivacyDialog } from './dialogs/PrivacyDialog.js';
 import { PrivacyChecker } from '../modules/privacy/PrivacyChecker.js';
+import type { PoaFormulaDialog } from './dialogs/FormulaDialog.js';
+import { TableFormulaManager } from '../modules/table/TableFormula.js';
 
 const INDENT_STEP_EM = 2;
 const BLOCK_TAGS = new Set(['p', 'div', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'li', 'blockquote', 'pre']);
@@ -106,6 +108,9 @@ export class PoaEditor extends HTMLElement {
   private confirmDialog!: PoaConfirmDialog;
   private accessibilityDialog!: PoaAccessibilityDialog;
   private privacyDialog!: PoaPrivacyDialog;
+  private formulaDialog!: PoaFormulaDialog;
+  private formulaManager!: TableFormulaManager;
+  private formulaPickMode = false;
   /** 현재 선택(파란 outline)된 표 — null이면 미선택 */
   private selectedTable: HTMLTableElement | null = null;
   /** 표 컨텍스트 진입 직전 탭 — 표에서 벗어날 때 복귀에 사용 */
@@ -165,7 +170,8 @@ slot[name="content"] { display: contents; }
 <poa-image-toolbar></poa-image-toolbar>
 <poa-confirm-dialog></poa-confirm-dialog>
 <poa-accessibility-dialog></poa-accessibility-dialog>
-<poa-privacy-dialog></poa-privacy-dialog>`;
+<poa-privacy-dialog></poa-privacy-dialog>
+<poa-formula-dialog></poa-formula-dialog>`;
 
     // contentEl을 light DOM(poa-editor의 직계 자식)으로 생성 — Selection API가 정상 작동
     this.contentEl = (this.querySelector('.poa-editor-content') as HTMLDivElement | null)
@@ -206,6 +212,9 @@ slot[name="content"] { display: contents; }
       () => { void this.core.captureHistory('privacyEdit'); this.statusBar.update(this.contentEl.innerHTML); },
       (msg) => this.confirmDialog.show(msg),
     );
+    this.formulaManager = new TableFormulaManager();
+    this.formulaDialog  = this.shadow.querySelector('poa-formula-dialog') as unknown as PoaFormulaDialog;
+
     this.toast = new PoaToast();
     this.imageInsertDialog.setOnError((msg) => this.toast.show(msg, 'error'));
 
@@ -345,6 +354,38 @@ slot[name="content"] { display: contents; }
     this.clipboardHandler.register();
 
     this.findReplace = new FindReplace(this.contentEl);
+
+    // 계산식 적용
+    this.shadow.addEventListener('poa-formula-apply', (e) => {
+      const { formula, table } = (e as CustomEvent).detail as {
+        formula: Parameters<TableFormulaManager['applyFormula']>[1];
+        table: HTMLTableElement;
+      };
+      const result = this.formulaManager.applyFormula(table, formula);
+      if (result === 'circular') this.toast.show('순환 참조가 발견됐습니다. (#REF!)', 'error');
+      else if (result === 'invalid') this.toast.show('대상 셀을 찾을 수 없습니다.', 'error');
+      else {
+        void this.core.captureHistory('formulaApply');
+        this.statusBar.update(this.contentEl.innerHTML);
+      }
+    });
+
+    // 드래그 범위 선택 모드
+    this.shadow.addEventListener('poa-formula-start-pick', () => {
+      this.formulaPickMode = true;
+      const onUp = (): void => {
+        if (!this.formulaPickMode) return;
+        this.formulaPickMode = false;
+        // 현재 선택된 셀 목록으로 범위 계산
+        const selectedCells = this.tableSelector.getCellSelection();
+        const tbl = selectedCells[0]?.closest('table') as HTMLTableElement | null;
+        if (tbl && selectedCells.length > 0) {
+          const bounds = TableFormulaManager.getSelectionBounds(tbl, selectedCells);
+          if (bounds) this.formulaDialog.applyRange(...bounds);
+        }
+      };
+      this.contentEl.addEventListener('mouseup', onUp, { once: true });
+    });
 
     this.shadow.addEventListener('poa-action', (e) => {
       this.handleAction(e as CustomEvent<{ type: string; value?: string }>).catch((err: unknown) => {
@@ -775,6 +816,7 @@ slot[name="content"] { display: contents; }
     this.hideImgContextMenu();
     this.hideLinkContextMenu();
     PrivacyChecker.removeHighlights(this.contentEl);
+    this.formulaManager.detachAll();
     this.core.unmount();
   }
 
@@ -1066,8 +1108,11 @@ slot[name="content"] { display: contents; }
       case 'misc:privacy':
         this.runPrivacyCheck();
         return;
+      case 'misc:calc':
+        this.openFormulaDialog();
+        return;
       case 'insert:hr': case 'insert:symbol': case 'insert:multi-image':
-      case 'misc:form': case 'misc:calc':
+      case 'misc:form':
       case 'help:shortcuts': case 'help:guide': case 'help:about':
         this.toast.show(`'${type}' 기능은 준비 중입니다.`, 'info');
         return;
@@ -1194,7 +1239,6 @@ slot[name="content"] { display: contents; }
   }
 
   private runPrivacyCheck(): void {
-    // 이전 하이라이트 제거
     PrivacyChecker.removeHighlights(this.contentEl);
     this.privacyDialog.startLoading();
     setTimeout(() => {
@@ -1203,6 +1247,43 @@ slot[name="content"] { display: contents; }
       if (matches.length > 0) PrivacyChecker.highlight(matches);
       this.privacyDialog.show(matches);
     }, 50);
+  }
+
+  private openFormulaDialog(): void {
+    const cell = this.getFocusedCell();
+    if (!cell) {
+      this.toast.show('표 안에 커서를 놓고 계산식을 설정하세요.', 'info');
+      return;
+    }
+    const table = cell.closest('table') as HTMLTableElement;
+    if (!table) return;
+
+    const pos = cell.dataset.formula
+      ? (() => {
+          try { return JSON.parse(cell.dataset.formula); } catch { return null; }
+        })()
+      : null;
+
+    // 현재 셀의 행/열 (1-indexed)
+    const rows  = Array.from(table.querySelectorAll('tr'));
+    let cellRow = 1, cellCol = 1;
+    rows.forEach((tr, ri) => {
+      const cells = Array.from(tr.querySelectorAll('td, th'));
+      const ci = cells.indexOf(cell);
+      if (ci !== -1) { cellRow = ri + 1; cellCol = ci + 1; }
+    });
+
+    // 현재 선택 범위 (TableSelector)
+    const selectedCells = this.tableSelector.getCellSelection();
+    const initialRange = selectedCells.length > 1
+      ? TableFormulaManager.getSelectionBounds(table, selectedCells) ?? undefined
+      : undefined;
+
+    this.formulaDialog.open({
+      table, cell, cellRow, cellCol,
+      existingFormula: pos ?? undefined,
+      initialRange,
+    });
   }
 
   private findBlockAncestor(node: Node | null): Element {
