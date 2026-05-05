@@ -56,9 +56,10 @@ export class TableSelector {
   private readonly mdownHandler = (e: MouseEvent): void => {
     const cell = this.findCell(e.target as Node);
     if (!cell) return;
-    // 우클릭 · resize 커서 시 무시
+    // 우클릭 · resize 커서 시 무시 (target 또는 셀 자체의 커서 확인)
     if (e.button !== 0) return;
     if ((e.target as HTMLElement).style?.cursor?.includes('resize')) return;
+    if (cell.style?.cursor?.includes('resize')) return;
 
     this.anchor      = cell;
     this.isDragging  = false;

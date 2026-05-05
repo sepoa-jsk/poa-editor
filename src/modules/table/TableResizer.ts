@@ -1,5 +1,6 @@
-const THRESHOLD = 6; // 테두리 감지 거리 (px)
-const MIN_SIZE  = 24; // 열 너비 / 행 높이 최솟값 (px)
+const THRESHOLD      = 6; // 테두리 감지 거리 (px)
+const MIN_SIZE       = 24; // 열 너비 / 행 높이 최솟값 (px)
+const DRAG_THRESHOLD = 5; // 실제 드래그로 인정하는 최소 이동 거리 (px)
 
 interface DragState {
   type:       'col' | 'row';
@@ -13,6 +14,16 @@ interface DragState {
   onModified: () => void;
 }
 
+/** mousedown 이후 DRAG_THRESHOLD 초과 전까지의 대기 상태 */
+interface PendingDrag {
+  cell:   HTMLTableCellElement;
+  table:  HTMLTableElement;
+  startX: number;
+  startY: number;
+  nearR:  boolean;
+  nearB:  boolean;
+}
+
 /**
  * 열/행 경계에 마우스를 올리면 resize 커서를 표시하고,
  * 드래그로 열 너비·행 높이를 실시간 조절한다.
@@ -22,8 +33,9 @@ interface DragState {
  * - table-layout:fixed + <colgroup> 을 전제로 동작
  */
 export class TableResizer {
-  private contentEl: HTMLElement | null = null;
-  private dragState: DragState | null = null;
+  private contentEl:   HTMLElement | null = null;
+  private dragState:   DragState | null = null;
+  private pendingDrag: PendingDrag | null = null;
   private lastCursor = '';
   private onModified: () => void = () => { /* noop */ };
 
@@ -48,7 +60,8 @@ export class TableResizer {
     }
     document.removeEventListener('mousemove', this.dragHandler);
     document.removeEventListener('mouseup',   this.mupHandler);
-    this.dragState = null;
+    this.dragState   = null;
+    this.pendingDrag = null;
   }
 
   // ── 마우스 이동: 커서 모양 결정 ─────────────────────────────────
@@ -77,7 +90,7 @@ export class TableResizer {
     }
   }
 
-  // ── 마우스 다운: 드래그 시작 ────────────────────────────────────
+  // ── 마우스 다운: 대기 상태 진입 (테이블 미수정) ─────────────────
 
   private readonly mdownHandler = (e: MouseEvent): void => {
     const cell  = this.findCell(e.target as Node);
@@ -91,31 +104,41 @@ export class TableResizer {
     if (!nearR && !nearB) return;
 
     e.preventDefault();
-    this.ensureColgroup(table);
-
-    if (nearR) {
-      const { colEl, adjColEl, startPx, adjStartPx } = this.getColData(cell, table);
-      this.dragState = {
-        type: 'col', startCoord: e.clientX,
-        startSize: startPx, adjStart: adjStartPx,
-        colEl, adjColEl, rowCells: [], table, onModified: this.onModified,
-      };
-    } else {
-      const rowCells = Array.from(cell.closest('tr')!.cells) as HTMLTableCellElement[];
-      const rowH = Math.round(cell.getBoundingClientRect().height);
-      this.dragState = {
-        type: 'row', startCoord: e.clientY,
-        startSize: rowH, adjStart: 0,
-        colEl: null, adjColEl: null, rowCells, table, onModified: this.onModified,
-      };
-    }
-    document.body.style.cursor = nearR ? 'col-resize' : 'row-resize';
+    // pendingDrag만 기록 — DRAG_THRESHOLD 초과 전까지 테이블 절대 수정 금지
+    this.pendingDrag = { cell, table, startX: e.clientX, startY: e.clientY, nearR, nearB };
     document.body.style.userSelect = 'none';
   };
 
   // ── 드래그 중 ────────────────────────────────────────────────────
 
   private readonly dragHandler = (e: MouseEvent): void => {
+    // pendingDrag 상태: DRAG_THRESHOLD 초과 시 비로소 드래그 시작
+    if (!this.dragState && this.pendingDrag) {
+      const { cell, table, startX, startY, nearR, nearB } = this.pendingDrag;
+      const moved = Math.abs(e.clientX - startX) + Math.abs(e.clientY - startY);
+      if (moved < DRAG_THRESHOLD) return;
+
+      this.ensureColgroup(table);
+      if (nearR) {
+        const { colEl, adjColEl, startPx, adjStartPx } = this.getColData(cell, table);
+        this.dragState = {
+          type: 'col', startCoord: startX,
+          startSize: startPx, adjStart: adjStartPx,
+          colEl, adjColEl, rowCells: [], table, onModified: this.onModified,
+        };
+      } else if (nearB) {
+        const rowCells = Array.from(cell.closest('tr')!.cells) as HTMLTableCellElement[];
+        const rowH = Math.round(cell.getBoundingClientRect().height);
+        this.dragState = {
+          type: 'row', startCoord: startY,
+          startSize: rowH, adjStart: 0,
+          colEl: null, adjColEl: null, rowCells, table, onModified: this.onModified,
+        };
+      }
+      this.pendingDrag = null;
+      document.body.style.cursor = nearR ? 'col-resize' : 'row-resize';
+    }
+
     if (!this.dragState) return;
     const { type, startCoord, startSize, adjStart, colEl, adjColEl, rowCells } = this.dragState;
 
@@ -131,10 +154,15 @@ export class TableResizer {
     }
   };
 
-  // ── 마우스 업: 드래그 완료 ──────────────────────────────────────
+  // ── 마우스 업: 드래그 완료 (또는 단순 클릭 취소) ───────────────
 
   private readonly mupHandler = (): void => {
-    if (!this.dragState) return;
+    // 드래그 없이 mouseup → pendingDrag 폐기, 테이블 미수정이므로 원복 불필요
+    this.pendingDrag = null;
+    if (!this.dragState) {
+      document.body.style.userSelect = '';
+      return;
+    }
     this.dragState.onModified();
     this.dragState = null;
     document.body.style.cursor = '';
