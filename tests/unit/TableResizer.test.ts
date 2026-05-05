@@ -147,12 +147,12 @@ describe('TableResizer', () => {
     expect(table.style.tableLayout).toBe('fixed');
   });
 
-  it('열 드래그 시 같은 열의 모든 셀 너비가 변경된다', () => {
+  it('열 드래그 시 같은 열(cellIndex 기준)의 모든 셀 너비가 변경된다', () => {
     const { table, cells } = makeTable(2, 3);  // 2행 3열
     contentEl.appendChild(table);
 
-    const cell00 = cells[0]![0]!;
-    const cell10 = cells[1]![0]!;  // 같은 0번 열
+    const cell00 = cells[0]![0]!;  // cellIndex = 0
+    const cell10 = cells[1]![0]!;  // cellIndex = 0, 같은 열
     mockCellBCR(cell00, 0, 0, 100, 40);
 
     fireMousedown(cell00, 100, 20);
@@ -161,6 +161,40 @@ describe('TableResizer', () => {
     // startWidth(100) + delta(20) = 120px
     expect(cell00.style.width).toBe('120px');
     expect(cell10.style.width).toBe('120px');  // 같은 열도 변경
+  });
+
+  it('열 드래그 시 다른 열(cellIndex 1, 2)은 변경되지 않는다', () => {
+    const { table, cells } = makeTable(2, 3);  // 2행 3열
+    contentEl.appendChild(table);
+
+    const cell00 = cells[0]![0]!;  // 0번 열 — 드래그 대상
+    const cell01 = cells[0]![1]!;  // 1번 열 — 변경 없어야 함
+    const cell02 = cells[0]![2]!;  // 2번 열 — 변경 없어야 함
+    mockCellBCR(cell00, 0, 0, 100, 40);
+
+    fireMousedown(cell00, 100, 20);
+    fireMousemove(130, 20);  // 30px 이동
+
+    expect(cell00.style.width).toBe('130px');
+    expect(cell01.style.width).toBe('');  // 변경 없음
+    expect(cell02.style.width).toBe('');  // 변경 없음
+  });
+
+  it('중간 열(cellIndex 1) 드래그 시 해당 열만 변경된다', () => {
+    const { table, cells } = makeTable(2, 3);
+    contentEl.appendChild(table);
+
+    const cell01 = cells[0]![1]!;  // 1번 열 (B열)
+    const cell11 = cells[1]![1]!;  // 1번 열 row2
+    const cell00 = cells[0]![0]!;  // 0번 열 (A열) — 변경 없어야 함
+    mockCellBCR(cell01, 100, 0, 100, 40);  // right=200
+
+    fireMousedown(cell01, 200, 20);  // B열 우측 경계
+    fireMousemove(215, 20);          // 15px 이동
+
+    expect(cell01.style.width).toBe('115px');
+    expect(cell11.style.width).toBe('115px');
+    expect(cell00.style.width).toBe('');  // A열은 변경 없음
   });
 
   it('열 드래그 후 mouseup 시 onModified 호출', () => {
@@ -213,7 +247,7 @@ describe('TableResizer', () => {
     fireMousemove(115, 20);    // 정상 드래그 시작
     fireMousemove(620, 20);    // delta = 520 → 비정상
 
-    expect(warn).toHaveBeenCalledWith(expect.stringContaining('비정상 col delta'));
+    expect(warn).toHaveBeenCalledWith(expect.stringContaining('비정상 col delta'), expect.any(Object));
     // 이후 추가 이동에도 width 변경 없어야 함
     const prevWidth = cell.style.width;
     fireMousemove(640, 20);

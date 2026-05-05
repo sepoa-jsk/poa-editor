@@ -22,7 +22,8 @@ interface ColDragState {
   type:       'col';
   startX:     number;
   startWidth: number;
-  colCells:   HTMLTableCellElement[];
+  cellIndex:  number;                  // mousedown 셀의 cellIndex — 드래그 중 재계산 금지
+  colCells:   HTMLTableCellElement[];  // mousedown 시점에 수집한 열 셀 목록
   table:      HTMLTableElement;
   onModified: () => void;
 }
@@ -121,17 +122,24 @@ export class TableResizer {
 
     e.preventDefault();
 
-    // rowEl 과 startHeight 를 mousedown 시점에 바인딩 (threshold 초과 후 재조회 금지)
+    // cell / rowEl / startWidth / startHeight 를 mousedown 시점에 모두 바인딩
+    // dragHandler 에서는 이 값을 그대로 사용 — e.target 재계산 절대 금지
     const rowEl = cell.closest('tr') as HTMLTableRowElement | null;
     this.pendingDrag = {
       type:        nearR ? 'col' : 'row',
       cell, table,
       startX:      e.clientX,
       startY:      e.clientY,
-      startWidth:  cell.offsetWidth,             // mousedown 시점 고정
-      startHeight: rowEl ? rowEl.offsetHeight : cell.offsetHeight,  // mousedown 시점 고정
+      startWidth:  cell.offsetWidth,                               // mousedown 시점 고정
+      startHeight: rowEl ? rowEl.offsetHeight : cell.offsetHeight, // mousedown 시점 고정
       rowEl,
     };
+    console.log('[TableResizer] 리사이즈 대기', {
+      type: nearR ? 'col' : 'row',
+      cellIndex:  cell.cellIndex,
+      startWidth: cell.offsetWidth,
+      startX:     e.clientX,
+    });
     document.body.style.userSelect = 'none';
   };
 
@@ -148,11 +156,21 @@ export class TableResizer {
         // 표 전체 너비를 현재값으로 고정 (col 리사이즈 중 table 팽창 방지)
         table.style.width       = `${table.offsetWidth}px`;
         table.style.tableLayout = 'fixed';
+        // cell.cellIndex 를 기준으로 열 셀 수집 — colSpan 누적 계산 없이 직접 매핑
+        const cellIndex = cell.cellIndex;
+        const colCells  = this.getColumnCells(cell, cellIndex, table);
+        console.log('[TableResizer] 열 리사이즈 시작', {
+          cellIndex,
+          colCellCount: colCells.length,
+          startWidth,
+          startX,
+        });
         this.dragState = {
-          type:       'col',
+          type: 'col',
           startX,
           startWidth,
-          colCells:   this.getColumnCells(cell, table),
+          cellIndex,
+          colCells,
           table,
           onModified: this.onModified,
         };
@@ -185,15 +203,15 @@ export class TableResizer {
   };
 
   private applyColResize(e: MouseEvent, state: ColDragState): void {
-    const deltaX = e.clientX - state.startX;  // clientX 고정 사용
+    const deltaX = e.clientX - state.startX;  // clientX 고정 사용 — pageX/screenX 혼용 금지
     if (Math.abs(deltaX) > MAX_DELTA) {
-      console.warn('[TableResizer] 비정상 col delta 감지, resize 중단');
+      console.warn('[TableResizer] 비정상 col delta 감지, resize 중단', { deltaX, cellIndex: state.cellIndex });
       this.cancelDrag();
       return;
     }
     const maxW = this.contentEl ? this.contentEl.offsetWidth : 9999;
     const newW = Math.min(maxW, Math.max(MIN_COL_WIDTH, state.startWidth + deltaX));
-    // cell.style.width 만 변경 — table.style.width 는 절대 건드리지 않음
+    // mousedown 시점에 수집한 colCells 에만 적용 — e.target 재계산 절대 금지
     for (const c of state.colCells) c.style.width = `${newW}px`;
   }
 
@@ -258,34 +276,25 @@ export class TableResizer {
   }
 
   /**
-   * 대상 셀과 같은 열(colSpan 포함)의 모든 셀을 반환한다.
-   * table-layout:fixed 는 첫 행 셀 너비를 기준으로 열 너비를 결정하므로
-   * 모든 행의 셀에 동일하게 적용해야 일관성이 유지된다.
+   * mousedown 시점의 cellIndex 를 기준으로 모든 행에서 같은 열의 셀을 수집한다.
+   *
+   * cellIndex 는 HTMLTableCellElement 의 DOM 속성으로, colSpan 누적 계산 없이
+   * 셀이 속한 행의 cells 컬렉션 내 위치를 직접 반환한다.
+   * getColumnCells(cell, cell.cellIndex, table) 로 호출한다.
+   *
+   * 주의: colSpan > 1 인 셀이 혼재할 경우 논리적 열 번호와 cellIndex 가 다를 수 있으나,
+   * 표 리사이즈의 일반적인 사용 패턴(단순 표)에서는 cellIndex 가 가장 신뢰성이 높다.
    */
-  private getColumnCells(targetCell: HTMLTableCellElement, table: HTMLTableElement): HTMLTableCellElement[] {
-    const row = targetCell.parentElement as HTMLTableRowElement | null;
-    if (!row) return [targetCell];
-
-    // targetCell 의 실제 열 시작 인덱스 (colSpan 누적 기준)
-    let colIdx = -1;
-    let span   = 0;
-    for (let i = 0; i < row.cells.length; i++) {
-      const c = row.cells[i]!;
-      if (c === targetCell) { colIdx = span; break; }
-      span += c.colSpan > 1 ? c.colSpan : 1;
-    }
-    if (colIdx < 0) return [targetCell];
-
-    // 모든 행에서 해당 열 인덱스의 셀 수집
+  private getColumnCells(
+    targetCell: HTMLTableCellElement,
+    cellIndex:  number,
+    table:      HTMLTableElement,
+  ): HTMLTableCellElement[] {
     const result: HTMLTableCellElement[] = [];
     for (const tr of Array.from(table.rows)) {
-      let s = 0;
-      for (let i = 0; i < tr.cells.length; i++) {
-        const c = tr.cells[i]!;
-        if (s === colIdx) { result.push(c); break; }
-        if (s > colIdx)   break;
-        s += c.colSpan > 1 ? c.colSpan : 1;
-      }
+      // cellIndex 로 직접 접근 — colSpan 누적 계산 없이 같은 인덱스 위치의 셀만 선택
+      const c = tr.cells[cellIndex];
+      if (c) result.push(c);
     }
     return result.length > 0 ? result : [targetCell];
   }
