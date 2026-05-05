@@ -45,6 +45,8 @@ import { PoaToast } from './Toast.js';
 import type { PoaConfirmDialog } from './ConfirmDialog.js';
 import type { PoaAccessibilityDialog } from './dialogs/AccessibilityDialog.js';
 import { AccessibilityChecker } from '../modules/accessibility/AccessibilityChecker.js';
+import type { PoaPrivacyDialog } from './dialogs/PrivacyDialog.js';
+import { PrivacyChecker } from '../modules/privacy/PrivacyChecker.js';
 
 const INDENT_STEP_EM = 2;
 const BLOCK_TAGS = new Set(['p', 'div', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'li', 'blockquote', 'pre']);
@@ -103,6 +105,7 @@ export class PoaEditor extends HTMLElement {
   private toast!: PoaToast;
   private confirmDialog!: PoaConfirmDialog;
   private accessibilityDialog!: PoaAccessibilityDialog;
+  private privacyDialog!: PoaPrivacyDialog;
   /** 현재 선택(파란 outline)된 표 — null이면 미선택 */
   private selectedTable: HTMLTableElement | null = null;
   /** 표 컨텍스트 진입 직전 탭 — 표에서 벗어날 때 복귀에 사용 */
@@ -161,7 +164,8 @@ slot[name="content"] { display: contents; }
 <poa-link-dialog></poa-link-dialog>
 <poa-image-toolbar></poa-image-toolbar>
 <poa-confirm-dialog></poa-confirm-dialog>
-<poa-accessibility-dialog></poa-accessibility-dialog>`;
+<poa-accessibility-dialog></poa-accessibility-dialog>
+<poa-privacy-dialog></poa-privacy-dialog>`;
 
     // contentEl을 light DOM(poa-editor의 직계 자식)으로 생성 — Selection API가 정상 작동
     this.contentEl = (this.querySelector('.poa-editor-content') as HTMLDivElement | null)
@@ -197,6 +201,11 @@ slot[name="content"] { display: contents; }
     this.confirmDialog       = this.shadow.querySelector('poa-confirm-dialog')       as PoaConfirmDialog;
     this.accessibilityDialog = this.shadow.querySelector('poa-accessibility-dialog') as PoaAccessibilityDialog;
     this.accessibilityDialog.setup(this.contentEl, () => this.runAccessibilityCheck());
+    this.privacyDialog = this.shadow.querySelector('poa-privacy-dialog') as unknown as PoaPrivacyDialog;
+    this.privacyDialog.setup(
+      () => { void this.core.captureHistory('privacyEdit'); this.statusBar.update(this.contentEl.innerHTML); },
+      (msg) => this.confirmDialog.show(msg),
+    );
     this.toast = new PoaToast();
     this.imageInsertDialog.setOnError((msg) => this.toast.show(msg, 'error'));
 
@@ -765,6 +774,7 @@ slot[name="content"] { display: contents; }
     this.deselectTable();
     this.hideImgContextMenu();
     this.hideLinkContextMenu();
+    PrivacyChecker.removeHighlights(this.contentEl);
     this.core.unmount();
   }
 
@@ -1053,8 +1063,11 @@ slot[name="content"] { display: contents; }
       case 'misc:a11y':
         this.runAccessibilityCheck();
         return;
+      case 'misc:privacy':
+        this.runPrivacyCheck();
+        return;
       case 'insert:hr': case 'insert:symbol': case 'insert:multi-image':
-      case 'misc:privacy': case 'misc:form': case 'misc:calc':
+      case 'misc:form': case 'misc:calc':
       case 'help:shortcuts': case 'help:guide': case 'help:about':
         this.toast.show(`'${type}' 기능은 준비 중입니다.`, 'info');
         return;
@@ -1174,11 +1187,21 @@ slot[name="content"] { display: contents; }
 
   private runAccessibilityCheck(): void {
     this.accessibilityDialog.startLoading();
-    // AccessibilityDialog.show() 가 open 상태를 관리하므로 별도로 open() 불필요
-    // 비동기로 실행해 UI가 로딩 스피너를 먼저 렌더링할 수 있도록 한다
     setTimeout(() => {
       const result = new AccessibilityChecker(this.contentEl).run();
       this.accessibilityDialog.show(result);
+    }, 50);
+  }
+
+  private runPrivacyCheck(): void {
+    // 이전 하이라이트 제거
+    PrivacyChecker.removeHighlights(this.contentEl);
+    this.privacyDialog.startLoading();
+    setTimeout(() => {
+      const checker = new PrivacyChecker(this.contentEl);
+      const matches = checker.run();
+      if (matches.length > 0) PrivacyChecker.highlight(matches);
+      this.privacyDialog.show(matches);
     }, 50);
   }
 
