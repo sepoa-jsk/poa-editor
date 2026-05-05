@@ -49,6 +49,8 @@ import type { PoaPrivacyDialog } from './dialogs/PrivacyDialog.js';
 import { PrivacyChecker } from '../modules/privacy/PrivacyChecker.js';
 import type { PoaFormulaDialog } from './dialogs/FormulaDialog.js';
 import { TableFormulaManager } from '../modules/table/TableFormula.js';
+import type { PoaVideoDialog } from './dialogs/VideoDialog.js';
+import { VideoInserter } from '../modules/insert/VideoInserter.js';
 
 const INDENT_STEP_EM = 2;
 const BLOCK_TAGS = new Set(['p', 'div', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'li', 'blockquote', 'pre']);
@@ -111,6 +113,8 @@ export class PoaEditor extends HTMLElement {
   private formulaDialog!: PoaFormulaDialog;
   private formulaManager!: TableFormulaManager;
   private formulaPickMode = false;
+  private videoDialog!: PoaVideoDialog;
+  private videoInserter!: VideoInserter;
   /** 현재 선택(파란 outline)된 표 — null이면 미선택 */
   private selectedTable: HTMLTableElement | null = null;
   /** 표 컨텍스트 진입 직전 탭 — 표에서 벗어날 때 복귀에 사용 */
@@ -171,7 +175,8 @@ slot[name="content"] { display: contents; }
 <poa-confirm-dialog></poa-confirm-dialog>
 <poa-accessibility-dialog></poa-accessibility-dialog>
 <poa-privacy-dialog></poa-privacy-dialog>
-<poa-formula-dialog></poa-formula-dialog>`;
+<poa-formula-dialog></poa-formula-dialog>
+<poa-video-dialog></poa-video-dialog>`;
 
     // contentEl을 light DOM(poa-editor의 직계 자식)으로 생성 — Selection API가 정상 작동
     this.contentEl = (this.querySelector('.poa-editor-content') as HTMLDivElement | null)
@@ -214,6 +219,8 @@ slot[name="content"] { display: contents; }
     );
     this.formulaManager = new TableFormulaManager();
     this.formulaDialog  = this.shadow.querySelector('poa-formula-dialog') as unknown as PoaFormulaDialog;
+    this.videoInserter  = new VideoInserter(this.contentEl);
+    this.videoDialog    = this.shadow.querySelector('poa-video-dialog') as unknown as PoaVideoDialog;
 
     this.toast = new PoaToast();
     this.imageInsertDialog.setOnError((msg) => this.toast.show(msg, 'error'));
@@ -432,6 +439,14 @@ slot[name="content"] { display: contents; }
     });
     this.shadow.addEventListener('poa-find-clear', () => {
       this.findReplace.clearMarks();
+    });
+
+    // 비디오/임베드 삽입 다이얼로그 → VideoInserter로 삽입
+    this.shadow.addEventListener('poa-video-insert', (e) => {
+      const { html } = (e as CustomEvent).detail as { html: string };
+      this.videoInserter.insert(html);
+      void this.core.captureHistory('videoInsert');
+      this.statusBar.update(this.contentEl.innerHTML);
     });
 
     // 이미지 삽입 다이얼로그 → ImageInserter로 삽입
@@ -1110,6 +1125,14 @@ slot[name="content"] { display: contents; }
         return;
       case 'misc:calc':
         this.openFormulaDialog();
+        return;
+      case 'insert:video':
+        this.restoreSelection();
+        this.videoDialog.open('video');
+        return;
+      case 'insert:embed':
+        this.restoreSelection();
+        this.videoDialog.open('embed');
         return;
       case 'insert:hr': case 'insert:symbol': case 'insert:multi-image':
       case 'misc:form':
