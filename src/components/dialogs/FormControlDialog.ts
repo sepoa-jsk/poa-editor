@@ -50,10 +50,12 @@ const TYPES: ControlType[] = ['text', 'textarea', 'checkbox', 'radio', 'select',
 // ── 스타일 ──────────────────────────────────────────────────────────────────
 
 const STYLE = `
+*, *::before, *::after { box-sizing: border-box; }
+
 :host { display:none; position:fixed; inset:0; z-index:9999; align-items:center; justify-content:center; }
 :host([open]) { display:flex; background:rgba(0,0,0,.45); }
-.dlg { background:#fff; border-radius:12px; width:520px; max-height:92vh;
-       overflow-y:auto; box-shadow:0 8px 32px rgba(0,0,0,.28);
+.dlg { background:#fff; border-radius:12px; width:min(560px,90vw); max-height:92vh;
+       overflow-x:hidden; overflow-y:auto; box-shadow:0 8px 32px rgba(0,0,0,.28);
        display:flex; flex-direction:column; }
 
 /* 헤더 */
@@ -66,22 +68,22 @@ const STYLE = `
 
 /* 타입 카드 그리드 */
 .type-grid { display:grid; grid-template-columns:repeat(4,1fr); gap:8px;
-             padding:16px 20px 12px; border-bottom:1px solid #f3f4f6; }
+             padding:16px 20px 12px; width:100%; border-bottom:1px solid #f3f4f6; }
 .type-card { display:flex; flex-direction:column; align-items:center; justify-content:center;
              gap:6px; height:72px; border:1.5px solid #e5e7eb; border-radius:8px;
              background:#fff; cursor:pointer; color:#6b7280; font-size:12px; font-weight:500;
-             transition:all .15s; user-select:none; }
+             transition:all .15s; user-select:none; min-width:0; }
 .type-card:hover { background:#f9fafb; border-color:#d1d5db; color:#374151; }
 .type-card.active { border:2px solid #2563eb; background:#eff6ff; color:#2563eb; }
 .type-card svg { flex-shrink:0; }
 
 /* 폼 바디 */
-.body { padding:16px 20px 0; flex:1; }
+.body { padding:16px 20px 0; flex:1; width:100%; }
 .field { margin-bottom:14px; }
 .field > label { display:block; font-size:13px; font-weight:600; color:#374151; margin-bottom:5px; }
 .field .hint { font-size:11px; color:#9ca3af; margin-top:4px; }
 input[type=text], input[type=number], select, textarea {
-  width:100%; box-sizing:border-box; border:1.5px solid #e5e7eb; border-radius:8px;
+  width:100%; border:1.5px solid #e5e7eb; border-radius:8px;
   padding:8px 12px; font-size:14px; color:#111827; outline:none; transition:border-color .15s;
   font-family:inherit; }
 input[type=text]:focus, input[type=number]:focus, select:focus, textarea:focus {
@@ -97,8 +99,8 @@ textarea { resize:vertical; min-height:72px; }
 
 /* 옵션 리스트 (radio/select) */
 .opt-list { display:flex; flex-direction:column; gap:6px; margin-bottom:8px; }
-.opt-row { display:flex; gap:6px; align-items:center; }
-.opt-row input[type=text] { flex:1; padding:6px 10px; }
+.opt-row { display:flex; gap:6px; align-items:center; min-width:0; }
+.opt-row input[type=text] { flex:1; min-width:0; padding:6px 10px; }
 .opt-row .del-btn { flex:none; width:28px; height:28px; border:1px solid #fca5a5;
                     border-radius:6px; background:none; color:#ef4444; cursor:pointer;
                     font-size:14px; display:flex; align-items:center; justify-content:center; }
@@ -108,7 +110,7 @@ textarea { resize:vertical; min-height:72px; }
 .add-opt:hover { background:#f9fafb; border-color:#9ca3af; }
 
 /* 버튼 역할 라디오 */
-.btn-role { display:flex; gap:12px; }
+.btn-role { display:flex; gap:12px; flex-wrap:wrap; }
 .btn-role label { display:flex; align-items:center; gap:5px; font-size:13px;
                   color:#374151; cursor:pointer; }
 .btn-role input[type=radio] { accent-color:#2563eb; }
@@ -120,21 +122,22 @@ textarea { resize:vertical; min-height:72px; }
 .adv-toggle .arrow { transition:transform .2s; display:inline-block; }
 .adv-toggle.open .arrow { transform:rotate(180deg); }
 .adv-body { display:none; border:1.5px solid #f3f4f6; border-radius:8px; padding:12px 14px;
-            margin-bottom:12px; background:#fafafa; }
+            margin-bottom:12px; background:#fafafa; width:100%; }
 .adv-body.show { display:block; }
 
-/* 미리보기 */
-.preview-wrap { margin:0 -20px; padding:12px 20px; background:#f9fafb;
-                border-top:1px solid #f3f4f6; border-bottom:1px solid #f3f4f6; }
+/* 미리보기 — 음수 마진 제거, 너비 overflow 방지 */
+.preview-wrap { padding:12px 20px; background:#f9fafb; width:100%;
+                border-top:1px solid #f3f4f6; border-bottom:1px solid #f3f4f6;
+                overflow:hidden; }
 .preview-label { font-size:11px; font-weight:600; color:#9ca3af; text-transform:uppercase;
                  letter-spacing:.06em; margin-bottom:8px; }
-.preview-box { min-height:60px; display:flex; align-items:flex-start; }
-.preview-box .poa-form-group { border:none !important; padding:0 !important; margin:0 !important; }
+.preview-box { min-height:60px; display:flex; align-items:flex-start; width:100%; overflow:hidden; }
+.preview-box .poa-form-group { border:none !important; padding:0 !important; margin:0 !important; width:100%; }
 .preview-box label { display:block; font-size:13px; color:#374151; margin-bottom:4px; font-weight:500; }
 .preview-box input[type=text],.preview-box input[type=date],
 .preview-box textarea,.preview-box select {
   border:1.5px solid #e5e7eb; border-radius:6px; padding:6px 10px; font-size:13px;
-  color:#374151; width:auto; min-width:200px; outline:none; box-shadow:none; }
+  color:#374151; width:100%; max-width:320px; outline:none; box-shadow:none; }
 .preview-box .poa-checkbox-label { font-size:13px; color:#374151; display:flex; align-items:center; gap:6px; }
 .preview-box .poa-radio-group { display:flex; flex-direction:column; gap:4px; }
 .preview-box .poa-radio-group label { font-size:13px; color:#374151; margin:0; font-weight:normal; display:flex; align-items:center; gap:5px; }
