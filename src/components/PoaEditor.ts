@@ -1073,6 +1073,8 @@ slot[name="content"] { display: contents; }
         const activeImg = this.imageResizer.getActiveImage();
         if (activeImg) {
           this.applyImageAlign(activeImg, align);
+        } else if (this.getFocusedCell()) {
+          this.applyTextAlign(align);
         } else if (this.selectedTable) {
           this.applyTableAlign(this.selectedTable, align);
         } else {

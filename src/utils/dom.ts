@@ -34,7 +34,7 @@ export function isHTMLElement(node: Node): node is HTMLElement {
   return node.nodeType === Node.ELEMENT_NODE;
 }
 
-const BLOCK_TAGS = new Set(['P','DIV','H1','H2','H3','H4','H5','H6','LI','BLOCKQUOTE','PRE','FIGURE']);
+const BLOCK_TAGS = new Set(['P','DIV','H1','H2','H3','H4','H5','H6','LI','BLOCKQUOTE','PRE','FIGURE','TD','TH']);
 
 function isBlock(node: Node): node is HTMLElement {
   return isHTMLElement(node) && BLOCK_TAGS.has((node as HTMLElement).tagName);

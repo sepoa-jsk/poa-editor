@@ -201,10 +201,33 @@ export class FormControlInserter {
     const groupEl = this.buildElement(config);
     if (!groupEl) return;
 
-    // 커서 위치에 삽입
     const sel = window.getSelection();
-    if (sel?.rangeCount && this.contentEl.contains(sel.getRangeAt(0).commonAncestorContainer)) {
-      const range = sel.getRangeAt(0);
+    const range = sel?.rangeCount ? sel.getRangeAt(0) : null;
+    const inContent = range && this.contentEl.contains(range.commonAncestorContainer);
+
+    // 커서가 td/th 안이면 래퍼 없이 컨트롤 요소만 삽입
+    const cell = range?.commonAncestorContainer instanceof Element
+      ? range.commonAncestorContainer.closest('td, th')
+      : (range?.commonAncestorContainer as Node | null)?.parentElement?.closest('td, th');
+
+    if (cell && inContent && range) {
+      const controlEl = (groupEl.querySelector('input, textarea, select, button') ?? groupEl) as HTMLElement;
+      controlEl.dataset.poaForm = JSON.stringify(config);
+      range.deleteContents();
+      range.insertNode(controlEl);
+      range.collapse(false);
+      // 셀 내 빈 p·br 정리
+      for (const child of Array.from(cell.childNodes)) {
+        if (child.nodeType === Node.ELEMENT_NODE) {
+          const el = child as HTMLElement;
+          if ((el.tagName === 'P' || el.tagName === 'BR') && !el.textContent?.trim()) {
+            cell.removeChild(el);
+          }
+        } else if (child.nodeType === Node.TEXT_NODE && !child.textContent?.trim()) {
+          cell.removeChild(child);
+        }
+      }
+    } else if (inContent && range) {
       range.deleteContents();
       range.insertNode(groupEl);
       range.collapse(false);
