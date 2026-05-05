@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>poa-editor v1.0.0 Demo</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; }
+    body {
+      margin: 0; padding: 24px;
+      font-family: '맑은 고딕', 'Malgun Gothic', sans-serif;
+      background: #f0f2f5; min-height: 100vh;
+    }
+    .header {
+      max-width: 900px; margin: 0 auto 16px;
+      display: flex; align-items: baseline; gap: 12px;
+    }
+    .header h1 { font-size: 18px; margin: 0; color: #1F2937; font-weight: 700; }
+    .header span { font-size: 13px; color: #6B7280; }
+    poa-editor {
+      display: flex;
+      width: 100%; max-width: 900px; height: 580px;
+      box-shadow: 0 2px 12px rgba(0,0,0,.12);
+      border-radius: 6px;
+      --poa-editor-border: #ccc;
+      --poa-editor-bg: #fff;
+    }
+    .actions {
+      margin-top: 12px; display: flex; flex-wrap: wrap; gap: 8px; max-width: 900px;
+    }
+    button {
+      padding: 6px 14px; border: 1px solid #D1D5DB; border-radius: 5px;
+      background: #fff; cursor: pointer; font-size: 13px; color: #374151;
+      transition: background 0.1s;
+    }
+    button:hover { background: #F3F4F6; }
+    button.primary {
+      background: #1F2937; color: #fff; border-color: #1F2937;
+    }
+    button.primary:hover { background: #374151; }
+    pre#output {
+      margin-top: 12px; max-width: 900px; padding: 12px;
+      background: #fff; border: 1px solid #E5E7EB; border-radius: 6px;
+      font-size: 12px; white-space: pre-wrap; word-break: break-all;
+      max-height: 200px; overflow-y: auto; display: none;
+      font-family: 'Courier New', monospace;
+    }
+    .section-label {
+      margin-top: 16px; max-width: 900px;
+      font-size: 11px; font-weight: 600; color: #9CA3AF;
+      letter-spacing: 0.05em; text-transform: uppercase;
+      margin-bottom: 6px;
+    }
+  </style>
+</head>
+<body>
+  <div class="header">
+    <h1>poa-editor</h1>
+    <span>v1.0.0 Demo · Vanilla Web Components Rich Text Editor</span>
+  </div>
+
+  <poa-editor id="editor" placeholder="여기에 입력하세요..."></poa-editor>
+
+  <p class="section-label">콘텐츠</p>
+  <div class="actions">
+    <button id="btn-get-html">HTML 가져오기</button>
+    <button id="btn-set-html" class="primary">샘플 HTML 설정</button>
+    <button id="btn-clear">내용 지우기</button>
+  </div>
+
+  <p class="section-label">기능 테스트</p>
+  <div class="actions">
+    <button id="btn-find">찾기 열기 (Ctrl+F)</button>
+    <button id="btn-replace">바꾸기 열기 (Ctrl+H)</button>
+    <button id="btn-undo">실행 취소</button>
+    <button id="btn-redo">다시 실행</button>
+  </div>
+
+  <pre id="output"></pre>
+
+  <script type="module" src="/src/index.ts"></script>
+  <script type="module">
+    const editor = document.getElementById('editor');
+    const output = document.getElementById('output');
+
+    const SAMPLE_HTML = `
+<h2>poa-editor v1.0.0</h2>
+<p>안녕하세요! <strong>poa-editor</strong>에 오신 것을 환영합니다.</p>
+<p>텍스트를 선택하고 <em>툴바 버튼</em>으로 서식을 적용해보세요.</p>
+<ul>
+  <li>글머리 기호 목록</li>
+  <li><strong>굵게</strong>, <em>기울임</em>, <u>밑줄</u></li>
+  <li>글자색 · 배경색 · 글꼴 변경</li>
+</ul>
+<p>표 삽입 → 삽입 메뉴 → 표를 사용해보세요.</p>
+`.trim();
+
+    document.getElementById('btn-get-html').addEventListener('click', () => {
+      output.style.display = 'block';
+      output.textContent = editor.getHTML();
+    });
+
+    document.getElementById('btn-set-html').addEventListener('click', () => {
+      editor.setHTML(SAMPLE_HTML);
+      output.style.display = 'none';
+    });
+
+    document.getElementById('btn-clear').addEventListener('click', () => {
+      editor.setHTML('');
+      output.style.display = 'none';
+    });
+
+    document.getElementById('btn-find').addEventListener('click', () => {
+      editor.querySelector('.poa-editor-content')?.focus();
+      editor.dispatchEvent(new KeyboardEvent('keydown', { key: 'f', ctrlKey: true, bubbles: true }));
+    });
+
+    document.getElementById('btn-replace').addEventListener('click', () => {
+      editor.querySelector('.poa-editor-content')?.focus();
+      editor.dispatchEvent(new KeyboardEvent('keydown', { key: 'h', ctrlKey: true, bubbles: true }));
+    });
+
+    document.getElementById('btn-undo').addEventListener('click', () => {
+      editor.querySelector('.poa-editor-content')?.focus();
+      document.execCommand('undo');
+    });
+
+    document.getElementById('btn-redo').addEventListener('click', () => {
+      editor.querySelector('.poa-editor-content')?.focus();
+      document.execCommand('redo');
+    });
+
+    // 초기 콘텐츠 설정
+    setTimeout(() => editor.setHTML(SAMPLE_HTML), 100);
+  </script>
+</body>
+</html>
