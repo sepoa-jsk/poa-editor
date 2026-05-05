@@ -1,0 +1,192 @@
+/**
+ * lucide-static에서 필요한 아이콘을 가져와 16×16으로 정규화한다.
+ * 모든 아이콘은 stroke="currentColor" 이므로 CSS color 상속.
+ */
+import {
+  // 서식 툴바
+  Bold, Italic, Underline, Strikethrough,
+  Undo2, Redo2,
+  AlignLeft, AlignCenter, AlignRight, AlignJustify,
+  Indent, Outdent,
+  Baseline, Highlighter,
+  BetweenVerticalStart, MoveHorizontal,
+  // 파일
+  FilePlus, FolderOpen, Save, Printer, Settings, Clock,
+  // 편집
+  Scissors, Copy, Clipboard, ClipboardX, SquareDashed, Search,
+  // 삽입
+  Image, Images, Link, Link2Off, Bookmark, Calendar, Minus, Omega, Video, MonitorPlay,
+  // 보기
+  LayoutDashboard, Code2, Eye, Type, FileText, Maximize2, Ruler, Grid3x3, BoxSelect,
+  // 표
+  Table, TableProperties, LayoutGrid, TableCellsMerge, TableCellsSplit,
+  ArrowUpFromLine, ArrowDownFromLine, ArrowLeftFromLine, ArrowRightFromLine,
+  Rows3, Columns3, Trash2,
+  // 서식
+  Paintbrush, Paintbrush2, RemoveFormatting, List, ListOrdered, Superscript, Subscript,
+  // 기타
+  Accessibility, ShieldCheck, SquareCheck, Sigma,
+  // 도움말
+  Keyboard, BookOpen, Info,
+} from 'lucide-static';
+
+/** SVG width/height 24 → 16으로 정규화 */
+function px16(svg: string): string {
+  return svg
+    .replace(/width="24"/, 'width="16"')
+    .replace(/height="24"/, 'height="16"');
+}
+
+export const Icons = {
+  // 서식 툴바
+  bold:       px16(Bold),
+  italic:     px16(Italic),
+  underline:  px16(Underline),
+  strike:     px16(Strikethrough),
+  undo:       px16(Undo2),
+  redo:       px16(Redo2),
+  alignLeft:     px16(AlignLeft),
+  alignCenter:   px16(AlignCenter),
+  alignRight:    px16(AlignRight),
+  alignJustify:  px16(AlignJustify),
+  indent:     px16(Indent),
+  outdent:    px16(Outdent),
+  foreColor:  px16(Baseline),
+  backColor:  px16(Highlighter),
+  lineHeight:    px16(BetweenVerticalStart),
+  letterSpacing: px16(MoveHorizontal),
+
+  // 파일
+  fileNew:    px16(FilePlus),
+  fileOpen:   px16(FolderOpen),
+  save:       px16(Save),
+  print:      px16(Printer),
+  settings:   px16(Settings),
+  clock:      px16(Clock),
+
+  // 편집
+  cut:        px16(Scissors),
+  copy:       px16(Copy),
+  paste:      px16(Clipboard),
+  pastePlain: px16(ClipboardX),
+  selectAll:  px16(SquareDashed),
+  search:     px16(Search),
+
+  // 삽입
+  image:      px16(Image),
+  images:     px16(Images),
+  link:       px16(Link),
+  linkOff:    px16(Link2Off),
+  bookmark:   px16(Bookmark),
+  calendar:   px16(Calendar),
+  hr:         px16(Minus),
+  symbol:     px16(Omega),
+  video:      px16(Video),
+  youtube:    px16(MonitorPlay),
+
+  // 보기
+  viewDesign:   px16(LayoutDashboard),
+  viewHtml:     px16(Code2),
+  viewPreview:  px16(Eye),
+  viewText:     px16(Type),
+  viewPage:     px16(FileText),
+  fullscreen:   px16(Maximize2),
+  ruler:        px16(Ruler),
+  grid:         px16(Grid3x3),
+  hiddenBorder: px16(BoxSelect),
+
+  // 표
+  table:          px16(Table),
+  tableProps:     px16(TableProperties),
+  cellProps:      px16(LayoutGrid),
+  mergeCells:     px16(TableCellsMerge),
+  splitCell:      px16(TableCellsSplit),
+  rowAbove:       px16(ArrowUpFromLine),
+  rowBelow:       px16(ArrowDownFromLine),
+  colLeft:        px16(ArrowLeftFromLine),
+  colRight:       px16(ArrowRightFromLine),
+  rowDelete:      px16(Rows3),
+  colDelete:      px16(Columns3),
+  tableDelete:    px16(Trash2),
+
+  // 서식
+  painterCopy:   px16(Paintbrush),
+  painterPaste:  px16(Paintbrush2),
+  formatClear:   px16(RemoveFormatting),
+  ul:            px16(List),
+  ol:            px16(ListOrdered),
+  sup:           px16(Superscript),
+  sub:           px16(Subscript),
+
+  // 기타
+  a11y:     px16(Accessibility),
+  privacy:  px16(ShieldCheck),
+  form:     px16(SquareCheck),
+  calc:     px16(Sigma),
+
+  // 도움말
+  shortcuts: px16(Keyboard),
+  guide:     px16(BookOpen),
+  about:     px16(Info),
+} as const;
+
+export type IconName = keyof typeof Icons;
+
+/** action 문자열 → Icons 키 매핑 */
+export const ACTION_ICON: Record<string, IconName> = {
+  'file:new':           'fileNew',
+  'file:open':          'fileOpen',
+  'file:save':          'save',
+  'file:saveas':        'save',
+  'file:print':         'print',
+  'settings':           'settings',
+  'edit:cut':           'cut',
+  'edit:copy':          'copy',
+  'edit:paste':         'paste',
+  'edit:paste-plain':   'pastePlain',
+  'edit:select-all':    'selectAll',
+  'find-replace':       'search',
+  'edit:image-edit':    'image',
+  'image':              'image',
+  'insert:multi-image': 'images',
+  'insert:link':        'link',
+  'insert:bookmark':    'bookmark',
+  'insert:datetime':    'calendar',
+  'insert:hr':          'hr',
+  'insert:symbol':      'symbol',
+  'view:design':        'viewDesign',
+  'view:html':          'viewHtml',
+  'view:preview':       'viewPreview',
+  'view:text':          'viewText',
+  'view:page':          'viewPage',
+  'view:fullscreen':    'fullscreen',
+  'view:ruler':         'ruler',
+  'view:grid':          'grid',
+  'view:hidden-border': 'hiddenBorder',
+  'table':              'table',
+  'table:table-props':  'tableProps',
+  'table:cell-props':   'cellProps',
+  'table:merge':        'mergeCells',
+  'table:split-cell':   'splitCell',
+  'table:row-above':    'rowAbove',
+  'table:row-below':    'rowBelow',
+  'table:col-left':     'colLeft',
+  'table:col-right':    'colRight',
+  'table:row-delete':   'rowDelete',
+  'table:col-delete':   'colDelete',
+  'table:delete':       'tableDelete',
+  'format:painter-copy':  'painterCopy',
+  'format:painter-paste': 'painterPaste',
+  'format:clear':         'formatClear',
+  'format:ul':  'ul',
+  'format:ol':  'ol',
+  'format:sup': 'sup',
+  'format:sub': 'sub',
+  'misc:a11y':    'a11y',
+  'misc:privacy': 'privacy',
+  'misc:form':    'form',
+  'misc:calc':    'calc',
+  'help:shortcuts': 'shortcuts',
+  'help:guide':     'guide',
+  'help:about':     'about',
+};

@@ -1,7 +1,9 @@
 import { eventBus, BusEvent } from '../utils/eventBus.js';
 import type { MenuTab } from '../core/types.js';
+import type { ViewMode } from '../modules/view/ViewManager.js';
+import { Icons, ACTION_ICON } from '../utils/icons.js';
 
-/** [label, action, value?, title?] — value 없으면 undefined */
+/** [label, action, value?, title?] */
 type BDef = readonly [string, string, string?, string?];
 /** null = 구분선 */
 type GroupDef = ReadonlyArray<BDef | null>;
@@ -22,7 +24,7 @@ const TABS: Record<MenuTab, ReadonlyArray<GroupDef>> = {
   ],
   view: [
     [['디자인','view:design'],['HTML','view:html'],['미리보기','view:preview'],['텍스트','view:text'],['페이지','view:page']],
-    [['전체화면','view:fullscreen'],['눈금자','view:ruler'],['그리드','view:grid']],
+    [['전체화면','view:fullscreen'],['눈금자','view:ruler'],['그리드','view:grid'],['숨김 테두리','view:hidden-border']],
   ],
   table: [
     [['표 삽입','table'],['표 속성','table:table-props'],['셀 속성','table:cell-props']],
@@ -44,33 +46,98 @@ const TABS: Record<MenuTab, ReadonlyArray<GroupDef>> = {
   ],
 };
 
+const VIEW_MODE_ACTIONS = new Set<string>(
+  ['view:design','view:html','view:preview','view:text','view:page'],
+);
+
 const CSS = `
-:host { display: block; }
+:host {
+  display: block;
+  --icon-color:         #374151;
+  --icon-hover-bg:      #F3F4F6;
+  --icon-hover-color:   #111827;
+  --icon-active-bg:     #EFF6FF;
+  --icon-active-color:  #2563EB;
+  --icon-active-border: #BFDBFE;
+  --toolbar-bg:         #F9FAFB;
+  --toolbar-border:     #E5E7EB;
+  --sep-color:          #D1D5DB;
+}
 .ctx-bar {
   display: flex; align-items: center; flex-wrap: wrap; gap: 2px;
   padding: 3px 8px; min-height: 36px;
-  background: var(--poa-ctx-bg, #fafafa);
-  border-bottom: 1px solid var(--poa-toolbar-border, #ddd);
+  background: var(--toolbar-bg);
+  border-bottom: 1px solid var(--toolbar-border);
   user-select: none; -webkit-user-select: none;
 }
 .group { display: flex; align-items: center; gap: 1px; }
-.sep { width: 1px; height: 20px; background: #ddd; margin: 0 4px; flex-shrink: 0; }
-.btn {
-  height: 26px; padding: 0 8px;
-  border: 1px solid transparent; border-radius: 3px;
-  background: transparent; color: #333;
-  font-size: 12px; cursor: pointer; white-space: nowrap;
+.sep {
+  width: 1px; height: 20px;
+  background: var(--sep-color);
+  margin: 0 4px; flex-shrink: 0;
 }
-.btn:hover:not(:disabled) { background: #e6e6e6; border-color: #ccc; }
-.btn:disabled { opacity: 0.38; cursor: default; }
+.btn {
+  position: relative;
+  height: 30px; padding: 0 8px;
+  border: 1px solid transparent; border-radius: 6px;
+  background: transparent; color: var(--icon-color);
+  font-size: 12px; cursor: pointer;
+  display: inline-flex; align-items: center; gap: 5px;
+  white-space: nowrap;
+  transition: background 0.12s, color 0.12s;
+}
+.btn svg { pointer-events: none; flex-shrink: 0; }
+.btn:hover:not(:disabled) {
+  background: var(--icon-hover-bg);
+  color: var(--icon-hover-color);
+}
+.btn:disabled { opacity: 0.35; cursor: not-allowed; }
+.btn.active {
+  background: var(--icon-active-bg);
+  color: var(--icon-active-color);
+  border-color: var(--icon-active-border);
+  font-weight: 600;
+}
+
+/* 툴팁 */
+.btn::after {
+  content: attr(data-tip);
+  position: absolute;
+  bottom: calc(100% + 6px);
+  left: 50%;
+  transform: translateX(-50%);
+  background: #1F2937;
+  color: #fff;
+  padding: 4px 8px;
+  border-radius: 4px;
+  font-size: 11px;
+  font-weight: 400;
+  white-space: nowrap;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.1s ease 0s;
+  z-index: 9999;
+  font-family: -apple-system, BlinkMacSystemFont, sans-serif;
+}
+.btn:hover:not(:disabled)::after {
+  opacity: 1;
+  transition-delay: 0.6s;
+}
 `;
 
 export class PoaContextToolbar extends HTMLElement {
   private shadow: ShadowRoot;
   private activeTab: MenuTab = 'edit';
+  private activeViewMode: ViewMode = 'design';
+
   private readonly busHandler = ({ tab }: { tab: MenuTab }): void => {
     this.activeTab = tab;
     this.render();
+  };
+
+  private readonly viewHandler = ({ mode }: { mode: ViewMode }): void => {
+    this.activeViewMode = mode;
+    if (this.activeTab === 'view') this.render();
   };
 
   constructor() {
@@ -81,10 +148,12 @@ export class PoaContextToolbar extends HTMLElement {
   connectedCallback(): void {
     this.render();
     eventBus.on<{ tab: MenuTab }>(BusEvent.MENUBAR_CHANGE, this.busHandler);
+    eventBus.on<{ mode: ViewMode }>(BusEvent.VIEW_CHANGE, this.viewHandler);
   }
 
   disconnectedCallback(): void {
     eventBus.off<{ tab: MenuTab }>(BusEvent.MENUBAR_CHANGE, this.busHandler);
+    eventBus.off<{ mode: ViewMode }>(BusEvent.VIEW_CHANGE, this.viewHandler);
   }
 
   private render(): void {
@@ -100,7 +169,21 @@ export class PoaContextToolbar extends HTMLElement {
         } else {
           const [label, action, value, title] = btn;
           const da = value ? ` data-value="${value}"` : '';
-          parts.push(`<button class="btn" data-action="${action}"${da} title="${title ?? label}">${label}</button>`);
+          const isActive = VIEW_MODE_ACTIONS.has(action)
+            && action === `view:${this.activeViewMode}`;
+          const cls = isActive ? ' active' : '';
+          const tip = title ?? label;
+
+          // 아이콘이 있으면 SVG + 텍스트, 없으면 텍스트만
+          const iconKey = ACTION_ICON[action];
+          const iconSvg = iconKey ? Icons[iconKey] : '';
+          const content = iconSvg
+            ? `${iconSvg}<span>${label}</span>`
+            : label;
+
+          parts.push(
+            `<button class="btn${cls}" data-action="${action}"${da} data-tip="${tip}">${content}</button>`,
+          );
         }
       }
       parts.push('</div>');

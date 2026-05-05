@@ -1213,20 +1213,6 @@ slot[name="content"] { display: contents; }
     return r;
   }
 
-  /** 임의 Node 에서 가장 가까운 td/th 반환 */
-  private findCellNode(node: Node): HTMLTableCellElement | null {
-    let cur: Node | null = node;
-    while (cur && cur !== this.contentEl) {
-      if (cur.nodeType === Node.ELEMENT_NODE) {
-        const tag = (cur as Element).tagName.toLowerCase();
-        if (tag === 'td' || tag === 'th') return cur as HTMLTableCellElement;
-        if (tag === 'table') break;
-      }
-      cur = cur.parentNode;
-    }
-    return null;
-  }
-
   /** 커서가 위치한 td/th 반환 — 없으면 null */
   private getFocusedCell(): HTMLTableCellElement | null {
     const range = this.getActualRange();

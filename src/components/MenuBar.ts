@@ -16,31 +16,37 @@ const CSS = `
 :host { display: block; }
 .menubar {
   display: flex; align-items: stretch;
-  background: var(--poa-menubar-bg, #f0f0f0);
-  border-bottom: 1px solid var(--poa-toolbar-border, #ddd);
-  padding: 0 6px;
+  background: #FFFFFF;
+  border-bottom: 1px solid #E5E7EB;
+  padding: 0 8px;
   user-select: none; -webkit-user-select: none;
 }
 .tab {
-  padding: 5px 12px;
-  font-size: 13px; color: #333;
+  padding: 6px 12px;
+  font-size: 13px; font-weight: 500;
+  color: #374151;
   cursor: pointer; border: none; background: transparent;
   border-bottom: 2px solid transparent;
   margin-bottom: -1px;
   white-space: nowrap;
+  transition: color 0.12s, background 0.12s;
+  border-radius: 4px 4px 0 0;
 }
-.tab:hover { background: rgba(0,0,0,0.06); color: #000; }
+.tab:hover {
+  color: #111827;
+  background: #F9FAFB;
+}
 .tab.active {
-  color: var(--poa-accent, #1565c0);
-  border-bottom-color: var(--poa-accent, #1565c0);
-  font-weight: 600;
-  background: #fff;
+  color: #2563EB;
+  border-bottom-color: #2563EB;
+  background: transparent;
 }
 `;
 
 export class PoaMenuBar extends HTMLElement {
   private shadow: ShadowRoot;
   private _activeTab: MenuTab = 'edit';
+
   private readonly busHandler = ({ tab }: { tab: MenuTab }): void => {
     this._activeTab = tab;
     this.updateActive();
