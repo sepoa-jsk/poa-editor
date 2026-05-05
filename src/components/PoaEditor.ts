@@ -56,6 +56,7 @@ import { FormControlInserter } from '../modules/form/FormControlInserter.js';
 import type { FormControl } from '../modules/form/FormControlInserter.js';
 import { FormControlEditor } from '../modules/form/FormControlEditor.js';
 import type { PoaTemplateDialog } from './dialogs/TemplateDialog.js';
+import type { PoaSignatureDialog } from './dialogs/SignatureDialog.js';
 
 const INDENT_STEP_EM = 2;
 const BLOCK_TAGS = new Set(['p', 'div', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'li', 'blockquote', 'pre']);
@@ -123,7 +124,8 @@ export class PoaEditor extends HTMLElement {
   private formControlDialog!: PoaFormControlDialog;
   private formControlInserter!: FormControlInserter;
   private formControlEditor!: FormControlEditor;
-  private templateDialog!: PoaTemplateDialog;
+  private templateDialog!:  PoaTemplateDialog;
+  private signatureDialog!: PoaSignatureDialog;
   /** 현재 선택(파란 outline)된 표 — null이면 미선택 */
   private selectedTable: HTMLTableElement | null = null;
   /** 표 컨텍스트 진입 직전 탭 — 표에서 벗어날 때 복귀에 사용 */
@@ -187,7 +189,8 @@ slot[name="content"] { display: contents; }
 <poa-formula-dialog></poa-formula-dialog>
 <poa-video-dialog></poa-video-dialog>
 <poa-form-control-dialog></poa-form-control-dialog>
-<poa-template-dialog></poa-template-dialog>`;
+<poa-template-dialog></poa-template-dialog>
+<poa-signature-dialog></poa-signature-dialog>`;
 
     // contentEl을 light DOM(poa-editor의 직계 자식)으로 생성 — Selection API가 정상 작동
     this.contentEl = (this.querySelector('.poa-editor-content') as HTMLDivElement | null)
@@ -236,8 +239,9 @@ slot[name="content"] { display: contents; }
     this.formControlEditor   = new FormControlEditor(this.contentEl);
     this.formControlEditor.attach();
     this.formControlDialog = this.shadow.querySelector('poa-form-control-dialog') as unknown as PoaFormControlDialog;
-    this.templateDialog    = this.shadow.querySelector('poa-template-dialog') as unknown as PoaTemplateDialog;
+    this.templateDialog    = this.shadow.querySelector('poa-template-dialog')  as unknown as PoaTemplateDialog;
     this.templateDialog.setup(() => this.getHTML());
+    this.signatureDialog   = this.shadow.querySelector('poa-signature-dialog') as unknown as PoaSignatureDialog;
 
     this.toast = new PoaToast();
     this.imageInsertDialog.setOnError((msg) => this.toast.show(msg, 'error'));
@@ -480,6 +484,25 @@ slot[name="content"] { display: contents; }
         this.formControlInserter.insert(config);
       }
       void this.core.captureHistory('formControlInsert');
+      this.statusBar.update(this.contentEl.innerHTML);
+    });
+
+    // 서명 삽입 — 현재 커서 위치에 삽입
+    this.shadow.addEventListener('poa-signature-insert', (e) => {
+      const { html } = (e as CustomEvent).detail as { html: string };
+      this.restoreSelection();
+      const ownerDoc = this.contentEl.ownerDocument;
+      const sel = ownerDoc.getSelection();
+      if (sel && sel.rangeCount > 0) {
+        const range = sel.getRangeAt(0);
+        range.deleteContents();
+        const fragment = range.createContextualFragment(html);
+        range.insertNode(fragment);
+        range.collapse(false);
+      } else {
+        this.contentEl.insertAdjacentHTML('beforeend', html);
+      }
+      void this.core.captureHistory('signatureInsert');
       this.statusBar.update(this.contentEl.innerHTML);
     });
 
@@ -1210,6 +1233,9 @@ slot[name="content"] { display: contents; }
         return;
       case 'misc:template':
         this.templateDialog.open();
+        return;
+      case 'insert:signature':
+        this.signatureDialog.open();
         return;
       case 'insert:hr': case 'insert:symbol': case 'insert:multi-image':
       case 'help:shortcuts': case 'help:guide': case 'help:about':

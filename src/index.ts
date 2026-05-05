@@ -62,6 +62,9 @@ export { TemplateManager } from './modules/template/TemplateManager.js';
 export type { TemplateNode } from './modules/template/TemplateManager.js';
 export { PoaTemplateTree } from './components/TemplateTree.js';
 export { PoaTemplateDialog } from './components/dialogs/TemplateDialog.js';
+export { SignatureManager, buildSignatureHtml, MAX_LOGO_BYTES } from './modules/signature/SignatureManager.js';
+export type { Signature, SignatureFields, SignatureLayout } from './modules/signature/SignatureManager.js';
+export { PoaSignatureDialog } from './components/dialogs/SignatureDialog.js';
 
 // ── Web Components 등록 ───────────────────────────────────────────────────────
 
@@ -85,7 +88,8 @@ import { PoaFormulaDialog } from './components/dialogs/FormulaDialog.js';
 import { PoaVideoDialog as _PoaVideoDialog } from './components/dialogs/VideoDialog.js';
 import { PoaFormControlDialog as _PoaFormControlDialog } from './components/dialogs/FormControlDialog.js';
 import { PoaTemplateTree as _PoaTemplateTree } from './components/TemplateTree.js';
-import { PoaTemplateDialog as _PoaTemplateDialog } from './components/dialogs/TemplateDialog.js';
+import { PoaTemplateDialog  as _PoaTemplateDialog  } from './components/dialogs/TemplateDialog.js';
+import { PoaSignatureDialog as _PoaSignatureDialog } from './components/dialogs/SignatureDialog.js';
 
 // poa-editor의 connectedCallback 시점에 모든 하위 요소가 이미 정의되어 있어야 한다.
 // poa-editor를 마지막으로 등록하면 shadow.innerHTML 파싱 시 child 요소가 즉시 업그레이드된다.
@@ -109,6 +113,7 @@ if (!customElements.get('poa-video-dialog'))             customElements.define('
 if (!customElements.get('poa-form-control-dialog'))      customElements.define('poa-form-control-dialog',      _PoaFormControlDialog);
 if (!customElements.get('poa-template-tree'))            customElements.define('poa-template-tree',            _PoaTemplateTree);
 if (!customElements.get('poa-template-dialog'))          customElements.define('poa-template-dialog',          _PoaTemplateDialog);
+if (!customElements.get('poa-signature-dialog'))         customElements.define('poa-signature-dialog',         _PoaSignatureDialog);
 if (!customElements.get('poa-editor'))                   customElements.define('poa-editor',                   PoaEditor);
 
 // ── 팩토리 함수 ───────────────────────────────────────────────────────────────
