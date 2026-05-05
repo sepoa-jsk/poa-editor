@@ -1,14 +1,41 @@
 {
-  "name": "poa-editor",
-  "version": "0.1.0",
+  "name": "@sepoa-jsk/poa-editor",
+  "version": "1.0.0",
+  "description": "X-Free Editor 5 기능을 현대 브라우저에서 재현한 Vanilla Web Components 기반 리치 텍스트 에디터",
   "type": "module",
+  "main": "./dist/poa-editor.cjs.js",
+  "module": "./dist/poa-editor.es.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "import": "./dist/poa-editor.es.js",
+      "require": "./dist/poa-editor.cjs.js",
+      "types": "./dist/index.d.ts"
+    },
+    "./style": "./dist/poa-editor.css"
+  },
+  "files": [
+    "dist"
+  ],
   "scripts": {
     "dev": "vite",
     "build": "tsc -b && vite build",
+    "build:watch": "vite build --watch",
+    "preview": "vite preview",
     "test": "vitest run",
     "test:watch": "vitest",
-    "coverage": "vitest run --coverage"
+    "coverage": "vitest run --coverage",
+    "prepublishOnly": "pnpm build && pnpm test"
   },
+  "keywords": [
+    "editor",
+    "rich-text",
+    "web-components",
+    "wysiwyg",
+    "typescript"
+  ],
+  "author": "JSK <claude@sepoasoft.co.kr>",
+  "license": "MIT",
   "dependencies": {
     "@codemirror/lang-html": "^6.4.11",
     "codemirror": "^6.0.2",
@@ -24,5 +51,9 @@
     "vite": "^5.3.0",
     "vite-plugin-dts": "^4.0.0",
     "vitest": "^2.1.0"
+  },
+  "peerDependencies": {
+    "dompurify": "^3.0.0",
+    "idb": "^8.0.0"
   }
 }

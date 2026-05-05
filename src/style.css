@@ -1,0 +1,18 @@
+/**
+ * poa-editor — Global CSS
+ *
+ * CSS Custom Properties (default values shown):
+ *   --poa-editor-border: #ccc
+ *   --poa-editor-bg:     #fff
+ *   --poa-editor-color:  #222
+ *   --poa-editor-font:   '맑은 고딕', 'Malgun Gothic', sans-serif
+ *
+ * Usage:
+ *   import '@sepoa-jsk/poa-editor/style';
+ */
+
+poa-editor {
+  display: flex;
+  flex-direction: column;
+  box-sizing: border-box;
+}

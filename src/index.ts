@@ -1,3 +1,8 @@
+import './style.css';
+
+// ── Public API ────────────────────────────────────────────────────────────────
+
+export { PoaEditor } from './components/PoaEditor.js';
 export { EditorCore } from './core/EditorCore.js';
 export type { EditorConfig, Command, FormatTag, TextAlign, ToolbarState, FormatName, MenuTab } from './core/types.js';
 export { HistoryManager } from './core/history/HistoryManager.js';
@@ -41,6 +46,8 @@ export type { LinkAttributes } from './modules/insert/LinkInserter.js';
 export type { BookmarkEntry } from './modules/insert/BookmarkManager.js';
 export type { ImageResizerCallbacks } from './modules/insert/ImageResizer.js';
 
+// ── Web Components 등록 ───────────────────────────────────────────────────────
+
 import { PoaMenuBar } from './components/MenuBar.js';
 import { PoaContextToolbar } from './components/ContextToolbar.js';
 import { PoaToolbar } from './components/Toolbar.js';
@@ -51,7 +58,7 @@ import { PoaFindReplaceDialog } from './components/dialogs/FindReplaceDialog.js'
 import { PoaImageEditDialog } from './components/dialogs/ImageEditDialog.js';
 import { PoaImageDialog } from './components/dialogs/ImageDialog.js';
 import { PoaTableDialog } from './components/dialogs/TableDialog.js';
-import { PoaCellSplitDialog } from './components/dialogs/CellSplitDialog.js';
+import { PoaCellSplitDialog as _PoaCellSplitDialog } from './components/dialogs/CellSplitDialog.js';
 import { PoaLinkDialog } from './components/dialogs/LinkDialog.js';
 import { PoaImageToolbar } from './components/ImageToolbar.js';
 import { PoaConfirmDialog } from './components/ConfirmDialog.js';
@@ -67,8 +74,37 @@ if (!customElements.get('poa-find-replace-dialog'))  customElements.define('poa-
 if (!customElements.get('poa-image-edit-dialog'))    customElements.define('poa-image-edit-dialog',    PoaImageEditDialog);
 if (!customElements.get('poa-image-dialog'))         customElements.define('poa-image-dialog',         PoaImageDialog);
 if (!customElements.get('poa-table-dialog'))         customElements.define('poa-table-dialog',         PoaTableDialog);
-if (!customElements.get('poa-cell-split-dialog'))    customElements.define('poa-cell-split-dialog',    PoaCellSplitDialog);
+if (!customElements.get('poa-cell-split-dialog'))    customElements.define('poa-cell-split-dialog',    _PoaCellSplitDialog);
 if (!customElements.get('poa-link-dialog'))          customElements.define('poa-link-dialog',          PoaLinkDialog);
 if (!customElements.get('poa-image-toolbar'))        customElements.define('poa-image-toolbar',        PoaImageToolbar);
 if (!customElements.get('poa-confirm-dialog'))       customElements.define('poa-confirm-dialog',       PoaConfirmDialog);
 if (!customElements.get('poa-editor'))               customElements.define('poa-editor',               PoaEditor);
+
+// ── 팩토리 함수 ───────────────────────────────────────────────────────────────
+
+/**
+ * poa-editor 인스턴스를 생성하고 컨테이너에 추가한다.
+ *
+ * @param container - 에디터를 추가할 부모 요소
+ * @param options.placeholder - 빈 에디터에 표시할 안내 문구
+ * @param options.readonly - 읽기 전용 여부
+ *
+ * @example
+ * ```ts
+ * import { createEditor } from '@sepoa-jsk/poa-editor';
+ * const editor = createEditor(document.getElementById('app'), {
+ *   placeholder: '내용을 입력하세요...',
+ * });
+ * editor.setHTML('<p>안녕하세요!</p>');
+ * ```
+ */
+export function createEditor(
+  container: HTMLElement,
+  options?: { placeholder?: string; readonly?: boolean },
+): PoaEditor {
+  const editor = document.createElement('poa-editor') as unknown as PoaEditor;
+  if (options?.placeholder) editor.setAttribute('placeholder', options.placeholder);
+  if (options?.readonly)    editor.setAttribute('readonly', '');
+  container.appendChild(editor);
+  return editor;
+}
