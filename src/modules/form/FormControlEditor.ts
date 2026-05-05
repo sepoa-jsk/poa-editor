@@ -1,45 +1,48 @@
 import type { FormControl } from './FormControlInserter.js';
+import { InputResizer }        from './InputResizer.js';
+import { InputInlineToolbar }  from './InputInlineToolbar.js';
 
 type CellInput = HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement | HTMLButtonElement;
 
 /**
  * contenteditable 내 폼 컨트롤 편집기.
  * - .poa-form-group: 래퍼 그룹 클릭/우클릭 → 선택 + 편집 다이얼로그
- * - 셀 직접 삽입 input (data-poa-form): 선택 + 리사이즈 핸들 + 컨텍스트 메뉴
+ * - 셀 직접 삽입 input (data-poa-form): 선택 + 리사이즈 핸들 + 인라인 툴바 + 컨텍스트 메뉴
  */
 export class FormControlEditor {
-  private selectedEl: HTMLElement | null = null;
-  private selectedInput: CellInput | null = null;
+  private selectedEl:    HTMLElement | null = null;
+  private selectedInput: CellInput   | null = null;
 
-  private resizeHandle: HTMLDivElement | null = null;
   private ctxMenu: HTMLDivElement | null = null;
-  private _dragStart = 0;
-  private _dragInitW = 0;
 
-  private readonly clickHandler     = (e: MouseEvent): void => this._onClick(e);
-  private readonly ctxHandler       = (e: MouseEvent): void => this._onContextMenu(e);
-  private readonly docClickHandler  = (e: MouseEvent): void => this._onDocClick(e);
-  private readonly scrollHandler    = (): void => this._syncHandle();
+  private readonly inputResizer  = new InputResizer();
+  private readonly inputToolbar: InputInlineToolbar;
 
-  constructor(private readonly contentEl: HTMLElement) {}
+  private readonly clickHandler    = (e: MouseEvent): void => this._onClick(e);
+  private readonly ctxHandler      = (e: MouseEvent): void => this._onContextMenu(e);
+  private readonly docClickHandler = (e: MouseEvent): void => this._onDocClick(e);
+
+  constructor(private readonly contentEl: HTMLElement) {
+    this.inputToolbar = new InputInlineToolbar({
+      onResized: () => this._dispatchResized(),
+    });
+  }
 
   attach(): void {
     this.contentEl.addEventListener('click',       this.clickHandler);
     this.contentEl.addEventListener('contextmenu', this.ctxHandler);
     document.addEventListener('click', this.docClickHandler);
-    window.addEventListener('scroll', this.scrollHandler, true);
   }
 
   detach(): void {
     this.contentEl.removeEventListener('click',       this.clickHandler);
     this.contentEl.removeEventListener('contextmenu', this.ctxHandler);
     document.removeEventListener('click', this.docClickHandler);
-    window.removeEventListener('scroll', this.scrollHandler, true);
     this.deselectAll();
   }
 
-  getSelected(): HTMLElement | null { return this.selectedEl; }
-  getSelectedInput(): CellInput | null { return this.selectedInput; }
+  getSelected():      HTMLElement | null { return this.selectedEl;    }
+  getSelectedInput(): CellInput   | null { return this.selectedInput; }
 
   getConfig(el: HTMLElement): FormControl | null {
     const group = el.closest<HTMLElement>('.poa-form-group');
@@ -52,9 +55,13 @@ export class FormControlEditor {
   deselectAll(): void {
     this.selectedEl?.classList.remove('poa-form-selected');
     this.selectedEl = null;
-    this.selectedInput?.classList.remove('poa-input-selected');
-    this.selectedInput = null;
-    this._hideHandle();
+
+    if (this.selectedInput) {
+      this.selectedInput.classList.remove('poa-input-selected');
+      this.selectedInput = null;
+    }
+    this.inputResizer.detach();
+    this.inputToolbar.hide();
     this._hideCtxMenu();
   }
 
@@ -77,7 +84,13 @@ export class FormControlEditor {
       this.deselectAll();
       this.selectedInput = ci;
       ci.classList.add('poa-input-selected');
-      this._showHandle(ci);
+
+      // 리사이즈 + 인라인 툴바 활성화 (input / textarea만)
+      if (ci instanceof HTMLInputElement || ci instanceof HTMLTextAreaElement) {
+        this.inputResizer.attach(ci, () => this._dispatchResized());
+        this.inputToolbar.show(ci, this.contentEl);
+      }
+
       this.contentEl.dispatchEvent(new CustomEvent('poa-input-select', {
         bubbles: true, detail: { el: ci },
       }));
@@ -105,7 +118,12 @@ export class FormControlEditor {
       this.deselectAll();
       this.selectedInput = ci;
       ci.classList.add('poa-input-selected');
-      this._showHandle(ci);
+
+      if (ci instanceof HTMLInputElement || ci instanceof HTMLTextAreaElement) {
+        this.inputResizer.attach(ci, () => this._dispatchResized());
+        this.inputToolbar.show(ci, this.contentEl);
+      }
+
       this._showCtxMenu(ci, e.clientX, e.clientY);
     }
   }
@@ -124,65 +142,12 @@ export class FormControlEditor {
     );
   }
 
-  // ── 리사이즈 핸들 ───────────────────────────────────────────────────────────
+  // ── 이벤트 ──────────────────────────────────────────────────────────────────
 
-  private _showHandle(input: CellInput): void {
-    this._hideHandle();
-    const h = document.createElement('div');
-    h.dataset.poaResizeHandle = 'true';
-    h.title = '좌우로 드래그하여 너비 조절';
-    h.style.cssText = [
-      'position:fixed',
-      'width:8px', 'height:24px',
-      'background:#2563EB',
-      'border-radius:3px',
-      'cursor:ew-resize',
-      'z-index:99999',
-      'display:flex', 'align-items:center', 'justify-content:center',
-      'user-select:none', '-webkit-user-select:none',
-    ].join(';');
-    h.innerHTML = `<svg width="6" height="14" viewBox="0 0 6 14" fill="none">
-      <line x1="2" y1="2" x2="2" y2="12" stroke="white" stroke-width="1.5" stroke-linecap="round"/>
-      <line x1="4" y1="2" x2="4" y2="12" stroke="white" stroke-width="1.5" stroke-linecap="round"/>
-    </svg>`;
-    document.body.appendChild(h);
-    this.resizeHandle = h;
-    this._syncHandle();
-
-    h.addEventListener('mousedown', (e) => {
-      e.preventDefault();
-      this._dragStart = e.clientX;
-      this._dragInitW = (input as HTMLElement).getBoundingClientRect().width;
-      const cell  = (input as HTMLElement).closest('td, th') as HTMLElement | null;
-      const maxW  = cell ? cell.getBoundingClientRect().width - 4 : 9999;
-
-      const onMove = (me: MouseEvent): void => {
-        const newW = Math.max(60, Math.min(maxW, this._dragInitW + (me.clientX - this._dragStart)));
-        (input as HTMLElement).style.width = `${newW}px`;
-        this._syncHandle();
-      };
-      const onUp = (): void => {
-        document.removeEventListener('mousemove', onMove);
-        document.removeEventListener('mouseup', onUp);
-        this.contentEl.dispatchEvent(new CustomEvent('poa-input-resized', { bubbles: true }));
-      };
-      document.addEventListener('mousemove', onMove);
-      document.addEventListener('mouseup', onUp);
-    });
-  }
-
-  private _syncHandle(): void {
-    const h = this.resizeHandle;
-    const inp = this.selectedInput;
-    if (!h || !inp) return;
-    const rect = (inp as HTMLElement).getBoundingClientRect();
-    h.style.left = `${rect.right - 4}px`;
-    h.style.top  = `${rect.top + (rect.height - 24) / 2}px`;
-  }
-
-  private _hideHandle(): void {
-    this.resizeHandle?.remove();
-    this.resizeHandle = null;
+  private _dispatchResized(): void {
+    this.contentEl.dispatchEvent(new CustomEvent('poa-input-resized', { bubbles: true }));
+    this.inputResizer.syncHandle();
+    this.inputToolbar.syncPosition();
   }
 
   // ── 컨텍스트 메뉴 ───────────────────────────────────────────────────────────
@@ -227,31 +192,28 @@ export class FormControlEditor {
 
     makeSubHdr('너비');
     makeItem('  셀에 맞춤 (100%)', () => {
-      (input as HTMLElement).style.width = '100%';
+      (input as HTMLElement).style.width    = '100%';
       (input as HTMLElement).style.maxWidth = '100%';
-      this._syncHandle();
-      dispatch('poa-input-resized');
+      this._dispatchResized();
     });
     makeItem('  절반 (50%)', () => {
       (input as HTMLElement).style.width = '50%';
-      this._syncHandle();
-      dispatch('poa-input-resized');
+      this._dispatchResized();
     });
     if (cell) {
       const cw = Math.floor(cell.getBoundingClientRect().width);
       makeItem(`  현재 셀 전체 (${cw}px)`, () => {
-        (input as HTMLElement).style.width = `${cw}px`;
+        (input as HTMLElement).style.width    = `${cw}px`;
         (input as HTMLElement).style.maxWidth = '100%';
-        this._syncHandle();
-        dispatch('poa-input-resized');
+        this._dispatchResized();
       });
     }
 
     makeSep();
     makeSubHdr('텍스트 정렬');
-    makeItem('  왼쪽', () => { (input as HTMLElement).style.textAlign = ''; dispatch('poa-input-resized'); });
-    makeItem('  가운데', () => { (input as HTMLElement).style.textAlign = 'center'; dispatch('poa-input-resized'); });
-    makeItem('  오른쪽', () => { (input as HTMLElement).style.textAlign = 'right'; dispatch('poa-input-resized'); });
+    makeItem('  왼쪽',   () => { (input as HTMLElement).style.textAlign = '';       this._dispatchResized(); });
+    makeItem('  가운데', () => { (input as HTMLElement).style.textAlign = 'center'; this._dispatchResized(); });
+    makeItem('  오른쪽', () => { (input as HTMLElement).style.textAlign = 'right';  this._dispatchResized(); });
 
     makeSep();
     makeItem('입력 요소 속성', () => {
