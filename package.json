@@ -38,6 +38,7 @@
   "license": "MIT",
   "dependencies": {
     "@codemirror/lang-html": "^6.4.11",
+    "axe-core": "^4.11.4",
     "codemirror": "^6.0.2",
     "dompurify": "^3.1.5",
     "idb": "^8.0.0",
@@ -45,6 +46,7 @@
   },
   "devDependencies": {
     "@types/dompurify": "^3.0.5",
+    "@types/jsdom": "^28.0.1",
     "fake-indexeddb": "^6.2.5",
     "jsdom": "^25.0.0",
     "typescript": "^5.4.5",

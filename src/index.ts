@@ -45,6 +45,8 @@ export type { UploadItem, MultiUploadOptions, ValidationResult } from './modules
 export type { LinkAttributes } from './modules/insert/LinkInserter.js';
 export type { BookmarkEntry } from './modules/insert/BookmarkManager.js';
 export type { ImageResizerCallbacks } from './modules/insert/ImageResizer.js';
+export { AccessibilityChecker } from './modules/accessibility/AccessibilityChecker.js';
+export type { AccessibilityIssue, AccessibilityResult, IssueLevel } from './modules/accessibility/AccessibilityChecker.js';
 
 // ── Web Components 등록 ───────────────────────────────────────────────────────
 
@@ -62,6 +64,7 @@ import { PoaCellSplitDialog as _PoaCellSplitDialog } from './components/dialogs/
 import { PoaLinkDialog } from './components/dialogs/LinkDialog.js';
 import { PoaImageToolbar } from './components/ImageToolbar.js';
 import { PoaConfirmDialog } from './components/ConfirmDialog.js';
+import { PoaAccessibilityDialog } from './components/dialogs/AccessibilityDialog.js';
 
 // poa-editor의 connectedCallback 시점에 모든 하위 요소가 이미 정의되어 있어야 한다.
 // poa-editor를 마지막으로 등록하면 shadow.innerHTML 파싱 시 child 요소가 즉시 업그레이드된다.
@@ -77,8 +80,9 @@ if (!customElements.get('poa-table-dialog'))         customElements.define('poa-
 if (!customElements.get('poa-cell-split-dialog'))    customElements.define('poa-cell-split-dialog',    _PoaCellSplitDialog);
 if (!customElements.get('poa-link-dialog'))          customElements.define('poa-link-dialog',          PoaLinkDialog);
 if (!customElements.get('poa-image-toolbar'))        customElements.define('poa-image-toolbar',        PoaImageToolbar);
-if (!customElements.get('poa-confirm-dialog'))       customElements.define('poa-confirm-dialog',       PoaConfirmDialog);
-if (!customElements.get('poa-editor'))               customElements.define('poa-editor',               PoaEditor);
+if (!customElements.get('poa-confirm-dialog'))         customElements.define('poa-confirm-dialog',         PoaConfirmDialog);
+if (!customElements.get('poa-accessibility-dialog'))   customElements.define('poa-accessibility-dialog',   PoaAccessibilityDialog);
+if (!customElements.get('poa-editor'))                 customElements.define('poa-editor',                 PoaEditor);
 
 // ── 팩토리 함수 ───────────────────────────────────────────────────────────────
 
