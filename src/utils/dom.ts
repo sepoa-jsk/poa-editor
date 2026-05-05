@@ -57,7 +57,18 @@ function findBlockAncestor(node: Node, root: HTMLElement): HTMLElement | null {
 export function getSelectedBlocks(contentEl: HTMLElement, range: Range): HTMLElement[] {
   if (range.collapsed) {
     const block = findBlockAncestor(range.startContainer, contentEl);
-    return block ? [block] : [];
+    if (block) return [block];
+
+    // 커서가 contentEl 직계(startContainer === contentEl)인 경우:
+    // range.startOffset 위치 또는 바로 앞 자식 블록을 반환한다.
+    // poa-form-group 같은 블록이 contentEl 직계 자식일 때 정렬이 동작하지 않던 문제 수정.
+    if (range.startContainer === contentEl) {
+      const at   = contentEl.childNodes[range.startOffset] as Node | undefined;
+      const prev = contentEl.childNodes[range.startOffset - 1] as Node | undefined;
+      if (at   && isBlock(at))   return [at   as HTMLElement];
+      if (prev && isBlock(prev)) return [prev as HTMLElement];
+    }
+    return [];
   }
 
   const cac = range.commonAncestorContainer;

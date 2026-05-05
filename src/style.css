@@ -20,12 +20,11 @@ poa-editor {
 /* ── Form Controls ──────────────────────────────────────────────────────── */
 
 .poa-form-group {
-  display: inline-block;
-  margin: 4px 2px;
+  display: block;
+  margin: 4px 0;
   padding: 6px 8px;
   border: 1px solid transparent;
   border-radius: 4px;
-  vertical-align: middle;
   cursor: default;
   user-select: none;
   transition: border-color .15s, background .15s;

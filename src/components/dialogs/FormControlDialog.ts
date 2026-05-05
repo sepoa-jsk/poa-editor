@@ -373,7 +373,7 @@ export class PoaFormControlDialog extends HTMLElement {
       card.className = 'type-card';
       card.dataset.type = type;
       card.innerHTML = `${ICONS[type]}<span>${TYPE_LABELS[type]}</span>`;
-      card.addEventListener('click', () => this._setType(type));
+      card.addEventListener('click', (e) => { e.stopPropagation(); this._setType(type); });
       grid.appendChild(card);
     }
   }
@@ -403,8 +403,12 @@ export class PoaFormControlDialog extends HTMLElement {
       body?.classList.toggle('show');
     });
 
-    // 배경 클릭 닫기
-    this.addEventListener('click', (e) => { if (e.target === this) this.close(); });
+    // 배경(호스트 엘리먼트 자체) 클릭 시만 닫기.
+    // Shadow DOM 이벤트 리타깃팅 때문에 e.target은 항상 호스트가 되므로
+    // composedPath()[0] (실제 클릭된 엘리먼트)이 호스트 자신일 때만 닫는다.
+    this.addEventListener('click', (e) => {
+      if (e.composedPath()[0] === this) this.close();
+    });
 
     // 실시간 미리보기: input 이벤트 전파
     this.shadow.addEventListener('input', () => this._updatePreview());
