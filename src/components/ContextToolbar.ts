@@ -21,7 +21,8 @@ const TABS: Record<MenuTab, ReadonlyArray<GroupDef>> = {
     [['이미지','image'],['다중 이미지','insert:multi-image']],
     [['비디오 태그','insert:video'],['외부 동영상','insert:embed']],
     [['하이퍼링크','insert:link'],['책갈피','insert:bookmark']],
-    [['서명','insert:signature']],
+    [['서명','insert:signature'],['이모지','insert:emoji']],
+    [['툴팁','insert:tooltip'],['툴팁 관리','insert:tooltip-list']],
     [['날짜·시간','insert:datetime'],['가로줄','insert:hr'],['기호','insert:symbol']],
   ],
   view: [

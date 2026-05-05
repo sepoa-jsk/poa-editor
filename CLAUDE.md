@@ -136,7 +136,7 @@ poa-editor/
 | P2-05 | 폼 컨트롤 고도화 | ✅ |
 | P2-06 | TemplateTree (폴더 계층 템플릿 관리) | ✅ |
 | P2-07 | 서명 템플릿 관리자 | ✅ |
-| P2-08 | 이모지 / Tooltip 시스템 | [ ] |
+| P2-08 | 이모지 / Tooltip 시스템 | ✅ |
 
 ## 금지 사항
 - React / Vue / Angular 등 UI 프레임워크 도입 금지

@@ -57,6 +57,10 @@ import type { FormControl } from '../modules/form/FormControlInserter.js';
 import { FormControlEditor } from '../modules/form/FormControlEditor.js';
 import type { PoaTemplateDialog } from './dialogs/TemplateDialog.js';
 import type { PoaSignatureDialog } from './dialogs/SignatureDialog.js';
+import type { PoaEmojiDialog }     from './dialogs/EmojiDialog.js';
+import type { PoaTooltipDialog }   from './dialogs/TooltipDialog.js';
+import { EmojiInserter }           from '../modules/insert/EmojiInserter.js';
+import { TooltipManager }          from '../modules/insert/TooltipManager.js';
 
 const INDENT_STEP_EM = 2;
 const BLOCK_TAGS = new Set(['p', 'div', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'li', 'blockquote', 'pre']);
@@ -126,6 +130,10 @@ export class PoaEditor extends HTMLElement {
   private formControlEditor!: FormControlEditor;
   private templateDialog!:  PoaTemplateDialog;
   private signatureDialog!: PoaSignatureDialog;
+  private emojiDialog!:     PoaEmojiDialog;
+  private tooltipDialog!:   PoaTooltipDialog;
+  private emojiInserter!:   EmojiInserter;
+  private tooltipManager!:  TooltipManager;
   /** 현재 선택(파란 outline)된 표 — null이면 미선택 */
   private selectedTable: HTMLTableElement | null = null;
   /** 표 컨텍스트 진입 직전 탭 — 표에서 벗어날 때 복귀에 사용 */
@@ -190,7 +198,9 @@ slot[name="content"] { display: contents; }
 <poa-video-dialog></poa-video-dialog>
 <poa-form-control-dialog></poa-form-control-dialog>
 <poa-template-dialog></poa-template-dialog>
-<poa-signature-dialog></poa-signature-dialog>`;
+<poa-signature-dialog></poa-signature-dialog>
+<poa-emoji-dialog></poa-emoji-dialog>
+<poa-tooltip-dialog></poa-tooltip-dialog>`;
 
     // contentEl을 light DOM(poa-editor의 직계 자식)으로 생성 — Selection API가 정상 작동
     this.contentEl = (this.querySelector('.poa-editor-content') as HTMLDivElement | null)
@@ -242,6 +252,12 @@ slot[name="content"] { display: contents; }
     this.templateDialog    = this.shadow.querySelector('poa-template-dialog')  as unknown as PoaTemplateDialog;
     this.templateDialog.setup(() => this.getHTML());
     this.signatureDialog   = this.shadow.querySelector('poa-signature-dialog') as unknown as PoaSignatureDialog;
+    this.emojiDialog       = this.shadow.querySelector('poa-emoji-dialog')     as unknown as PoaEmojiDialog;
+    this.tooltipDialog     = this.shadow.querySelector('poa-tooltip-dialog')   as unknown as PoaTooltipDialog;
+    this.emojiInserter     = new EmojiInserter();
+    this.tooltipManager    = new TooltipManager(this.contentEl);
+    TooltipManager.injectStyles();
+    TooltipManager.attachHoverPopup(this.contentEl);
 
     this.toast = new PoaToast();
     this.imageInsertDialog.setOnError((msg) => this.toast.show(msg, 'error'));
@@ -503,6 +519,46 @@ slot[name="content"] { display: contents; }
         this.contentEl.insertAdjacentHTML('beforeend', html);
       }
       void this.core.captureHistory('signatureInsert');
+      this.statusBar.update(this.contentEl.innerHTML);
+    });
+
+    // 이모지 삽입
+    this.shadow.addEventListener('poa-emoji-insert', (e) => {
+      const { emoji } = (e as CustomEvent).detail as { emoji: string };
+      this.emojiInserter.insert(emoji, this.contentEl);
+      void this.core.captureHistory('emojiInsert');
+      this.statusBar.update(this.contentEl.innerHTML);
+    });
+
+    // 툴팁 생성 (poa-tooltip-insert)
+    this.shadow.addEventListener('poa-tooltip-insert', (e) => {
+      const { title, content } = (e as CustomEvent).detail as { title: string; content: string };
+      if (!this.savedRange || !this.contentEl.contains(this.savedRange.startContainer)) return;
+      this.tooltipManager.insert(title, content, this.savedRange.cloneRange());
+      this.savedRange = null;
+      void this.core.captureHistory('tooltipInsert');
+      this.statusBar.update(this.contentEl.innerHTML);
+    });
+
+    // 툴팁 수정
+    this.shadow.addEventListener('poa-tooltip-update', (e) => {
+      const { id, title, content } = (e as CustomEvent).detail as { id: string; title: string; content: string };
+      this.tooltipManager.update(id, title, content);
+      void this.core.captureHistory('tooltipUpdate');
+    });
+
+    // 툴팁 삭제
+    this.shadow.addEventListener('poa-tooltip-remove', (e) => {
+      const { id } = (e as CustomEvent).detail as { id: string };
+      this.tooltipManager.remove(id);
+      void this.core.captureHistory('tooltipRemove');
+      this.statusBar.update(this.contentEl.innerHTML);
+    });
+
+    // 툴팁 전체 삭제
+    this.shadow.addEventListener('poa-tooltip-remove-all', () => {
+      this.tooltipManager.removeAll();
+      void this.core.captureHistory('tooltipRemoveAll');
       this.statusBar.update(this.contentEl.innerHTML);
     });
 
@@ -1236,6 +1292,22 @@ slot[name="content"] { display: contents; }
         return;
       case 'insert:signature':
         this.signatureDialog.open();
+        return;
+      case 'insert:emoji':
+        this.emojiDialog.open();
+        return;
+      case 'insert:tooltip': {
+        const sel = this.contentEl.ownerDocument.getSelection();
+        if (!sel || sel.rangeCount === 0 || sel.toString().trim() === '') {
+          this.toast.show('툴팁을 추가할 텍스트를 선택하세요.', 'info');
+          return;
+        }
+        this.savedRange = sel.getRangeAt(0).cloneRange();
+        this.tooltipDialog.openAdd(sel.toString());
+        return;
+      }
+      case 'insert:tooltip-list':
+        this.tooltipDialog.openList(this.tooltipManager.getAll());
         return;
       case 'insert:hr': case 'insert:symbol': case 'insert:multi-image':
       case 'help:shortcuts': case 'help:guide': case 'help:about':
