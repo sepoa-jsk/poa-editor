@@ -58,9 +58,10 @@ import { FormControlEditor } from '../modules/form/FormControlEditor.js';
 import type { PoaTemplateDialog } from './dialogs/TemplateDialog.js';
 import type { PoaSignatureDialog } from './dialogs/SignatureDialog.js';
 import type { PoaEmojiDialog }     from './dialogs/EmojiDialog.js';
-import type { PoaTooltipDialog }   from './dialogs/TooltipDialog.js';
-import { EmojiInserter }           from '../modules/insert/EmojiInserter.js';
-import { TooltipManager }          from '../modules/insert/TooltipManager.js';
+import type { PoaTooltipDialog }        from './dialogs/TooltipDialog.js';
+import type { PoaInputPropertyDialog }  from './dialogs/InputPropertyDialog.js';
+import { EmojiInserter }               from '../modules/insert/EmojiInserter.js';
+import { TooltipManager }              from '../modules/insert/TooltipManager.js';
 
 const INDENT_STEP_EM = 2;
 const BLOCK_TAGS = new Set(['p', 'div', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'li', 'blockquote', 'pre']);
@@ -131,9 +132,10 @@ export class PoaEditor extends HTMLElement {
   private templateDialog!:  PoaTemplateDialog;
   private signatureDialog!: PoaSignatureDialog;
   private emojiDialog!:     PoaEmojiDialog;
-  private tooltipDialog!:   PoaTooltipDialog;
-  private emojiInserter!:   EmojiInserter;
-  private tooltipManager!:  TooltipManager;
+  private tooltipDialog!:         PoaTooltipDialog;
+  private inputPropertyDialog!:   PoaInputPropertyDialog;
+  private emojiInserter!:         EmojiInserter;
+  private tooltipManager!:        TooltipManager;
   /** 현재 선택(파란 outline)된 표 — null이면 미선택 */
   private selectedTable: HTMLTableElement | null = null;
   /** 표 컨텍스트 진입 직전 탭 — 표에서 벗어날 때 복귀에 사용 */
@@ -200,7 +202,8 @@ slot[name="content"] { display: contents; }
 <poa-template-dialog></poa-template-dialog>
 <poa-signature-dialog></poa-signature-dialog>
 <poa-emoji-dialog></poa-emoji-dialog>
-<poa-tooltip-dialog></poa-tooltip-dialog>`;
+<poa-tooltip-dialog></poa-tooltip-dialog>
+<poa-input-property-dialog></poa-input-property-dialog>`;
 
     // contentEl을 light DOM(poa-editor의 직계 자식)으로 생성 — Selection API가 정상 작동
     this.contentEl = (this.querySelector('.poa-editor-content') as HTMLDivElement | null)
@@ -212,7 +215,7 @@ slot[name="content"] { display: contents; }
     this.contentEl.setAttribute('spellcheck', 'true');
     // flex: 1 등 레이아웃 스타일을 인라인으로 적용 (shadow CSS ::slotted는 specificity 낮음)
     this.contentEl.style.cssText = [
-      'flex: 1', 'overflow-y: auto', 'padding: 16px 20px', 'outline: none',
+      'flex: 1', 'overflow-y: auto', 'overflow-x: hidden', 'padding: 16px 20px', 'outline: none',
       'line-height: 1.6', 'min-height: 200px', 'box-sizing: border-box',
       'color: var(--poa-editor-color, #222)', 'background: var(--poa-editor-bg, #fff)',
       'font-size: 14px',
@@ -254,7 +257,8 @@ slot[name="content"] { display: contents; }
     this.signatureDialog   = this.shadow.querySelector('poa-signature-dialog') as unknown as PoaSignatureDialog;
     this.emojiDialog       = this.shadow.querySelector('poa-emoji-dialog')     as unknown as PoaEmojiDialog;
     this.tooltipDialog     = this.shadow.querySelector('poa-tooltip-dialog')   as unknown as PoaTooltipDialog;
-    this.emojiInserter     = new EmojiInserter();
+    this.emojiInserter        = new EmojiInserter();
+    this.inputPropertyDialog  = this.shadow.querySelector('poa-input-property-dialog') as unknown as PoaInputPropertyDialog;
     this.tooltipManager    = new TooltipManager(this.contentEl);
     TooltipManager.injectStyles();
     TooltipManager.attachHoverPopup(this.contentEl);
@@ -595,6 +599,24 @@ slot[name="content"] { display: contents; }
       const { el } = (e as CustomEvent).detail as { el: HTMLElement };
       const cfg = this.formControlEditor.getConfig(el);
       if (cfg) this.formControlDialog.open(cfg);
+    });
+
+    // 셀 직접 삽입 input 우클릭 → 속성 다이얼로그
+    this.contentEl.addEventListener('poa-input-contextmenu', (e) => {
+      const { el } = (e as CustomEvent).detail as { el: HTMLElement };
+      this.inputPropertyDialog.open(el);
+    });
+
+    // 셀 input 속성 적용 완료 → 히스토리 캡처
+    this.addEventListener('poa-input-props-apply', () => {
+      void this.core.captureHistory('inputPropsEdit');
+      this.statusBar.update(this.contentEl.innerHTML);
+    });
+
+    // 셀 input 리사이즈/텍스트 정렬 변경 → 히스토리 캡처
+    this.contentEl.addEventListener('poa-input-resized', () => {
+      void this.core.captureHistory('inputResize');
+      this.statusBar.update(this.contentEl.innerHTML);
     });
 
     // 이미지 삽입 다이얼로그 → ImageInserter로 삽입
@@ -1070,9 +1092,13 @@ slot[name="content"] { display: contents; }
 
       case 'align': {
         const align = (value ?? 'left') as TextAlign;
-        const activeImg = this.imageResizer.getActiveImage();
+        const activeImg    = this.imageResizer.getActiveImage();
+        const selCellInput = this.formControlEditor.getSelectedInput();
         if (activeImg) {
           this.applyImageAlign(activeImg, align);
+        } else if (selCellInput) {
+          // 선택된 셀 input → 텍스트 정렬 적용
+          (selCellInput as HTMLElement).style.textAlign = align === 'left' ? '' : align;
         } else if (this.getFocusedCell()) {
           this.applyTextAlign(align);
         } else if (this.selectedTable) {
@@ -1721,6 +1747,23 @@ slot[name="content"] { display: contents; }
       '.poa-editor-content.poa-show-hidden-borders div,',
       '.poa-editor-content.poa-show-hidden-borders p {',
       '  outline: 1px dashed rgba(0,120,212,.25);',
+      '}',
+      /* 표 영역 넘침 방지 */
+      '.poa-editor-content table {',
+      '  max-width: 100%;',
+      '  box-sizing: border-box;',
+      '}',
+      /* 셀 안 폼 컨트롤 넘침 방지 */
+      '.poa-editor-content td input, .poa-editor-content th input,',
+      '.poa-editor-content td textarea, .poa-editor-content th textarea,',
+      '.poa-editor-content td select, .poa-editor-content th select {',
+      '  max-width: 100%;',
+      '  box-sizing: border-box;',
+      '}',
+      /* 선택된 셀 input 파란 테두리 */
+      '.poa-editor-content .poa-input-selected {',
+      '  outline: 2px solid #2563EB !important;',
+      '  outline-offset: 1px;',
       '}',
     ].join('\n');
     document.head.appendChild(style);

@@ -69,8 +69,9 @@ export { EmojiInserter, searchEmojis, EMOJI_CATEGORIES, EMOJI_KEYWORDS } from '.
 export type { EmojiCategory } from './modules/insert/EmojiInserter.js';
 export { TooltipManager } from './modules/insert/TooltipManager.js';
 export type { TooltipEntry } from './modules/insert/TooltipManager.js';
-export { PoaEmojiDialog }   from './components/dialogs/EmojiDialog.js';
-export { PoaTooltipDialog } from './components/dialogs/TooltipDialog.js';
+export { PoaEmojiDialog }          from './components/dialogs/EmojiDialog.js';
+export { PoaTooltipDialog }        from './components/dialogs/TooltipDialog.js';
+export { PoaInputPropertyDialog }  from './components/dialogs/InputPropertyDialog.js';
 
 // ── Web Components 등록 ───────────────────────────────────────────────────────
 
@@ -97,7 +98,8 @@ import { PoaTemplateTree as _PoaTemplateTree } from './components/TemplateTree.j
 import { PoaTemplateDialog  as _PoaTemplateDialog  } from './components/dialogs/TemplateDialog.js';
 import { PoaSignatureDialog as _PoaSignatureDialog } from './components/dialogs/SignatureDialog.js';
 import { PoaEmojiDialog    as _PoaEmojiDialog    } from './components/dialogs/EmojiDialog.js';
-import { PoaTooltipDialog  as _PoaTooltipDialog  } from './components/dialogs/TooltipDialog.js';
+import { PoaTooltipDialog       as _PoaTooltipDialog       } from './components/dialogs/TooltipDialog.js';
+import { PoaInputPropertyDialog as _PoaInputPropertyDialog } from './components/dialogs/InputPropertyDialog.js';
 
 // poa-editor의 connectedCallback 시점에 모든 하위 요소가 이미 정의되어 있어야 한다.
 // poa-editor를 마지막으로 등록하면 shadow.innerHTML 파싱 시 child 요소가 즉시 업그레이드된다.
@@ -124,6 +126,7 @@ if (!customElements.get('poa-template-dialog'))          customElements.define('
 if (!customElements.get('poa-signature-dialog'))         customElements.define('poa-signature-dialog',         _PoaSignatureDialog);
 if (!customElements.get('poa-emoji-dialog'))             customElements.define('poa-emoji-dialog',             _PoaEmojiDialog);
 if (!customElements.get('poa-tooltip-dialog'))           customElements.define('poa-tooltip-dialog',           _PoaTooltipDialog);
+if (!customElements.get('poa-input-property-dialog'))    customElements.define('poa-input-property-dialog',    _PoaInputPropertyDialog);
 if (!customElements.get('poa-editor'))                   customElements.define('poa-editor',                   PoaEditor);
 
 // ── 팩토리 함수 ───────────────────────────────────────────────────────────────

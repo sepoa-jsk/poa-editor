@@ -53,6 +53,7 @@ export class TableBuilder {
     // ── 테이블 인라인 스타일 ────────────────────────────────────────
     const styleMap: Record<string, string> = {
       'border-collapse': 'collapse',
+      'max-width':       '100%',       // 에디터 영역 밖으로 나가지 않도록
       'table-layout':    'fixed',      // 셀 내용에 의한 자동 늘어남 방지
       'word-break':      'break-word', // 긴 단어 줄바꿈
     };

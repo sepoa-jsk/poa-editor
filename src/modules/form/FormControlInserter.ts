@@ -213,14 +213,25 @@ export class FormControlInserter {
     if (cell && inContent && range) {
       const controlEl = (groupEl.querySelector('input, textarea, select, button') ?? groupEl) as HTMLElement;
       controlEl.dataset.poaForm = JSON.stringify(config);
+      // Bug 2: 셀 내 input 넘침 방지
+      (controlEl as HTMLElement).style.maxWidth = '100%';
+      (controlEl as HTMLElement).style.boxSizing = 'border-box';
       range.deleteContents();
       range.insertNode(controlEl);
       range.collapse(false);
-      // 셀 내 빈 p·br 정리
+      // Bug 3: <p> 안에 삽입됐을 경우 셀 직계 자식으로 이동
+      // (p.textContent === '' → cleanup이 <p>째 삭제해 input 소멸하는 문제 방지)
+      if (controlEl.parentNode !== cell) {
+        cell.appendChild(controlEl);
+      }
+      // 셀 내 빈 p·br 정리 (control을 포함한 요소는 보존)
       for (const child of Array.from(cell.childNodes)) {
+        if (child === controlEl) continue;
         if (child.nodeType === Node.ELEMENT_NODE) {
           const el = child as HTMLElement;
-          if ((el.tagName === 'P' || el.tagName === 'BR') && !el.textContent?.trim()) {
+          if ((el.tagName === 'P' || el.tagName === 'BR')
+              && !el.textContent?.trim()
+              && !el.contains(controlEl)) {
             cell.removeChild(el);
           }
         } else if (child.nodeType === Node.TEXT_NODE && !child.textContent?.trim()) {
