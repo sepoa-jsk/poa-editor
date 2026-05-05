@@ -143,9 +143,9 @@ slot[name="content"] { display: contents; }
 <poa-menubar></poa-menubar>
 <poa-context-toolbar></poa-context-toolbar>
 <poa-toolbar></poa-toolbar>
+<poa-find-replace-dialog></poa-find-replace-dialog>
 <slot name="content"></slot>
 <poa-status-bar></poa-status-bar>
-<poa-find-replace-dialog></poa-find-replace-dialog>
 <poa-image-edit-dialog></poa-image-edit-dialog>
 <poa-image-dialog></poa-image-dialog>
 <poa-settings-dialog></poa-settings-dialog>
@@ -593,11 +593,16 @@ slot[name="content"] { display: contents; }
       this.showLinkContextMenu(anchor, e.clientX, e.clientY);
     });
 
-    // Ctrl+F → 찾기/바꾸기 열기 / ESC → 서식 페인터 해제 / Tab → 목록 들여쓰기
+    // Ctrl+F → 찾기, Ctrl+H → 찾기+바꾸기 / ESC → 서식 페인터 해제 / Tab → 목록 들여쓰기
     this.contentEl.addEventListener('keydown', (e) => {
       if ((e.ctrlKey || e.metaKey) && e.key === 'f') {
         e.preventDefault();
-        this.findDialog.open();
+        this.findDialog.open('find');
+        return;
+      }
+      if ((e.ctrlKey || e.metaKey) && e.key === 'h') {
+        e.preventDefault();
+        this.findDialog.open('replace');
         return;
       }
       this.formatPainter.handleKeydown(e);
@@ -868,7 +873,7 @@ slot[name="content"] { display: contents; }
         await this.core.captureHistory('backColor');
         break;
       case 'find-replace':
-        this.findDialog.open();
+        this.findDialog.open('find');
         return;
       case 'image':
         this.imageInserter.saveSelection();

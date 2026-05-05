@@ -1,43 +1,129 @@
 const CSS = `
-:host { display: none; }
-:host([open]) { display: block; }
-.panel {
-  position: absolute; top: 48px; right: 12px; z-index: 200;
-  background: #fff; border: 1px solid #ccc; border-radius: 6px;
-  box-shadow: 0 4px 16px rgba(0,0,0,.18);
-  padding: 12px 14px; width: 320px;
+:host {
+  display: block;
+  overflow: hidden;
+  max-height: 0;
+  opacity: 0;
+  transition: max-height 0.2s ease, opacity 0.15s ease;
+}
+:host([open]) {
+  max-height: 200px;
+  opacity: 1;
+}
+.bar {
+  background: #F0F7FF;
+  border-bottom: 1px solid #BFDBFE;
+  padding: 6px 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
   font-size: 13px;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
 }
-.row { display: flex; align-items: center; gap: 6px; margin-bottom: 7px; }
-.row:last-child { margin-bottom: 0; }
-.row input[type=text] {
-  flex: 1; padding: 5px 8px; border: 1px solid #ccc; border-radius: 3px;
-  font-size: 13px; outline: none;
+.row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
 }
-.row input[type=text]:focus { border-color: #1976d2; }
-.row label { display: flex; align-items: center; gap: 4px; font-size: 12px; color: #555; }
-.count { font-size: 12px; color: #888; min-width: 48px; text-align: right; }
-.btns { display: flex; gap: 5px; flex-wrap: wrap; }
-.btns button {
-  padding: 4px 10px; border: 1px solid #ccc; border-radius: 3px;
-  background: #fff; cursor: pointer; font-size: 12px;
+.icon-btn {
+  width: 28px; height: 28px; flex-shrink: 0;
+  border: 1px solid #D1D5DB; border-radius: 5px;
+  background: #FFFFFF; cursor: pointer;
+  display: inline-flex; align-items: center; justify-content: center;
+  font-size: 14px; color: #374151;
+  transition: background 0.1s;
 }
-.btns button:hover { background: #f0f0f0; }
-.btns button.primary {
-  border-color: #1976d2; color: #1976d2;
+.icon-btn:hover { background: #F3F4F6; }
+.icon-btn.active {
+  background: #EFF6FF; border-color: #93C5FD; color: #2563EB;
 }
-.btns button.primary:hover { background: #e3f2fd; }
+input[type=text] {
+  height: 28px;
+  border: 1px solid #93C5FD; border-radius: 5px;
+  padding: 0 8px; font-size: 13px;
+  background: #FFFFFF; flex: 1; max-width: 320px;
+  outline: none; box-sizing: border-box;
+  transition: border-color 0.1s;
+}
+input[type=text]:focus { border-color: #2563EB; }
+.count {
+  font-size: 12px; color: #6B7280;
+  min-width: 32px; text-align: center;
+  flex-shrink: 0; white-space: nowrap;
+}
+.count.empty { color: #DC2626; }
+.nav-btn {
+  width: 28px; height: 28px; flex-shrink: 0;
+  border: 1px solid #D1D5DB; border-radius: 5px;
+  background: #FFFFFF; cursor: pointer; font-size: 12px;
+  display: inline-flex; align-items: center; justify-content: center;
+  transition: background 0.1s;
+}
+.nav-btn:hover { background: #F3F4F6; }
 .close-btn {
-  position: absolute; top: 8px; right: 10px;
-  border: none; background: transparent; font-size: 16px;
-  cursor: pointer; color: #888; line-height: 1; padding: 0;
+  width: 28px; height: 28px; flex-shrink: 0;
+  border: none; background: transparent; cursor: pointer;
+  font-size: 16px; color: #6B7280;
+  display: inline-flex; align-items: center; justify-content: center;
+  transition: color 0.1s;
 }
-.close-btn:hover { color: #333; }
-.sep { border: none; border-top: 1px solid #eee; margin: 8px 0; }
+.close-btn:hover { color: #111827; }
+.replace-row { display: none; }
+:host([replace]) .replace-row { display: flex; }
+.btn-replace {
+  height: 28px; padding: 0 12px;
+  background: #FFFFFF; border: 1px solid #2563EB;
+  color: #2563EB; border-radius: 5px; cursor: pointer;
+  font-size: 12px; white-space: nowrap; flex-shrink: 0;
+  transition: background 0.1s;
+}
+.btn-replace:hover { background: #EFF6FF; }
+.btn-replace-all {
+  height: 28px; padding: 0 12px;
+  background: #2563EB; color: #FFFFFF;
+  border: none; border-radius: 5px; cursor: pointer;
+  font-size: 12px; white-space: nowrap; flex-shrink: 0;
+  transition: background 0.1s;
+}
+.btn-replace-all:hover { background: #1D4ED8; }
+.opts-row {
+  display: flex; align-items: center; gap: 12px;
+  padding-left: 36px;
+}
+.opts-row label {
+  display: flex; align-items: center; gap: 4px;
+  font-size: 12px; color: #4B5563; cursor: pointer;
+  user-select: none; -webkit-user-select: none;
+}
+`;
+
+const HTML = `
+<div class="bar" role="search" aria-label="찾기/바꾸기">
+  <div class="row">
+    <button class="icon-btn" id="btn-toggle" title="찾기/바꾸기 전환" aria-pressed="false">🔍</button>
+    <input type="text" id="inp-find" placeholder="찾을 내용" autocomplete="off" aria-label="찾을 내용">
+    <span class="count" id="count-label" aria-live="polite"></span>
+    <button class="nav-btn" id="btn-prev" title="이전 (Shift+Enter)">∧</button>
+    <button class="nav-btn" id="btn-next" title="다음 (Enter)">∨</button>
+    <button class="close-btn" id="btn-close" title="닫기 (Esc)">✕</button>
+  </div>
+  <div class="row replace-row">
+    <button class="icon-btn active" id="btn-replace-icon" title="바꾸기 모드">↔</button>
+    <input type="text" id="inp-replace" placeholder="바꿀 내용" autocomplete="off" aria-label="바꿀 내용">
+    <button class="btn-replace" id="btn-replace">바꾸기</button>
+    <button class="btn-replace-all" id="btn-replace-all">모두 바꾸기</button>
+  </div>
+  <div class="opts-row">
+    <label><input type="checkbox" id="chk-case"> 대소문자 구분</label>
+    <label><input type="checkbox" id="chk-word"> 전체 단어 일치</label>
+  </div>
+</div>
 `;
 
 /**
- * <poa-find-replace-dialog> — 찾기/바꾸기 플로팅 패널.
+ * <poa-find-replace-dialog> — 서식 툴바 아래 인라인 슬라이드 찾기/바꾸기 바.
+ *
+ * Ctrl+F → open('find'), Ctrl+H → open('replace')
  *
  * 발송 이벤트 (bubbles + composed):
  *   poa-find-search    { query, caseSensitive, wholeWord }
@@ -49,6 +135,7 @@ const CSS = `
  */
 export class PoaFindReplaceDialog extends HTMLElement {
   private shadow: ShadowRoot;
+  private debounceTimer: ReturnType<typeof setTimeout> | null = null;
 
   constructor() {
     super();
@@ -56,56 +143,63 @@ export class PoaFindReplaceDialog extends HTMLElement {
   }
 
   connectedCallback(): void {
-    this.shadow.innerHTML = `<style>${CSS}</style>
-<div class="panel" role="dialog" aria-label="찾기/바꾸기">
-  <button class="close-btn" id="btn-close" title="닫기">×</button>
-  <div class="row">
-    <input type="text" id="inp-find" placeholder="찾을 내용" autocomplete="off">
-    <span class="count" id="count-label"></span>
-  </div>
-  <div class="row">
-    <label><input type="checkbox" id="chk-case"> 대소문자</label>
-    <label><input type="checkbox" id="chk-word"> 전체 단어</label>
-  </div>
-  <div class="row btns">
-    <button id="btn-prev">◀ 이전</button>
-    <button id="btn-next">다음 ▶</button>
-    <button class="primary" id="btn-search">찾기</button>
-  </div>
-  <hr class="sep">
-  <div class="row">
-    <input type="text" id="inp-replace" placeholder="바꿀 내용" autocomplete="off">
-  </div>
-  <div class="row btns">
-    <button id="btn-replace">바꾸기</button>
-    <button class="primary" id="btn-replace-all">모두 바꾸기</button>
-  </div>
-</div>`;
-
+    this.shadow.innerHTML = `<style>${CSS}</style>${HTML}`;
     this.bindEvents();
   }
 
-  open(): void {
+  /**
+   * 찾기/바꾸기 바를 열고 입력란에 포커스를 준다.
+   * @param mode 'find' = 찾기만 표시, 'replace' = 바꾸기 행도 표시
+   */
+  open(mode: 'find' | 'replace' = 'find'): void {
     this.setAttribute('open', '');
-    this.shadow.getElementById('inp-find')?.focus();
+    const isReplace = mode === 'replace';
+    if (isReplace) {
+      this.setAttribute('replace', '');
+    } else {
+      this.removeAttribute('replace');
+    }
+    this.updateToggleBtn(isReplace);
+    // 애니메이션 시작 후 포커스
+    setTimeout(() => {
+      (this.shadow.getElementById('inp-find') as HTMLInputElement | null)?.focus();
+    }, 50);
   }
 
   close(): void {
     this.removeAttribute('open');
+    this.removeAttribute('replace');
+    this.updateToggleBtn(false);
+    if (this.debounceTimer !== null) {
+      clearTimeout(this.debounceTimer);
+      this.debounceTimer = null;
+    }
     this.dispatch('find-clear', {});
   }
 
-  /** FindReplace.find() 결과를 받아 카운트 표시를 갱신 */
+  /** FindReplace.find() 결과를 받아 카운트 표시를 갱신한다 */
   updateResult(count: number, current: number): void {
     const label = this.shadow.getElementById('count-label');
     if (!label) return;
-    label.textContent = count === 0 ? '없음' : `${current + 1} / ${count}`;
+    if (count === 0) {
+      label.textContent = '0/0';
+      label.className = 'count empty';
+    } else {
+      label.textContent = `${current + 1}/${count}`;
+      label.className = 'count';
+    }
+  }
+
+  private updateToggleBtn(replaceMode: boolean): void {
+    const btn = this.shadow.getElementById('btn-toggle') as HTMLButtonElement | null;
+    if (!btn) return;
+    btn.textContent = replaceMode ? '↔' : '🔍';
+    btn.classList.toggle('active', replaceMode);
+    btn.setAttribute('aria-pressed', String(replaceMode));
   }
 
   private bindEvents(): void {
     const s = this.shadow;
-    s.getElementById('btn-close')?.addEventListener('click', () => this.close());
-
     const findInput    = s.getElementById('inp-find')    as HTMLInputElement;
     const replaceInput = s.getElementById('inp-replace') as HTMLInputElement;
     const caseChk      = s.getElementById('chk-case')   as HTMLInputElement;
@@ -117,19 +211,69 @@ export class PoaFindReplaceDialog extends HTMLElement {
       wholeWord: wordChk.checked,
     });
 
-    findInput.addEventListener('keydown', (e) => {
-      if (e.key === 'Enter') this.dispatch('find-search', getOpts());
-      if (e.key === 'Escape') this.close();
+    const scheduleSearch = (): void => {
+      if (this.debounceTimer !== null) clearTimeout(this.debounceTimer);
+      this.debounceTimer = setTimeout(() => {
+        this.debounceTimer = null;
+        this.dispatch('find-search', getOpts());
+      }, 300);
+    };
+
+    const flushSearch = (): void => {
+      if (this.debounceTimer !== null) {
+        clearTimeout(this.debounceTimer);
+        this.debounceTimer = null;
+      }
+      this.dispatch('find-search', getOpts());
+    };
+
+    s.getElementById('btn-close')?.addEventListener('click', () => this.close());
+
+    s.getElementById('btn-toggle')?.addEventListener('click', () => {
+      const isReplace = this.hasAttribute('replace');
+      if (isReplace) {
+        this.removeAttribute('replace');
+        this.updateToggleBtn(false);
+      } else {
+        this.setAttribute('replace', '');
+        this.updateToggleBtn(true);
+      }
     });
 
-    s.getElementById('btn-search')?.addEventListener('click', () =>
-      this.dispatch('find-search', getOpts()));
+    findInput.addEventListener('input', scheduleSearch);
 
-    s.getElementById('btn-next')?.addEventListener('click', () =>
-      this.dispatch('find-next', {}));
+    findInput.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') {
+        e.preventDefault();
+        flushSearch();
+        if (e.shiftKey) {
+          this.dispatch('find-prev', {});
+        } else {
+          this.dispatch('find-next', {});
+        }
+        return;
+      }
+      if (e.key === 'Escape') {
+        e.preventDefault();
+        this.close();
+      }
+    });
 
-    s.getElementById('btn-prev')?.addEventListener('click', () =>
-      this.dispatch('find-prev', {}));
+    caseChk.addEventListener('change', scheduleSearch);
+    wordChk.addEventListener('change', scheduleSearch);
+
+    s.getElementById('btn-prev')?.addEventListener('click', () => {
+      flushSearch();
+      this.dispatch('find-prev', {});
+    });
+    s.getElementById('btn-next')?.addEventListener('click', () => {
+      flushSearch();
+      this.dispatch('find-next', {});
+    });
+
+    replaceInput.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape') { e.preventDefault(); this.close(); }
+    });
 
     s.getElementById('btn-replace')?.addEventListener('click', () =>
       this.dispatch('find-replace', { replacement: replaceInput.value }));
