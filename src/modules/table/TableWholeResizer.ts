@@ -57,6 +57,7 @@ export class TableWholeResizer {
     document.addEventListener('mousemove', this.onMouseMove);
     document.addEventListener('mouseup',   this.onMouseUp);
     this.contentEl.addEventListener('scroll', this.syncHandles);
+    window.addEventListener('scroll', this.syncHandles, true);
     this.contentEl.addEventListener('input',  this.onContentInput);
   }
 
@@ -72,6 +73,7 @@ export class TableWholeResizer {
     document.removeEventListener('mousemove', this.onMouseMove);
     document.removeEventListener('mouseup',   this.onMouseUp);
     this.contentEl.removeEventListener('scroll', this.syncHandles);
+    window.removeEventListener('scroll', this.syncHandles, true);
     this.contentEl.removeEventListener('input',  this.onContentInput);
   }
 
@@ -84,7 +86,8 @@ export class TableWholeResizer {
     if (!this.table) return;
     const ov = document.createElement('div');
     ov.dataset.poaTemp = 'true';
-    ov.style.cssText = 'position:absolute;pointer-events:none;z-index:10;box-sizing:border-box;';
+    // position:fixed → document.body 기준, contentEl 레이아웃에 영향 없음
+    ov.style.cssText = 'position:fixed;pointer-events:none;z-index:10;box-sizing:border-box;';
 
     for (const spec of SPECS) {
       const h = document.createElement('div');
@@ -100,7 +103,7 @@ export class TableWholeResizer {
       ov.appendChild(h);
     }
 
-    this.contentEl.appendChild(ov);
+    document.body.appendChild(ov);
     this.overlay = ov;
     this.updateOverlayPos();
   }
@@ -108,10 +111,10 @@ export class TableWholeResizer {
   private updateOverlayPos(): void {
     if (!this.overlay || !this.table) return;
     const tr = this.table.getBoundingClientRect();
-    const cr = this.contentEl.getBoundingClientRect();
+    // position:fixed → getBoundingClientRect 값이 곧 뷰포트 기준 좌표
     Object.assign(this.overlay.style, {
-      top:    `${tr.top  - cr.top  + this.contentEl.scrollTop}px`,
-      left:   `${tr.left - cr.left + this.contentEl.scrollLeft}px`,
+      top:    `${tr.top}px`,
+      left:   `${tr.left}px`,
       width:  `${tr.width}px`,
       height: `${tr.height}px`,
     });
@@ -205,9 +208,9 @@ export class TableWholeResizer {
     const prev = document.createElement('div');
     prev.dataset.poaTemp = 'true';
     prev.style.cssText =
-      'position:absolute;border:1px dashed #0078d7;' +
+      'position:fixed;border:1px dashed #0078d7;' +
       'background:rgba(0,120,215,0.05);pointer-events:none;z-index:9;box-sizing:border-box;';
-    this.contentEl.appendChild(prev);
+    document.body.appendChild(prev);
     this.preview = prev;
     this.updatePreview(w, h);
   }
@@ -215,10 +218,9 @@ export class TableWholeResizer {
   private updatePreview(w: number, h: number): void {
     if (!this.preview || !this.table) return;
     const tr = this.table.getBoundingClientRect();
-    const cr = this.contentEl.getBoundingClientRect();
     Object.assign(this.preview.style, {
-      top:    `${tr.top  - cr.top  + this.contentEl.scrollTop}px`,
-      left:   `${tr.left - cr.left + this.contentEl.scrollLeft}px`,
+      top:    `${tr.top}px`,
+      left:   `${tr.left}px`,
       width:  `${Math.round(w)}px`,
       height: `${Math.round(h)}px`,
     });

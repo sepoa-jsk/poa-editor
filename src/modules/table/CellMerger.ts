@@ -579,9 +579,9 @@ export class CellMerger {
     const s = ownerDoc.createElement('style');
     s.id = 'poa-cell-merger-styles';
     s.textContent = [
-      '.poa-cell-selected{outline:2px solid rgba(0,120,215,0.8)!important;background:rgba(0,120,215,0.15)!important;}',
-      '.poa-cell-sel-ok{outline:2px solid rgba(0,120,215,0.8)!important;background:rgba(0,120,215,0.15)!important;}',
-      '.poa-cell-sel-bad{outline:2px solid #c62828!important;background:rgba(198,40,40,0.12)!important;}',
+      '.poa-cell-selected{outline:2px solid rgba(0,120,215,0.8)!important;outline-offset:-2px!important;background:rgba(0,120,215,0.15)!important;}',
+      '.poa-cell-sel-ok{outline:2px solid rgba(0,120,215,0.8)!important;outline-offset:-2px!important;background:rgba(0,120,215,0.15)!important;}',
+      '.poa-cell-sel-bad{outline:2px solid #c62828!important;outline-offset:-2px!important;background:rgba(198,40,40,0.12)!important;}',
     ].join('');
     ownerDoc.head.appendChild(s);
   }

@@ -217,6 +217,7 @@ slot[name="content"] { display: contents; }
     this.contentEl.style.cssText = [
       'flex: 1', 'overflow-y: auto', 'overflow-x: hidden', 'padding: 16px 20px', 'outline: none',
       'line-height: 1.6', 'min-height: 200px', 'box-sizing: border-box',
+      'position: relative',
       'color: var(--poa-editor-color, #222)', 'background: var(--poa-editor-bg, #fff)',
       'font-size: 14px',
       "font-family: var(--poa-editor-font, '맑은 고딕', 'Malgun Gothic', sans-serif)",
@@ -1733,10 +1734,10 @@ slot[name="content"] { display: contents; }
       '  user-select: none;',
       '  -webkit-user-select: none;',
       '}',
-      /* 표 선택 테두리 */
+      /* 표 선택 테두리 — outline-offset 음수로 테이블 내부에 그려 레이아웃 변경 방지 */
       '.poa-editor-content table.poa-table-selected {',
       '  outline: 2px solid #0078d7;',
-      '  outline-offset: 1px;',
+      '  outline-offset: -2px;',
       '}',
       /* 숨김 테두리 표시 모드 */
       '.poa-editor-content.poa-show-hidden-borders table,',

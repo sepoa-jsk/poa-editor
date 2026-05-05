@@ -33,11 +33,13 @@ export class TableInlineToolbar {
     this.contentEl = contentEl;
     this.createToolbar();
     contentEl.addEventListener('scroll', this.onScroll);
+    window.addEventListener('scroll', this.onScroll, true);
   }
 
   hide(): void {
     this.toolbar?.remove();
     this.contentEl?.removeEventListener('scroll', this.onScroll);
+    window.removeEventListener('scroll', this.onScroll, true);
     this.toolbar   = null;
     this.table     = null;
     this.contentEl = null;
@@ -59,8 +61,9 @@ export class TableInlineToolbar {
 
     const bar = document.createElement('div');
     bar.dataset.poaTemp = 'true';
+    // position:fixed + document.body → contentEl 레이아웃에 영향 없음
     bar.style.cssText =
-      'position:absolute;display:flex;align-items:center;gap:6px;' +
+      'position:fixed;display:flex;align-items:center;gap:6px;' +
       'background:#fff;border:1px solid #ccc;border-radius:4px;' +
       'box-shadow:0 2px 8px rgba(0,0,0,.15);padding:4px 8px;' +
       'font-size:12px;white-space:nowrap;z-index:20;';
@@ -97,7 +100,7 @@ export class TableInlineToolbar {
     bar.appendChild(resetBtn);
 
     this.toolbar = bar;
-    this.contentEl.appendChild(bar);
+    document.body.appendChild(bar);
     this.updatePosition();
 
     // Enter → 즉시 적용, blur → 적용
@@ -212,12 +215,10 @@ export class TableInlineToolbar {
   private updatePosition(): void {
     if (!this.toolbar || !this.table || !this.contentEl) return;
     const tr   = this.table.getBoundingClientRect();
-    const cr   = this.contentEl.getBoundingClientRect();
-    const tTop = tr.top  - cr.top  + this.contentEl.scrollTop;
-    const tLeft= tr.left - cr.left + this.contentEl.scrollLeft;
+    // position:fixed → getBoundingClientRect 값이 곧 뷰포트 기준 좌표
     const barH = this.toolbar.offsetHeight || 32;
-    this.toolbar.style.top  = `${Math.max(0, tTop - barH - 4)}px`;
-    this.toolbar.style.left = `${tLeft}px`;
+    this.toolbar.style.top  = `${Math.max(0, tr.top - barH - 4)}px`;
+    this.toolbar.style.left = `${tr.left}px`;
   }
 
   private readonly onScroll = (): void => { this.updatePosition(); };

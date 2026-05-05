@@ -40,16 +40,18 @@ describe('TableWholeResizer', () => {
   afterEach(() => {
     resizer.detach();
     contentEl.remove();
+    // body에 남은 임시 요소 정리
+    document.body.querySelectorAll('[data-poa-temp]').forEach((el) => el.remove());
   });
 
-  it('attach() 후 오버레이(data-poa-temp)가 contentEl에 추가된다', () => {
+  it('attach() 후 오버레이(data-poa-temp)가 body에 추가된다', () => {
     resizer.attach(table);
-    expect(contentEl.querySelector('[data-poa-temp]')).toBeTruthy();
+    expect(document.body.querySelector('[data-poa-temp]')).toBeTruthy();
   });
 
   it('attach() 후 E/S/SE 핸들 3개가 생성된다', () => {
     resizer.attach(table);
-    const handles = contentEl.querySelectorAll('[data-dir]');
+    const handles = document.body.querySelectorAll('[data-dir]');
     const dirs = Array.from(handles).map((h) => h.getAttribute('data-dir')).sort();
     expect(dirs).toEqual(['e', 's', 'se']);
   });
@@ -57,21 +59,21 @@ describe('TableWholeResizer', () => {
   it('detach() 후 오버레이가 제거된다', () => {
     resizer.attach(table);
     resizer.detach();
-    expect(contentEl.querySelector('[data-poa-temp]')).toBeNull();
+    expect(document.body.querySelector('[data-poa-temp]')).toBeNull();
   });
 
   it('detach() 후 다시 attach() 하면 새 오버레이가 생성된다', () => {
     resizer.attach(table);
     resizer.detach();
     resizer.attach(table);
-    expect(contentEl.querySelector('[data-poa-temp]')).toBeTruthy();
+    expect(document.body.querySelector('[data-poa-temp]')).toBeTruthy();
   });
 
-  it('같은 표로 attach()를 두 번 해도 오버레이(직계 자식)는 1개다', () => {
+  it('같은 표로 attach()를 두 번 해도 오버레이는 1개다', () => {
     resizer.attach(table);
     resizer.attach(table);
-    // 오버레이 div는 contentEl 직계 자식 1개 (핸들 3개는 오버레이 안에 있음)
-    const overlays = Array.from(contentEl.children)
+    // 오버레이 div는 body 직계 자식 1개 (핸들 3개는 오버레이 안에 있음)
+    const overlays = Array.from(document.body.children)
       .filter((el) => el.getAttribute('data-poa-temp') === 'true');
     expect(overlays.length).toBe(1);
   });
@@ -80,7 +82,7 @@ describe('TableWholeResizer', () => {
     resizer.attach(table);
     table.remove();
     contentEl.dispatchEvent(new Event('input', { bubbles: true }));
-    expect(contentEl.querySelector('[data-poa-temp]')).toBeNull();
+    expect(document.body.querySelector('[data-poa-temp]')).toBeNull();
   });
 
   it('onResizeEnd 콜백이 mouseup 시 호출된다', () => {
@@ -88,7 +90,7 @@ describe('TableWholeResizer', () => {
     const r = new TableWholeResizer(contentEl, { onResizeEnd });
     r.attach(table);
 
-    const handle = contentEl.querySelector<HTMLElement>('[data-dir="se"]')!;
+    const handle = document.body.querySelector<HTMLElement>('[data-dir="se"]')!;
     handle.dispatchEvent(new MouseEvent('mousedown', { clientX: 100, clientY: 100, bubbles: true }));
     document.dispatchEvent(new MouseEvent('mouseup', { clientX: 110, clientY: 110 }));
 
@@ -99,19 +101,19 @@ describe('TableWholeResizer', () => {
 
   it('e-핸들 mousedown cursor가 e-resize이다', () => {
     resizer.attach(table);
-    const h = contentEl.querySelector<HTMLElement>('[data-dir="e"]')!;
+    const h = document.body.querySelector<HTMLElement>('[data-dir="e"]')!;
     expect(h.style.cursor).toBe('e-resize');
   });
 
   it('s-핸들 mousedown cursor가 s-resize이다', () => {
     resizer.attach(table);
-    const h = contentEl.querySelector<HTMLElement>('[data-dir="s"]')!;
+    const h = document.body.querySelector<HTMLElement>('[data-dir="s"]')!;
     expect(h.style.cursor).toBe('s-resize');
   });
 
   it('se-핸들 cursor가 se-resize이다', () => {
     resizer.attach(table);
-    const h = contentEl.querySelector<HTMLElement>('[data-dir="se"]')!;
+    const h = document.body.querySelector<HTMLElement>('[data-dir="se"]')!;
     expect(h.style.cursor).toBe('se-resize');
   });
 });
@@ -131,39 +133,40 @@ describe('TableInlineToolbar', () => {
   afterEach(() => {
     toolbar.hide();
     contentEl.remove();
+    document.body.querySelectorAll('[data-poa-temp]').forEach((el) => el.remove());
   });
 
-  it('show() 후 data-poa-temp 툴바가 contentEl에 추가된다', () => {
+  it('show() 후 data-poa-temp 툴바가 body에 추가된다', () => {
     toolbar.show(table, contentEl);
-    expect(contentEl.querySelector('[data-poa-temp]')).toBeTruthy();
+    expect(document.body.querySelector('[data-poa-temp]')).toBeTruthy();
   });
 
   it('hide() 후 툴바가 제거된다', () => {
     toolbar.show(table, contentEl);
     toolbar.hide();
-    expect(contentEl.querySelector('[data-poa-temp]')).toBeNull();
+    expect(document.body.querySelector('[data-poa-temp]')).toBeNull();
   });
 
   it('너비 input(#poa-tbl-tb-w)이 존재한다', () => {
     toolbar.show(table, contentEl);
-    expect(contentEl.querySelector('#poa-tbl-tb-w')).toBeTruthy();
+    expect(document.body.querySelector('#poa-tbl-tb-w')).toBeTruthy();
   });
 
   it('높이 input(#poa-tbl-tb-h)이 존재한다', () => {
     toolbar.show(table, contentEl);
-    expect(contentEl.querySelector('#poa-tbl-tb-h')).toBeTruthy();
+    expect(document.body.querySelector('#poa-tbl-tb-h')).toBeTruthy();
   });
 
   it('table.style.width가 설정된 경우 너비 input에 반영된다', () => {
     table.style.width = '520px';
     toolbar.show(table, contentEl);
-    const inp = contentEl.querySelector<HTMLInputElement>('#poa-tbl-tb-w')!;
+    const inp = document.body.querySelector<HTMLInputElement>('#poa-tbl-tb-w')!;
     expect(inp.value).toBe('520');
   });
 
   it('너비 input에서 Enter 누르면 table.style.width가 변경된다', () => {
     toolbar.show(table, contentEl);
-    const inp = contentEl.querySelector<HTMLInputElement>('#poa-tbl-tb-w')!;
+    const inp = document.body.querySelector<HTMLInputElement>('#poa-tbl-tb-w')!;
     inp.value = '400';
     inp.dispatchEvent(new KeyboardEvent('keydown', { key: 'Enter', bubbles: true }));
     expect(table.style.width).toBe('400px');
@@ -173,7 +176,7 @@ describe('TableInlineToolbar', () => {
     table.style.width     = '500px';
     table.style.minHeight = '200px';
     toolbar.show(table, contentEl);
-    const resetBtn = Array.from(contentEl.querySelectorAll('button'))
+    const resetBtn = Array.from(document.body.querySelectorAll('button'))
       .find((b) => b.textContent === '원본')!;
     resetBtn.click();
     expect(table.style.width).toBe('100%');
@@ -184,7 +187,7 @@ describe('TableInlineToolbar', () => {
     const onApply = vi.fn();
     const tb = new TableInlineToolbar({ onApply });
     tb.show(table, contentEl);
-    const inp = contentEl.querySelector<HTMLInputElement>('#poa-tbl-tb-w')!;
+    const inp = document.body.querySelector<HTMLInputElement>('#poa-tbl-tb-w')!;
     inp.value = '350';
     inp.dispatchEvent(new KeyboardEvent('keydown', { key: 'Enter', bubbles: true }));
     expect(onApply).toHaveBeenCalledWith(table);
