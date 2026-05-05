@@ -160,3 +160,94 @@ describe('EditorCore', () => {
     expect(div.dataset.placeholder).toBe('내용을 입력하세요');
   });
 });
+
+// ── 정렬 유틸리티 ─────────────────────────────────────────────────────────────
+
+import { getSelectedBlocks, getImageAlign, getTableAlign } from '../../src/utils/dom.js';
+
+describe('getSelectedBlocks', () => {
+  let root: HTMLDivElement;
+
+  beforeEach(() => {
+    root = document.createElement('div');
+    document.body.appendChild(root);
+  });
+
+  afterEach(() => { root.remove(); });
+
+  it('collapsed range — 커서가 속한 단일 블록을 반환한다', () => {
+    root.innerHTML = '<p>첫 번째</p><p>두 번째</p>';
+    const p1 = root.firstElementChild as HTMLElement;
+    const range = document.createRange();
+    range.setStart(p1.firstChild!, 2);
+    range.collapse(true);
+    expect(getSelectedBlocks(root, range)).toEqual([p1]);
+  });
+
+  it('여러 블록에 걸친 range — 교차하는 모든 블록을 반환한다', () => {
+    root.innerHTML = '<p>A</p><p>B</p><p>C</p>';
+    const [p1, , p3] = Array.from(root.children) as HTMLElement[];
+    const range = document.createRange();
+    range.setStart(p1.firstChild!, 0);
+    range.setEnd(p3.firstChild!, 1);
+    const blocks = getSelectedBlocks(root, range);
+    expect(blocks.length).toBe(3);
+  });
+
+  it('단일 블록 내 비collapsed range — 해당 블록만 반환한다', () => {
+    root.innerHTML = '<p>Hello World</p>';
+    const p = root.firstElementChild as HTMLElement;
+    const range = document.createRange();
+    range.setStart(p.firstChild!, 0);
+    range.setEnd(p.firstChild!, 5);
+    const blocks = getSelectedBlocks(root, range);
+    expect(blocks).toEqual([p]);
+  });
+});
+
+describe('getImageAlign', () => {
+  it('float:left → left', () => {
+    const img = document.createElement('img');
+    img.style.float = 'left';
+    expect(getImageAlign(img)).toBe('left');
+  });
+
+  it('float:right → right', () => {
+    const img = document.createElement('img');
+    img.style.float = 'right';
+    expect(getImageAlign(img)).toBe('right');
+  });
+
+  it('margin auto/auto → center', () => {
+    const img = document.createElement('img');
+    img.style.marginLeft = 'auto';
+    img.style.marginRight = 'auto';
+    expect(getImageAlign(img)).toBe('center');
+  });
+
+  it('기본값(float 없음) → left', () => {
+    const img = document.createElement('img');
+    expect(getImageAlign(img)).toBe('left');
+  });
+});
+
+describe('getTableAlign', () => {
+  it('marginLeft/Right auto → center', () => {
+    const table = document.createElement('table');
+    table.style.marginLeft = 'auto';
+    table.style.marginRight = 'auto';
+    expect(getTableAlign(table)).toBe('center');
+  });
+
+  it('marginLeft auto, marginRight 0 → right', () => {
+    const table = document.createElement('table');
+    table.style.marginLeft = 'auto';
+    table.style.marginRight = '0px';
+    expect(getTableAlign(table)).toBe('right');
+  });
+
+  it('기본값 → left', () => {
+    const table = document.createElement('table');
+    expect(getTableAlign(table)).toBe('left');
+  });
+});

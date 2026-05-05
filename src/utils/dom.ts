@@ -33,3 +33,70 @@ function escapeHtml(text: string): string {
 export function isHTMLElement(node: Node): node is HTMLElement {
   return node.nodeType === Node.ELEMENT_NODE;
 }
+
+const BLOCK_TAGS = new Set(['P','DIV','H1','H2','H3','H4','H5','H6','LI','BLOCKQUOTE','PRE','FIGURE']);
+
+function isBlock(node: Node): node is HTMLElement {
+  return isHTMLElement(node) && BLOCK_TAGS.has((node as HTMLElement).tagName);
+}
+
+function findBlockAncestor(node: Node, root: HTMLElement): HTMLElement | null {
+  let cur: Node | null = node;
+  while (cur && cur !== root) {
+    if (isBlock(cur)) return cur;
+    cur = cur.parentNode;
+  }
+  return null;
+}
+
+/**
+ * 선택 범위 안에 포함된 블록 요소 목록을 반환한다.
+ * collapsed 선택이면 커서가 속한 단일 블록을 반환하고,
+ * 다중 선택이면 contentEl 직계 자식 블록 중 range와 교차하는 것을 반환한다.
+ */
+export function getSelectedBlocks(contentEl: HTMLElement, range: Range): HTMLElement[] {
+  if (range.collapsed) {
+    const block = findBlockAncestor(range.startContainer, contentEl);
+    return block ? [block] : [];
+  }
+
+  const cac = range.commonAncestorContainer;
+
+  // 공통 조상이 단일 블록 내부인 경우
+  if (cac !== contentEl && !cac.contains(contentEl)) {
+    const block = findBlockAncestor(cac, contentEl);
+    if (block) return [block];
+  }
+
+  // 공통 조상이 contentEl이거나 여러 블록에 걸친 경우
+  const blocks: HTMLElement[] = [];
+  for (const child of Array.from(contentEl.childNodes)) {
+    if (!isBlock(child)) continue;
+    if (range.intersectsNode(child)) blocks.push(child);
+  }
+  if (blocks.length > 0) return blocks;
+
+  // 폴백: 시작 컨테이너의 블록 조상
+  const fallback = findBlockAncestor(range.startContainer, contentEl);
+  return fallback ? [fallback] : [];
+}
+
+/** 이미지의 현재 정렬 상태를 반환한다 (float / margin 기반) */
+export function getImageAlign(img: HTMLElement): 'left' | 'center' | 'right' | 'justify' {
+  const fl = img.style.float || getComputedStyle(img).float;
+  if (fl === 'left') return 'left';
+  if (fl === 'right') return 'right';
+  const ml = img.style.marginLeft || getComputedStyle(img).marginLeft;
+  const mr = img.style.marginRight || getComputedStyle(img).marginRight;
+  if (ml === 'auto' && mr === 'auto') return 'center';
+  return 'left';
+}
+
+/** 표의 현재 정렬 상태를 반환한다 (margin 기반) */
+export function getTableAlign(table: HTMLElement): 'left' | 'center' | 'right' {
+  const ml = table.style.marginLeft || getComputedStyle(table).marginLeft;
+  const mr = table.style.marginRight || getComputedStyle(table).marginRight;
+  if (ml === 'auto' && mr === 'auto') return 'center';
+  if (ml === 'auto' && mr !== 'auto') return 'right';
+  return 'left';
+}

@@ -34,6 +34,9 @@ import { BookmarkManager } from '../modules/insert/BookmarkManager.js';
 import type { PoaLinkDialog } from './dialogs/LinkDialog.js';
 import { ImageResizer } from '../modules/insert/ImageResizer.js';
 import type { PoaImageToolbar } from './ImageToolbar.js';
+import { ViewManager } from '../modules/view/ViewManager.js';
+import type { ViewMode } from '../modules/view/ViewManager.js';
+import { getSelectedBlocks, getImageAlign, getTableAlign } from '../utils/dom.js';
 
 const INDENT_STEP_EM = 2;
 const BLOCK_TAGS = new Set(['p', 'div', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'li', 'blockquote', 'pre']);
@@ -71,6 +74,9 @@ export class PoaEditor extends HTMLElement {
   private imageToolbar!: PoaImageToolbar;
   private imgContextMenu: HTMLDivElement | null = null;
   private linkContextMenu: HTMLDivElement | null = null;
+  private viewManager!: ViewManager;
+  /** 현재 선택(파란 outline)된 표 — null이면 미선택 */
+  private selectedTable: HTMLTableElement | null = null;
   /** 표 컨텍스트 진입 직전 탭 — 표에서 벗어날 때 복귀에 사용 */
   private previousMenuTab: MenuTab = 'edit';
   private inTableContext = false;
@@ -176,6 +182,7 @@ slot[name="content"] { display: contents; }
 
     this.imageResizer = new ImageResizer(this.contentEl, {
       onActivate: (img) => {
+        this.deselectTable(); // 표 선택 해제 후 이미지 활성화
         this.imageToolbar.show(img);
       },
       onResize: (img) => {
@@ -194,6 +201,14 @@ slot[name="content"] { display: contents; }
       },
     });
     this.imageResizer.attach();
+
+    this.viewManager = new ViewManager(this.contentEl, {
+      onViewChange: (mode) => {
+        eventBus.emit(BusEvent.VIEW_CHANGE, { mode });
+      },
+      getBookmarks: () => this.bookmarkManager.getAll(),
+    });
+    this.viewManager.attach();
 
     this.fileManager = new FileManager();
     this.autoSave    = new AutoSave();
@@ -472,13 +487,26 @@ slot[name="content"] { display: contents; }
       this.statusBar.update(this.contentEl.innerHTML);
     });
 
-    // 표 셀 클릭 시 즉시 메뉴바 전환 (selectionchange는 비동기라 mousedown으로 선처리)
+    // 객체 클릭 감지 — mousedown은 selectionchange보다 먼저 발생
     this.contentEl.addEventListener('mousedown', (e) => {
-      const cell = this.findCellNode(e.target as Node);
-      if (cell && !this.inTableContext) {
+      // 리사이즈 핸들(data-dir) 클릭은 stopPropagation되므로 여기 미도달 → 무시 불필요
+      const table = this.findTableNode(e.target as Node);
+
+      // ── 표 선택 테두리 + 이미지 교차 해제 ─────────────────────────
+      if (table) {
+        this.selectTable(table);
+        if (this.imageResizer.getActiveImage()) this.imageResizer.deactivate();
+      } else {
+        this.deselectTable();
+        // 이미지 해제는 ImageResizer.onRootClick(capture)이 처리
+      }
+
+      // ── 표 탭 전환: 표 안 → table 탭, 표 밖 → 이전 탭 ────────────
+      const inTable = table !== null;
+      if (inTable && !this.inTableContext) {
         this.inTableContext = true;
         eventBus.emit(BusEvent.MENUBAR_CHANGE, { tab: 'table' as MenuTab });
-      } else if (!cell && this.inTableContext) {
+      } else if (!inTable && this.inTableContext) {
         this.inTableContext = false;
         eventBus.emit(BusEvent.MENUBAR_CHANGE, { tab: this.previousMenuTab });
       }
@@ -653,6 +681,8 @@ slot[name="content"] { display: contents; }
     this.tableResizer.detach();
     this.tableHandle.detach();
     this.imageResizer.detach();
+    this.viewManager.detach();
+    this.deselectTable();
     this.hideImgContextMenu();
     this.hideLinkContextMenu();
     this.core.unmount();
@@ -742,10 +772,19 @@ slot[name="content"] { display: contents; }
         this.savedRange = null;
         break;
 
-      case 'align':
-        this.applyBlockStyle('text-align', value ?? 'left');
-        await this.core.captureHistory(`align:${value}`);
+      case 'align': {
+        const align = (value ?? 'left') as TextAlign;
+        const activeImg = this.imageResizer.getActiveImage();
+        if (activeImg) {
+          this.applyImageAlign(activeImg, align);
+        } else if (this.selectedTable) {
+          this.applyTableAlign(this.selectedTable, align);
+        } else {
+          this.applyTextAlign(align);
+        }
+        await this.core.captureHistory(`align:${align}`);
         break;
+      }
       case 'indent':
         this.applyIndent(1);
         await this.core.captureHistory('indent');
@@ -888,15 +927,35 @@ slot[name="content"] { display: contents; }
         this.linkDialog.open('datetime');
         return;
 
+      // ── 보기 탭 액션 ─────────────────────────────────────────────
+      case 'view:design':
+      case 'view:html':
+      case 'view:preview':
+      case 'view:text':
+      case 'view:page': {
+        const mode = type.replace('view:', '') as ViewMode;
+        void this.viewManager.switchTo(mode);
+        return;
+      }
+      case 'view:fullscreen':
+        this.viewManager.toggleFullscreen(this);
+        return;
+      case 'view:ruler':
+        this.viewManager.toggleRuler();
+        return;
+      case 'view:grid':
+        this.viewManager.toggleGrid();
+        return;
+      case 'view:hidden-border':
+        this.viewManager.toggleHiddenBorder();
+        return;
+
       case 'format:ul':
       case 'format:ol':
       case 'format:sup':
       case 'format:sub':
       case 'format:painter-copy':
       case 'format:painter-paste':
-      case 'view:design': case 'view:html': case 'view:preview':
-      case 'view:text': case 'view:page': case 'view:fullscreen':
-      case 'view:ruler': case 'view:grid':
       case 'insert:hr': case 'insert:symbol': case 'insert:multi-image':
       case 'misc:a11y': case 'misc:privacy': case 'misc:form': case 'misc:calc':
       case 'help:shortcuts': case 'help:guide': case 'help:about':
@@ -946,6 +1005,45 @@ slot[name="content"] { display: contents; }
     if (!sel || sel.rangeCount === 0) return;
     const block = this.findBlockAncestor(sel.getRangeAt(0).commonAncestorContainer);
     (block as HTMLElement).style.setProperty(cssProperty, value);
+  }
+
+  private applyTextAlign(align: TextAlign): void {
+    const sel = this.contentEl.ownerDocument.getSelection();
+    if (!sel || sel.rangeCount === 0) return;
+    const blocks = getSelectedBlocks(this.contentEl, sel.getRangeAt(0));
+    for (const block of blocks) {
+      block.style.textAlign = align === 'left' ? '' : align;
+    }
+  }
+
+  private applyImageAlign(img: HTMLImageElement, align: TextAlign): void {
+    img.style.float = '';
+    img.style.display = '';
+    img.style.marginLeft = '';
+    img.style.marginRight = '';
+    if (align === 'left') {
+      img.style.float = 'left';
+      img.style.marginRight = '8px';
+    } else if (align === 'right') {
+      img.style.float = 'right';
+      img.style.marginLeft = '8px';
+    } else if (align === 'center') {
+      img.style.display = 'block';
+      img.style.marginLeft = 'auto';
+      img.style.marginRight = 'auto';
+    }
+  }
+
+  private applyTableAlign(table: HTMLTableElement, align: TextAlign): void {
+    table.style.marginLeft = '';
+    table.style.marginRight = '';
+    if (align === 'center') {
+      table.style.marginLeft = 'auto';
+      table.style.marginRight = 'auto';
+    } else if (align === 'right') {
+      table.style.marginLeft = 'auto';
+      table.style.marginRight = '0';
+    }
   }
 
   private applyIndent(delta: number): void {
@@ -1001,8 +1099,8 @@ slot[name="content"] { display: contents; }
       return;
     }
 
-    // 표 컨텍스트 자동 전환
-    const inTable = this.getFocusedCell() !== null;
+    // 표 컨텍스트 자동 전환 — 커서가 셀 안이거나 표가 선택된 상태이면 유지
+    const inTable = this.getFocusedCell() !== null || this.selectedTable !== null;
     if (inTable && !this.inTableContext) {
       this.inTableContext = true;
       eventBus.emit(BusEvent.MENUBAR_CHANGE, { tab: 'table' as MenuTab });
@@ -1020,7 +1118,12 @@ slot[name="content"] { display: contents; }
       italic:       this.hasAncestorTag(anchor, 'em'),
       underline:    this.hasAncestorTag(anchor, 'u'),
       strike:       this.hasAncestorTag(anchor, 's'),
-      align:        (this.getInlineStyle(anchor, 'text-align') || 'left') as TextAlign,
+      align:        (() => {
+        const activeImg = this.imageResizer.getActiveImage();
+        if (activeImg) return getImageAlign(activeImg) as TextAlign;
+        if (this.selectedTable) return getTableAlign(this.selectedTable) as TextAlign;
+        return (this.getInlineStyle(anchor, 'text-align') || 'left') as TextAlign;
+      })(),
       canUndo,
       canRedo,
       fontSize:     this.getInlineStyle(anchor, 'font-size') || '12pt',
@@ -1121,6 +1224,33 @@ slot[name="content"] { display: contents; }
     return this.getFocusedCell()?.closest('table') as HTMLTableElement | null ?? null;
   }
 
+  /** 임의 Node에서 가장 가까운 TABLE 요소 반환 — 없으면 null */
+  private findTableNode(node: Node): HTMLTableElement | null {
+    let cur: Node | null = node;
+    while (cur && cur !== this.contentEl) {
+      if (cur.nodeType === Node.ELEMENT_NODE &&
+          (cur as Element).tagName === 'TABLE') {
+        return cur as HTMLTableElement;
+      }
+      cur = cur.parentNode;
+    }
+    return null;
+  }
+
+  /** 표 선택 테두리 표시 */
+  private selectTable(table: HTMLTableElement): void {
+    if (this.selectedTable === table) return;
+    this.deselectTable();
+    this.selectedTable = table;
+    table.classList.add('poa-table-selected');
+  }
+
+  /** 표 선택 해제 */
+  private deselectTable(): void {
+    this.selectedTable?.classList.remove('poa-table-selected');
+    this.selectedTable = null;
+  }
+
   private static _stylesInjected = false;
   private static injectContentStyles(): void {
     if (PoaEditor._stylesInjected) return;
@@ -1173,6 +1303,21 @@ slot[name="content"] { display: contents; }
       '  cursor: default;',
       '  user-select: none;',
       '  -webkit-user-select: none;',
+      '}',
+      /* 표 선택 테두리 */
+      '.poa-editor-content table.poa-table-selected {',
+      '  outline: 2px solid #0078d7;',
+      '  outline-offset: 1px;',
+      '}',
+      /* 숨김 테두리 표시 모드 */
+      '.poa-editor-content.poa-show-hidden-borders table,',
+      '.poa-editor-content.poa-show-hidden-borders td,',
+      '.poa-editor-content.poa-show-hidden-borders th {',
+      '  border: 1px dashed #bbb !important;',
+      '}',
+      '.poa-editor-content.poa-show-hidden-borders div,',
+      '.poa-editor-content.poa-show-hidden-borders p {',
+      '  outline: 1px dashed rgba(0,120,212,.25);',
       '}',
     ].join('\n');
     document.head.appendChild(style);
