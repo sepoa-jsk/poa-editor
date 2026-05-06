@@ -134,6 +134,7 @@ poa-editor {
 span.poa-field {
   display: inline-flex;
   align-items: center;
+  position: relative;
   margin: 0;
   padding: 0;
   vertical-align: middle;
@@ -160,6 +161,25 @@ span.poa-field textarea.poa-field-input {
   padding: 2px 4px;
   min-height: 1.5em;
   height: auto;
+}
+
+/* 필드 크기 조절 핸들 */
+span.poa-field .poa-field-resize-handle {
+  position: absolute;
+  right: 0;
+  bottom: 0;
+  width: 8px;
+  height: 8px;
+  cursor: se-resize;
+  background: linear-gradient(135deg, transparent 50%, #93C5FD 50%);
+  opacity: 0;
+  transition: opacity 0.15s;
+  flex-shrink: 0;
+  pointer-events: auto;
+}
+
+span.poa-field:hover .poa-field-resize-handle {
+  opacity: 1;
 }
 
 /* ── Paper / Zoom layout ────────────────────────────────────────────────── */
@@ -215,7 +235,8 @@ span.poa-field textarea.poa-field-input {
 
   /* 양식 필드 — iframe 인쇄에서는 exportFields()로 이미 텍스트 변환되나
      window.print() 직접 호출 경로를 위해 인라인 스타일도 강제 초기화 */
-  .poa-field-drag-handle { display: none !important; }
+  .poa-field-drag-handle,
+  .poa-field-resize-handle { display: none !important; }
   .poa-field input,
   .poa-field textarea {
     all: unset !important;

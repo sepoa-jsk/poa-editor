@@ -3,6 +3,7 @@ import type { MenuTab } from '../core/types.js';
 import type { ViewMode } from '../modules/view/ViewManager.js';
 import { Icons, ACTION_ICON } from '../utils/icons.js';
 import { DOCUMENT_FIELDS } from '../modules/insert/DocumentFields.js';
+import type { DocumentField } from '../modules/insert/DocumentFields.js';
 
 /** [label, action, value?, title?] */
 type BDef = readonly [string, string, string?, string?];
@@ -17,7 +18,25 @@ interface DropdownDef {
 /** null = 구분선 */
 type GroupDef = ReadonlyArray<BDef | DropdownDef | null>;
 
-const TYPE_ICONS: Record<string, string> = { text: 'T', textarea: '☰', number: '#', date: '📅' };
+const TYPE_ICONS: Record<string, string> = { text: 'T', number: '#', date: '📅' };
+
+/** 카테고리별로 그룹핑한 양식 필드 드롭다운 아이템 생성 */
+function buildFieldDropdownItems(): ReadonlyArray<readonly [string, string, string?, string?]> {
+  const categories: ReadonlyArray<DocumentField['category']> = ['기본', '계약', '금액', '보증', '기타'];
+  const result: (readonly [string, string, string?, string?])[] = [];
+  let first = true;
+  for (const cat of categories) {
+    const fields = DOCUMENT_FIELDS.filter(f => f.category === cat);
+    if (fields.length === 0) continue;
+    if (!first) result.push(['', '__sep__']);
+    result.push([cat, '__cat__']);
+    first = false;
+    for (const f of fields) {
+      result.push([f.label, 'insert:field', f.id, TYPE_ICONS[f.type]]);
+    }
+  }
+  return result;
+}
 
 const TABS: Record<MenuTab, ReadonlyArray<GroupDef>> = {
   file: [
@@ -37,7 +56,7 @@ const TABS: Record<MenuTab, ReadonlyArray<GroupDef>> = {
     [['툴팁','insert:tooltip'],['툴팁 관리','insert:tooltip-list']],
     [['날짜·시간','insert:datetime'],['가로줄','insert:hr'],['기호','insert:symbol']],
     [{ dropdown: true, id: 'doc-field', label: '양식 필드',
-       items: DOCUMENT_FIELDS.map(f => [f.label, 'insert:field', f.id, TYPE_ICONS[f.type]] as const) }],
+       items: buildFieldDropdownItems() }],
   ],
   view: [
     [['디자인','view:design'],['HTML','view:html'],['미리보기','view:preview'],['텍스트','view:text'],['페이지','view:page']],
@@ -130,7 +149,7 @@ const CSS = `
   box-shadow: 0 4px 16px rgba(0,0,0,.12);
   z-index: 9999;
   padding: 4px 0;
-  max-height: 260px;
+  max-height: 400px;
   overflow-y: auto;
 }
 .dropdown-menu.open { display: block; }
@@ -141,12 +160,22 @@ const CSS = `
   cursor: pointer; white-space: nowrap;
 }
 .drop-item:hover { background: #F3F4F6; }
+.drop-cat {
+  padding: 5px 12px 3px;
+  font-size: 10px; font-weight: 700; color: #9CA3AF;
+  letter-spacing: .06em; text-transform: uppercase;
+  cursor: default; white-space: nowrap;
+}
+.drop-sep {
+  border: none; border-top: 1px solid #F3F4F6; margin: 3px 0;
+}
 .type-icon {
   display: inline-flex; align-items: center; justify-content: center;
   width: 16px; height: 16px;
   font-size: 10px; font-weight: 700; color: #6B7280;
   background: #F3F4F6; border-radius: 2px; flex-shrink: 0;
 }
+#menu-doc-field { width: 220px; }
 
 /* 툴팁 */
 .btn::after {
@@ -220,6 +249,8 @@ export class PoaContextToolbar extends HTMLElement {
           parts.push('<div class="sep" style="margin:0 2px;"></div>');
         } else if ('dropdown' in item && item.dropdown) {
           const menuItems = item.items.map(([label, action, value, typeIcon]) => {
+            if (action === '__sep__') return `<hr class="drop-sep">`;
+            if (action === '__cat__') return `<div class="drop-cat">${label}</div>`;
             const da = value ? ` data-value="${value}"` : '';
             const icon = typeIcon ? `<span class="type-icon">${typeIcon}</span>` : '';
             return `<div class="drop-item" data-action="${action}"${da}>${icon}${label}</div>`;

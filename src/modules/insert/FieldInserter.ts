@@ -241,7 +241,7 @@ function injectPopupStyles(doc: Document): void {
 .poa-field-popup .pf-move-btn:hover{
   background:#EFF6FF;border-color:#93C5FD;color:#2563EB;
 }
-.poa-field{display:inline-block;position:relative;vertical-align:middle;}
+.poa-field{display:inline-flex;align-items:center;position:relative;vertical-align:middle;}
 .poa-field-drag-handle{
   display:inline-flex;align-items:center;justify-content:center;
   width:12px;cursor:grab;color:#93C5FD;font-size:11px;
@@ -251,6 +251,15 @@ function injectPopupStyles(doc: Document): void {
 .poa-field-drag-handle:active{cursor:grabbing;}
 .poa-field:hover .poa-field-drag-handle{opacity:1;}
 .poa-field.poa-field-dragging{opacity:.5;}
+.poa-field-resize-handle{
+  position:absolute;right:0;bottom:0;
+  width:8px;height:8px;
+  cursor:se-resize;
+  background:linear-gradient(135deg,transparent 50%,#93C5FD 50%);
+  opacity:0;transition:opacity .15s;
+  flex-shrink:0;
+}
+.poa-field:hover .poa-field-resize-handle{opacity:1;}
 `;
   doc.head.appendChild(s);
 }
@@ -266,9 +275,10 @@ const ALIGN_ICONS: Record<string, string> = {
  * 필드 클릭 시 속성 팝업을 표시한다.
  */
 export class FieldInserter {
-  private contentEl:   HTMLElement | null = null;
-  private popupEl:     HTMLElement | null = null;
-  private dragCleanup: (() => void) | null = null;
+  private contentEl:        HTMLElement | null = null;
+  private popupEl:          HTMLElement | null = null;
+  private dragCleanup:      (() => void) | null = null;
+  private lastInsertedEl:   HTMLElement | null = null;
 
   private readonly clickHandler = (e: MouseEvent): void => {
     const target = e.target as HTMLElement;
@@ -393,8 +403,14 @@ export class FieldInserter {
     span.setAttribute(ATTR.suffix,      '');
     span.setAttribute(ATTR.fieldType,   field.type);
     span.setAttribute(ATTR.multiline, '1');
+    if (field.defaultNumberFormat && field.type === 'number') {
+      span.setAttribute(ATTR.numberFormat, field.defaultNumberFormat);
+    }
+    if (field.type === 'date') {
+      span.setAttribute(ATTR.dateFormat, 'YYYY-MM-DD');
+    }
     span.contentEditable = 'false';
-    span.style.cssText = 'margin:0;padding:0;display:inline-flex;align-items:center;vertical-align:middle;max-width:100%;';
+    span.style.cssText = 'margin:0;padding:0;display:inline-flex;align-items:center;vertical-align:middle;max-width:100%;position:relative;';
 
     const handle = ownerDoc.createElement('span');
     handle.className = 'poa-field-drag-handle';
@@ -402,13 +418,17 @@ export class FieldInserter {
     handle.title = '드래그하여 이동';
 
     const fieldEl: HTMLElement = this.createTextarea(ownerDoc, field.label, field.id);
-    // 여러줄 타입만 3행, 나머지는 1행(한 줄 높이)
-    (fieldEl as HTMLTextAreaElement).rows = field.type === 'textarea' ? 3 : 1;
+    (fieldEl as HTMLTextAreaElement).rows = 1;
 
     if (field.type === 'date') fieldEl.setAttribute('data-input-type', 'date');
 
+    const resizeHandle = ownerDoc.createElement('span');
+    resizeHandle.className = 'poa-field-resize-handle';
+    resizeHandle.title = '크기 조절';
+
     span.appendChild(handle);
     span.appendChild(fieldEl);
+    span.appendChild(resizeHandle);
     range.deleteContents();
     range.insertNode(span);
     range.setStartAfter(span);
@@ -417,6 +437,8 @@ export class FieldInserter {
     sel?.addRange(range);
 
     this.attachResizeObserver(fieldEl, span);
+    this.attachResizeDrag(resizeHandle, fieldEl, span);
+    this.lastInsertedEl = fieldEl;
   }
 
   private createInput(doc: Document, placeholder: string, fieldId: string): HTMLInputElement {
@@ -445,6 +467,49 @@ export class FieldInserter {
       span.setAttribute(ATTR.dataHeight, String(el.offsetHeight));
     });
     ro.observe(el);
+  }
+
+  private attachResizeDrag(handle: HTMLElement, fieldEl: HTMLElement, span: HTMLElement): void {
+    handle.addEventListener('mousedown', (startEv: MouseEvent) => {
+      startEv.preventDefault();
+      startEv.stopPropagation();
+      const startX   = startEv.clientX;
+      const startY   = startEv.clientY;
+      const startW   = fieldEl.offsetWidth;
+      const startH   = fieldEl.offsetHeight;
+      const ownerDoc = handle.ownerDocument;
+
+      // 표 셀 안에 있는 경우 최대 너비를 셀 너비로 제한
+      const cell = span.closest<HTMLTableCellElement>('td,th');
+
+      const onMove = (mv: MouseEvent): void => {
+        const dx = mv.clientX - startX;
+        const dy = mv.clientY - startY;
+        let newW = Math.max(60, startW + dx);
+        let newH = Math.max(24, startH + dy);
+        if (cell) newW = Math.min(newW, cell.clientWidth - 20);
+        newW = Math.min(newW, 1200);
+        newH = Math.min(newH, 600);
+        fieldEl.style.width  = `${newW}px`;
+        fieldEl.style.height = `${newH}px`;
+        span.setAttribute(ATTR.dataWidth,  String(newW));
+        span.setAttribute(ATTR.dataHeight, String(newH));
+      };
+      const onUp = (): void => {
+        ownerDoc.removeEventListener('mousemove', onMove);
+        ownerDoc.removeEventListener('mouseup',   onUp);
+      };
+      ownerDoc.addEventListener('mousemove', onMove);
+      ownerDoc.addEventListener('mouseup',   onUp);
+    });
+  }
+
+  /** 마지막으로 삽입된 필드의 팝업을 열어 바로 속성을 편집할 수 있게 한다 */
+  openLastInsertedPopup(): void {
+    if (this.lastInsertedEl?.isConnected) {
+      this.openPopup(this.lastInsertedEl);
+    }
+    this.lastInsertedEl = null;
   }
 
   // ── 속성 팝업 ──────────────────────────────────────────────────────────────
@@ -548,7 +613,7 @@ export class FieldInserter {
 </div>`;
 
     // ── 팝업 DOM ────────────────────────────────────────────────────
-    const POPUP_W = 360;
+    const POPUP_W = 320;
     const POPUP_H = 340;
     const win     = ownerDoc.defaultView;
     const vw = win ? win.innerWidth  : 1920;
@@ -566,7 +631,7 @@ export class FieldInserter {
       'position:fixed',
       `left:${Math.round(popupLeft)}px`,
       `top:${Math.round(popupTop)}px`,
-      'width:360px',
+      'width:320px',
       'background:#fff',
       'border:1px solid #E2E8F0',
       'border-radius:12px',
@@ -903,7 +968,7 @@ ${sizeSection}
       const onMove = (me: MouseEvent): void => {
         const dx = me.clientX - startX;
         const dy = me.clientY - startY;
-        const newLeft = Math.max(4, Math.min(startLeft + dx, (win?.innerWidth  ?? 1920) - POPUP_W - 4));
+        const newLeft = Math.max(4, Math.min(startLeft + dx, (win?.innerWidth ?? 1920) - 320 - 4));
         const newTop  = Math.max(4, Math.min(startTop  + dy, (win?.innerHeight ?? 1080) - 60));
         popup.style.left = `${Math.round(newLeft)}px`;
         popup.style.top  = `${Math.round(newTop)}px`;
@@ -940,10 +1005,10 @@ ${sizeSection}
   static exportFields(html: string): string {
     const doc = new DOMParser().parseFromString(html, 'text/html');
     doc.querySelectorAll<HTMLElement>('.poa-field').forEach((span) => {
-      // label(사람이 읽기 좋은 이름) → placeholder(#TOKEN) 순으로 fallback
+      // 빈 값: placeholder($.{key}) → label 순으로 fallback (외부 시스템 치환 토큰 우선)
       const label       = span.getAttribute('data-label')       ?? '';
       const placeholder = span.getAttribute('data-placeholder') ?? '';
-      const emptyText   = label || placeholder;
+      const emptyText   = placeholder || label;
       const prefix  = span.getAttribute('data-prefix')  ?? '';
       const suffix  = span.getAttribute('data-suffix')  ?? '';
       const width   = span.getAttribute('data-width');

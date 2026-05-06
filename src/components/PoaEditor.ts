@@ -1449,6 +1449,7 @@ slot[name="content"] { display: contents; }
         this.fieldInserter.insertField(field, this.savedRange);
         await this.core.captureHistory('insertField');
         this.statusBar.update(this.contentEl.innerHTML);
+        this.fieldInserter.openLastInsertedPopup();
         return;
       }
       case 'insert:hr': case 'insert:symbol': case 'insert:multi-image':

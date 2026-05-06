@@ -361,9 +361,15 @@ export class TableNavigator {
     const dlg = ownerDoc.createElement('div');
     dlg.style.cssText = 'background:#fff;border-radius:6px;box-shadow:0 4px 24px rgba(0,0,0,0.2);padding:20px 24px;min-width:280px;font-size:13px;';
 
+    const vaOpts = (['top', 'middle', 'bottom'] as const).map(v =>
+      `<option value="${v}"${(current.verticalAlign ?? 'middle') === v ? ' selected' : ''}>${v === 'top' ? '위쪽' : v === 'middle' ? '가운데' : '아래쪽'}</option>`
+    ).join('');
+
     dlg.innerHTML = `
 <h4 style="margin:0 0 14px;font-size:14px;">셀 속성</h4>
 <div style="display:grid;grid-template-columns:80px 1fr;gap:8px 10px;align-items:center;margin-bottom:14px;">
+  <label>세로 정렬</label>
+  <select id="cp-va" style="height:26px;border:1px solid #ccc;border-radius:3px;font-size:13px;padding:0 4px;">${vaOpts}</select>
   <label>테두리 종류</label>
   <select id="cp-bstyle" style="height:26px;border:1px solid #ccc;border-radius:3px;font-size:13px;padding:0 4px;">
     <option value="solid">실선 (solid)</option>
@@ -409,13 +415,14 @@ export class TableNavigator {
 
     dlg.querySelector('#cp-ok')?.addEventListener('click', () => {
       const props: CellProperties = {
-        borderStyle:  (dlg.querySelector('#cp-bstyle') as HTMLSelectElement).value as CellProperties['borderStyle'],
-        borderWidth:  parseInt((dlg.querySelector('#cp-bwidth') as HTMLInputElement).value, 10) || 0,
-        borderColor:  (dlg.querySelector('#cp-bcolor') as HTMLInputElement).value,
-        indent:       parseInt((dlg.querySelector('#cp-indent') as HTMLInputElement).value, 10) || 0,
-        bgColor:      (dlg.querySelector('#cp-bg')     as HTMLInputElement).value,
-        id:           (dlg.querySelector('#cp-id')     as HTMLInputElement).value.trim(),
-        className:    (dlg.querySelector('#cp-class')  as HTMLInputElement).value.trim(),
+        verticalAlign: (dlg.querySelector('#cp-va')     as HTMLSelectElement).value as CellProperties['verticalAlign'],
+        borderStyle:   (dlg.querySelector('#cp-bstyle') as HTMLSelectElement).value as CellProperties['borderStyle'],
+        borderWidth:   parseInt((dlg.querySelector('#cp-bwidth') as HTMLInputElement).value, 10) || 0,
+        borderColor:   (dlg.querySelector('#cp-bcolor') as HTMLInputElement).value,
+        indent:        parseInt((dlg.querySelector('#cp-indent') as HTMLInputElement).value, 10) || 0,
+        bgColor:       (dlg.querySelector('#cp-bg')     as HTMLInputElement).value,
+        id:            (dlg.querySelector('#cp-id')     as HTMLInputElement).value.trim(),
+        className:     (dlg.querySelector('#cp-class')  as HTMLInputElement).value.trim(),
       };
       CellMerger.applyCellProperties(cell, props);
       this.cb.onModified?.();
