@@ -882,13 +882,8 @@ slot[name="content"] { display: contents; }
       // contentEl 자체 클릭은 제외 (클릭 후 커서 이동이 자연스럽게 savedRange를 갱신함)
       if (this.contentEl.contains(e.target as Node)) return;
       const r = this.getActualRange();
-      console.log('[shadow mousedown capture] getActualRange:', r,
-        '| collapsed:', r?.collapsed,
-        '| toString:', r?.toString(),
-        '| startContainer in contentEl:', r ? this.contentEl.contains(r.startContainer) : 'n/a');
       if (r && this.contentEl.contains(r.startContainer)) {
         this.savedRange = r.cloneRange();
-        console.log('[shadow mousedown capture] savedRange 저장 완료 | text:', this.savedRange.toString());
       }
     }, true); // capture phase — select/button mousedown보다 먼저 실행됨
 
@@ -1060,34 +1055,23 @@ slot[name="content"] { display: contents; }
 
   private async handleAction(e: CustomEvent<{ type: string; value?: string }>): Promise<void> {
     const { type, value } = e.detail;
-    console.log('[handleAction] type:', type, '| value:', value,
-      '| canUndo:', this.core.canUndo(), '| canRedo:', this.core.canRedo(),
-      '| savedRange:', this.savedRange?.toString());
 
     if (type !== 'format') this.restoreSelection();
 
     switch (type) {
       case 'format': {
         const tag = value ? FORMAT_TAG_MAP[value as FormatName] : undefined;
-        console.log('[handleAction format] tag:', tag,
-          '| savedRange:', this.savedRange,
-          '| collapsed:', this.savedRange?.collapsed,
-          '| toString:', this.savedRange?.toString());
         if (tag && this.savedRange && !this.savedRange.collapsed) {
           await this.core.applyFormatWithRange(tag, this.savedRange);
         }
         break;
       }
       case 'undo':
-        console.log('[handleAction undo] canUndo:', this.core.canUndo());
         await this.core.undo();
-        console.log('[handleAction undo] 완료 | innerHTML 길이:', this.contentEl.innerHTML.length);
         this.savedRange = null;
         break;
       case 'redo':
-        console.log('[handleAction redo] canRedo:', this.core.canRedo());
         await this.core.redo();
-        console.log('[handleAction redo] 완료 | innerHTML 길이:', this.contentEl.innerHTML.length);
         this.savedRange = null;
         break;
 
@@ -1179,27 +1163,67 @@ slot[name="content"] { display: contents; }
         window.print(); return;
 
       // ── 편집 탭 액션 ─────────────────────────────────────────────
-      case 'edit:cut':
-        document.execCommand('cut'); return;
-      case 'edit:copy':
-        document.execCommand('copy'); return;
+      case 'edit:cut': {
+        const ownerDoc = this.contentEl.ownerDocument;
+        const sel = ownerDoc.getSelection();
+        if (!sel || sel.rangeCount === 0) return;
+        const range = sel.getRangeAt(0);
+        if (range.collapsed) return;
+        const text = range.toString();
+        const div  = ownerDoc.createElement('div');
+        div.appendChild(range.cloneContents());
+        const html = div.innerHTML;
+        void navigator.clipboard.write([
+          new ClipboardItem({
+            'text/plain': new Blob([text], { type: 'text/plain' }),
+            'text/html':  new Blob([html],  { type: 'text/html' }),
+          }),
+        ]).then(() => { range.deleteContents(); void this.core.captureHistory('cut'); });
+        return;
+      }
+      case 'edit:copy': {
+        const ownerDoc = this.contentEl.ownerDocument;
+        const sel = ownerDoc.getSelection();
+        if (!sel || sel.rangeCount === 0) return;
+        const range = sel.getRangeAt(0);
+        if (range.collapsed) return;
+        const text = range.toString();
+        const div  = ownerDoc.createElement('div');
+        div.appendChild(range.cloneContents());
+        const html = div.innerHTML;
+        void navigator.clipboard.write([
+          new ClipboardItem({
+            'text/plain': new Blob([text], { type: 'text/plain' }),
+            'text/html':  new Blob([html],  { type: 'text/html' }),
+          }),
+        ]);
+        return;
+      }
       case 'edit:paste':
         void navigator.clipboard.readText().then((text) => {
           this.restoreSelection();
-          document.execCommand('insertText', false, text);
+          this.insertPlainText(text);
+          void this.core.captureHistory('paste');
+          this.statusBar.update(this.contentEl.innerHTML);
         }); return;
       case 'edit:paste-plain': {
-        const sel = this.contentEl.ownerDocument.getSelection();
-        if (sel?.rangeCount) {
-          void navigator.clipboard.readText().then((text) => {
-            this.restoreSelection();
-            document.execCommand('insertText', false, text);
-          });
-        } return;
+        void navigator.clipboard.readText().then((text) => {
+          this.restoreSelection();
+          this.insertPlainText(text);
+          void this.core.captureHistory('paste');
+          this.statusBar.update(this.contentEl.innerHTML);
+        }); return;
       }
-      case 'edit:select-all':
+      case 'edit:select-all': {
         this.contentEl.focus();
-        this.contentEl.ownerDocument.execCommand('selectAll'); return;
+        const ownerDoc = this.contentEl.ownerDocument;
+        const range = ownerDoc.createRange();
+        range.selectNodeContents(this.contentEl);
+        const sel = ownerDoc.getSelection();
+        sel?.removeAllRanges();
+        sel?.addRange(range);
+        return;
+      }
 
       // ── 표 탭 액션 ───────────────────────────────────────────────
       case 'table:table-props': {
@@ -1350,12 +1374,25 @@ slot[name="content"] { display: contents; }
 
   // ── DOM style helpers ────────────────────────────────────────────────────
 
+  /** Selection API 로 커서 위치에 평문 텍스트를 삽입한다 (execCommand 대체). */
+  private insertPlainText(text: string): void {
+    const ownerDoc = this.contentEl.ownerDocument;
+    const sel = ownerDoc.getSelection();
+    if (!sel || sel.rangeCount === 0) return;
+    const range = sel.getRangeAt(0);
+    range.deleteContents();
+    const node = ownerDoc.createTextNode(text);
+    range.insertNode(node);
+    range.setStartAfter(node);
+    range.collapse(true);
+    sel.removeAllRanges();
+    sel.addRange(range);
+    this.fileManager.markDirty();
+  }
+
   private applyInlineStyle(cssProperty: string, value: string): void {
     const ownerDoc = this.contentEl.ownerDocument;
     const sel = ownerDoc.getSelection();
-    console.log('[applyInlineStyle]', cssProperty, '| rangeCount:', sel?.rangeCount,
-      '| collapsed:', sel?.rangeCount ? sel.getRangeAt(0).collapsed : 'n/a',
-      '| toString:', sel?.toString());
     if (!sel || sel.rangeCount === 0) return;
     const range = sel.getRangeAt(0);
 
@@ -1528,13 +1565,11 @@ slot[name="content"] { display: contents; }
   private syncToolbar(): void {
     const canUndo = this.core.canUndo();
     const canRedo = this.core.canRedo();
-    console.log('[syncToolbar] canUndo:', canUndo, '| canRedo:', canRedo);
 
     const range = this.getActualRange();
 
     // selection이 없어도 canUndo/canRedo는 항상 최신값으로 갱신 (입력 디바운스 후 즉시 반영)
     if (!range || !this.contentEl.contains(range.startContainer)) {
-      console.log('[syncToolbar] → setHistoryState only (no valid range in contentEl)');
       this.toolbar.setHistoryState(canUndo, canRedo);
       return;
     }
@@ -1575,7 +1610,6 @@ slot[name="content"] { display: contents; }
       inTable,
     };
 
-    console.log('[syncToolbar] → setState (canUndo:', canUndo, ')');
     this.toolbar.setState(state);
   }
 
@@ -1622,10 +1656,6 @@ slot[name="content"] { display: contents; }
     const sel = this.contentEl.ownerDocument.getSelection();
     if (!sel || sel.rangeCount === 0) return null;
     const r = sel.getRangeAt(0);
-    console.log('[getActualRange] collapsed:', r.collapsed,
-      '| toString:', r.toString(),
-      '| startContainer.nodeName:', r.startContainer.nodeName,
-      '| inContentEl:', this.contentEl.contains(r.startContainer));
     return r;
   }
 
