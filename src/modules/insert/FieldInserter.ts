@@ -78,7 +78,7 @@ const FIELD_INPUT_STYLE =
 
 const FIELD_TEXTAREA_STYLE =
   `${BASE_FIELD_STYLE};padding:4px 8px;vertical-align:top;resize:both;` +
-  `min-height:40px;max-height:400px;line-height:1.5;`;
+  `max-height:400px;line-height:1.5;`;
 
 // ── 숫자 포맷 헬퍼 ──────────────────────────────────────────────────────────
 
@@ -266,6 +266,8 @@ export class FieldInserter {
     span.contentEditable = 'false';
 
     const fieldEl: HTMLElement = this.createTextarea(ownerDoc, field.label, field.id);
+    // 여러줄 타입만 3행, 나머지는 1행(한 줄 높이)
+    (fieldEl as HTMLTextAreaElement).rows = field.type === 'textarea' ? 3 : 1;
 
     if (field.type === 'date') fieldEl.setAttribute('data-input-type', 'date');
 
@@ -558,6 +560,7 @@ export class FieldInserter {
       const newEl = useMultiline
         ? this.createTextarea(ownerDoc, ph, fldId)
         : this.createInput(ownerDoc, ph, fldId);
+      if (useMultiline) (newEl as HTMLTextAreaElement).rows = 3;
 
       // 기존 스타일 유지
       const fs = span.getAttribute(ATTR.fontSize) ?? '0';
