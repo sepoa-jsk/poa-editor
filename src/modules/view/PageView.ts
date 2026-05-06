@@ -1,3 +1,4 @@
+import { eventBus, BusEvent } from '../../utils/eventBus.js';
 import type { BookmarkEntry } from '../insert/BookmarkManager.js';
 
 /** A4 210mm × 297mm at 96 dpi */
@@ -117,7 +118,7 @@ export class PageView {
   }
 
   private splitByPageBreaks(html: string): string[] {
-    const parts = html.split(/<hr[^>]*class="[^"]*poa-page-break[^"]*"[^>]*\/?>/i);
+    const parts = html.split(/<(?:hr|div)[^>]*class="[^"]*poa-page-break[^"]*"[^>]*>(?:<\/div>)?/i);
     return parts.length > 0 ? parts : [html];
   }
 
@@ -141,4 +142,69 @@ export class PageView {
 `;
     document.head.appendChild(style);
   }
+}
+
+/**
+ * 커서 위치에 페이지 구분선을 삽입한다.
+ * contentEditable 환경에서 호출한다.
+ */
+export function insertPageBreak(contentEl: HTMLElement): void {
+  const ownerDoc = contentEl.ownerDocument;
+  const sel = ownerDoc.getSelection();
+
+  let range: Range;
+  if (sel && sel.rangeCount > 0) {
+    range = sel.getRangeAt(0);
+  } else {
+    range = ownerDoc.createRange();
+    range.selectNodeContents(contentEl);
+    range.collapse(false);
+  }
+
+  range.deleteContents();
+
+  // 페이지 구분선 div 생성
+  const pb = ownerDoc.createElement('div');
+  pb.className = 'poa-page-break';
+  pb.contentEditable = 'false';
+  const label = ownerDoc.createElement('span');
+  label.className = 'poa-page-break-label';
+  label.textContent = '페이지 나누기';
+  pb.appendChild(label);
+
+  // 구분선 다음에 커서가 위치할 빈 단락 생성
+  const after = ownerDoc.createElement('p');
+  after.appendChild(ownerDoc.createElement('br'));
+
+  // 삽입: 현재 블록 경계를 찾아 그 뒤에 삽입
+  const block = findBlockAncestor(range.startContainer, contentEl);
+  if (block && block !== contentEl) {
+    block.after(pb, after);
+  } else {
+    range.insertNode(after);
+    range.insertNode(pb);
+  }
+
+  // 커서를 빈 단락으로 이동
+  const newRange = ownerDoc.createRange();
+  newRange.setStart(after, 0);
+  newRange.collapse(true);
+  sel?.removeAllRanges();
+  sel?.addRange(newRange);
+
+  eventBus.emit(BusEvent.FILE_DIRTY, true);
+  contentEl.dispatchEvent(new Event('input', { bubbles: true }));
+}
+
+function findBlockAncestor(node: Node, root: HTMLElement): HTMLElement | null {
+  const BLOCK = new Set(['P', 'DIV', 'H1', 'H2', 'H3', 'H4', 'H5', 'H6',
+    'BLOCKQUOTE', 'LI', 'TD', 'TH', 'PRE']);
+  let cur: Node | null = node.nodeType === Node.ELEMENT_NODE ? node : node.parentElement;
+  while (cur && cur !== root) {
+    if (cur.nodeType === Node.ELEMENT_NODE && BLOCK.has((cur as HTMLElement).tagName)) {
+      return cur as HTMLElement;
+    }
+    cur = cur.parentNode;
+  }
+  return null;
 }

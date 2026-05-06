@@ -122,6 +122,43 @@ poa-editor {
 }
 .poa-btn.poa-btn-danger:hover { background: #dc2626; border-color: #dc2626; }
 
+/* ── Page Break ─────────────────────────────────────────────────────────── */
+
+.poa-page-break {
+  display: block;
+  width: 100%;
+  border: none;
+  border-top: 2px dashed #aaa;
+  margin: 16px 0;
+  position: relative;
+  cursor: default;
+  user-select: none;
+}
+
+.poa-page-break-label {
+  position: absolute;
+  top: -10px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: #fff;
+  padding: 0 8px;
+  font-size: 11px;
+  color: #aaa;
+  white-space: nowrap;
+  pointer-events: none;
+}
+
+@media print {
+  .poa-page-break {
+    border: none;
+    page-break-after: always;
+    margin: 0;
+  }
+  .poa-page-break-label {
+    display: none;
+  }
+}
+
 /* ── Editor Content ──────────────────────────────────────────────────────── */
 
 .poa-editor-content table {

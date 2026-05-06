@@ -54,7 +54,7 @@ const TABS: Record<MenuTab, ReadonlyArray<GroupDef>> = {
     [['하이퍼링크','insert:link'],['책갈피','insert:bookmark']],
     [['서명','insert:signature'],['이모지','insert:emoji']],
     [['툴팁','insert:tooltip'],['툴팁 관리','insert:tooltip-list']],
-    [['날짜·시간','insert:datetime'],['가로줄','insert:hr'],['기호','insert:symbol']],
+    [['날짜·시간','insert:datetime'],['가로줄','insert:hr'],['기호','insert:symbol'],['페이지 구분선','insert:pagebreak']],
     [{ dropdown: true, id: 'doc-field', label: '양식 필드',
        items: buildFieldDropdownItems() }],
   ],

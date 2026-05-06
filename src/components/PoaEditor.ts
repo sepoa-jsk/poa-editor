@@ -36,6 +36,7 @@ import { ImageResizer } from '../modules/insert/ImageResizer.js';
 import type { PoaImageToolbar } from './ImageToolbar.js';
 import { ViewManager } from '../modules/view/ViewManager.js';
 import type { ViewMode } from '../modules/view/ViewManager.js';
+import { insertPageBreak } from '../modules/view/PageView.js';
 import { getSelectedBlocks, getImageAlign, getTableAlign } from '../utils/dom.js';
 import { TableWholeResizer } from '../modules/table/TableWholeResizer.js';
 import { TableInlineToolbar } from '../modules/table/TableInlineToolbar.js';
@@ -854,6 +855,28 @@ slot[name="content"] { display: contents; }
 
     // 하이퍼링크 클릭 → 기본 탐색 차단 + 수정 다이얼로그 열기
     this.contentEl.addEventListener('click', (e) => {
+      // 페이지 구분선 클릭 → 다음 단락으로 커서 이동
+      const pb = (e.target as Element).closest<HTMLElement>('.poa-page-break');
+      if (pb) {
+        e.preventDefault();
+        const ownerDoc = this.contentEl.ownerDocument;
+        const next = pb.nextElementSibling as HTMLElement | null;
+        const range = ownerDoc.createRange();
+        if (next) {
+          range.setStart(next, 0);
+        } else {
+          const p = ownerDoc.createElement('p');
+          p.appendChild(ownerDoc.createElement('br'));
+          pb.after(p);
+          range.setStart(p, 0);
+        }
+        range.collapse(true);
+        const sel = ownerDoc.getSelection();
+        sel?.removeAllRanges();
+        sel?.addRange(range);
+        return;
+      }
+
       const anchor = (e.target as Element).closest<HTMLAnchorElement>('a[href]:not(.poa-bookmark)');
       if (!anchor) return;
       e.preventDefault();
@@ -1461,6 +1484,11 @@ slot[name="content"] { display: contents; }
         this.fieldInserter.openLastInsertedPopup();
         return;
       }
+      case 'insert:pagebreak':
+        insertPageBreak(this.contentEl);
+        this.fileManager.markDirty();
+        this.statusBar.update(this.contentEl.innerHTML);
+        return;
       case 'insert:hr': case 'insert:symbol': case 'insert:multi-image':
       case 'help:shortcuts': case 'help:guide': case 'help:about':
         this.toast.show(`'${type}' 기능은 준비 중입니다.`, 'info');
