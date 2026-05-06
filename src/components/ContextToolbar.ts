@@ -54,7 +54,7 @@ const TABS: Record<MenuTab, ReadonlyArray<GroupDef>> = {
     [['하이퍼링크','insert:link'],['책갈피','insert:bookmark']],
     [['서명','insert:signature'],['이모지','insert:emoji']],
     [['툴팁','insert:tooltip'],['툴팁 관리','insert:tooltip-list']],
-    [['날짜·시간','insert:datetime'],['가로줄','insert:hr'],['기호','insert:symbol'],['페이지 구분선','insert:pagebreak']],
+    [['날짜·시간','insert:datetime'],['가로줄','insert:hr'],['기호','insert:symbol'],['페이지 구분선','insert:pagebreak'],['템플릿','misc:template']],
     [{ dropdown: true, id: 'doc-field', label: '양식 필드',
        items: buildFieldDropdownItems() }],
   ],
@@ -77,6 +77,7 @@ const TABS: Record<MenuTab, ReadonlyArray<GroupDef>> = {
   misc: [
     [['웹 접근성 체크','misc:a11y'],['개인정보 체크','misc:privacy']],
     [['폼 컨트롤','misc:form'],['계산식','misc:calc'],['템플릿','misc:template']],
+    [['사용자 모드로 보기','misc:user-mode']],
   ],
   help: [
     [['단축키','help:shortcuts'],['사용자 가이드','help:guide'],['제품 정보','help:about']],
@@ -204,11 +205,17 @@ const CSS = `
 }
 `;
 
+/** 사용자 모드에서 비활성화할 action 목록 */
+const USER_MODE_DISABLED_ACTIONS = new Set([
+  'file:new', 'file:open', 'settings',
+]);
+
 export class PoaContextToolbar extends HTMLElement {
   private shadow: ShadowRoot;
   private activeTab: MenuTab = 'edit';
   private activeViewMode: ViewMode = 'design';
   private outsideHandler: ((e: MouseEvent) => void) | null = null;
+  private userMode = false;
 
   private readonly busHandler = ({ tab }: { tab: MenuTab }): void => {
     this.activeTab = tab;
@@ -281,6 +288,7 @@ export class PoaContextToolbar extends HTMLElement {
     }
 
     this.shadow.innerHTML = `<style>${CSS}</style><div class="ctx-bar">${parts.join('')}</div>`;
+    if (this.userMode) this._applyUserModeButtons();
 
     this.shadow.querySelector('.ctx-bar')!.addEventListener('mousedown', (e) => {
       const target = e.target as HTMLElement;
@@ -348,5 +356,21 @@ export class PoaContextToolbar extends HTMLElement {
       }
     };
     document.addEventListener('mousedown', this.outsideHandler);
+  }
+
+  /** 사용자 모드 적용: 비허용 버튼 비활성화 (탭 전환 후에도 유지) */
+  applyUserMode(): void {
+    this.userMode = true;
+    this._applyUserModeButtons();
+  }
+
+  private _applyUserModeButtons(): void {
+    this.shadow.querySelectorAll<HTMLButtonElement>('.btn[data-action]').forEach(btn => {
+      const action = btn.dataset.action ?? '';
+      if (USER_MODE_DISABLED_ACTIONS.has(action)) {
+        btn.disabled = true;
+        btn.title = (btn.title || btn.textContent?.trim() || '') + ' (사용자 모드에서 비활성화)';
+      }
+    });
   }
 }

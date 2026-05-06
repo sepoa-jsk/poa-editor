@@ -284,6 +284,7 @@ export class FieldInserter {
   private readonly clickHandler = (e: MouseEvent): void => {
     const target = e.target as HTMLElement;
     if (!target.classList.contains('poa-field-input')) return;
+    if (this.contentEl?.dataset.userMode === 'true') return; // 사용자 모드: 팝업 열지 않음
     e.preventDefault();
     e.stopPropagation();
     this.openPopup(target);

@@ -346,4 +346,13 @@ export class PoaToolbar extends HTMLElement {
     if (u) u.disabled = !canUndo;
     if (r) r.disabled = !canRedo;
   }
+
+  /** 사용자 모드 적용: 서식 툴바 전체 비활성화 */
+  applyUserMode(): void {
+    const toolbar = this.shadow.querySelector<HTMLElement>('.toolbar');
+    if (toolbar) toolbar.style.opacity = '0.5';
+    this.shadow.querySelectorAll<HTMLButtonElement | HTMLSelectElement | HTMLInputElement>(
+      'button, select, input',
+    ).forEach(el => { el.disabled = true; });
+  }
 }

@@ -1,6 +1,8 @@
 import DOMPurify from 'dompurify';
 import { EditorCore } from '../core/EditorCore.js';
 import { PoaToolbar } from './Toolbar.js';
+import type { PoaMenuBar } from './MenuBar.js';
+import type { PoaContextToolbar } from './ContextToolbar.js';
 import { PoaStatusBar } from './StatusBar.js';
 import type { TextAlign, ToolbarState, FormatName, MenuTab } from '../core/types.js';
 import { FORMAT_TAG_MAP } from '../core/types.js';
@@ -66,6 +68,8 @@ import { TooltipManager }              from '../modules/insert/TooltipManager.js
 import { FieldInserter }               from '../modules/insert/FieldInserter.js';
 import { FIELD_MAP }                   from '../modules/insert/DocumentFields.js';
 import { PaperSizeManager }            from '../modules/view/PaperSizeManager.js';
+import { buildUserModeUrl }            from '../core/AppMode.js';
+import { TemplateManager }             from '../modules/template/TemplateManager.js';
 
 const INDENT_STEP_EM = 2;
 const BLOCK_TAGS = new Set(['p', 'div', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'li', 'blockquote', 'pre']);
@@ -1105,6 +1109,68 @@ slot[name="content"] { display: contents; }
     this.statusBar.update(this.contentEl.innerHTML);
   }
 
+  /**
+   * 사용자 모드로 전환한다.
+   * - 에디터 자유 편집을 비활성화하고 poa-field / 폼 요소만 입력 가능하게 유지.
+   * - 하단에 [저장 / 내보내기] 버튼을 추가한다.
+   */
+  enterUserMode(templateName = '문서'): void {
+    this.contentEl.contentEditable = 'false';
+    this.contentEl.dataset.userMode = 'true';
+    this._activateUserModeFields();
+
+    // 메뉴바·컨텍스트 툴바·서식 툴바 비활성화
+    (this.shadow.querySelector('poa-menubar') as unknown as PoaMenuBar).applyUserMode();
+    (this.shadow.querySelector('poa-context-toolbar') as unknown as PoaContextToolbar).applyUserMode();
+    this.toolbar.applyUserMode();
+
+    const observer = new MutationObserver(() => this._activateUserModeFields());
+    observer.observe(this.contentEl, { childList: true, subtree: true });
+
+    const bar = document.createElement('div');
+    bar.className = 'user-mode-save-bar';
+    const btn = document.createElement('button');
+    btn.className = 'user-mode-save-btn';
+    btn.textContent = '저장 / 내보내기';
+    btn.addEventListener('click', () => this._downloadExport(templateName));
+    bar.appendChild(btn);
+    this.insertAdjacentElement('afterend', bar);
+  }
+
+  private _activateUserModeFields(): void {
+    this.contentEl.querySelectorAll<HTMLInputElement | HTMLTextAreaElement>(
+      '.poa-field input.poa-field-input, .poa-field textarea.poa-field-input',
+    ).forEach(el => {
+      el.removeAttribute('readonly');
+      el.removeAttribute('disabled');
+    });
+    this.contentEl.querySelectorAll<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>(
+      'input:not(.poa-field-input), textarea:not(.poa-field-input), select',
+    ).forEach(el => el.removeAttribute('disabled'));
+  }
+
+  private _downloadExport(templateName: string): void {
+    const html = this.getExportHTML();
+    const now = new Date();
+    const pad = (n: number) => String(n).padStart(2, '0');
+    const ts = `${now.getFullYear()}${pad(now.getMonth() + 1)}${pad(now.getDate())}_${pad(now.getHours())}${pad(now.getMinutes())}`;
+    const fullHtml =
+      `<!DOCTYPE html><html lang="ko"><head>` +
+      `<meta charset="utf-8"><title>${templateName}</title>` +
+      `<style>
+body{font-family:바탕,serif;font-size:11pt;line-height:1.6;margin:40mm;}
+table{border-collapse:collapse;width:100%;}td,th{border:1px solid #000;padding:4px 8px;}
+h1,h2,h3{margin:.6em 0 .3em;}p{margin:.4em 0;}
+</style></head><body>${html}</body></html>`;
+    const blob = new Blob([fullHtml], { type: 'text/html;charset=utf-8' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `${templateName}_${ts}.html`;
+    a.click();
+    URL.revokeObjectURL(url);
+  }
+
   // ── Action dispatch from toolbar ────────────────────────────────────────
 
   /**
@@ -1456,6 +1522,12 @@ slot[name="content"] { display: contents; }
       case 'misc:template':
         this.templateDialog.open();
         return;
+      case 'misc:user-mode': {
+        const tmpMgr = new TemplateManager();
+        const node = tmpMgr.addTemplate(`임시_${Date.now()}`, this.getHTML(), null);
+        window.open(buildUserModeUrl(node.id), '_blank');
+        return;
+      }
       case 'insert:signature':
         this.signatureDialog.open();
         return;
@@ -1481,7 +1553,6 @@ slot[name="content"] { display: contents; }
         this.fieldInserter.insertField(field, this.savedRange);
         await this.core.captureHistory('insertField');
         this.statusBar.update(this.contentEl.innerHTML);
-        this.fieldInserter.openLastInsertedPopup();
         return;
       }
       case 'insert:pagebreak':

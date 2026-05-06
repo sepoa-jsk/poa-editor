@@ -105,6 +105,15 @@ const STYLE = `
 }
 .save-ok:hover { background: #1d4ed8; }
 .hidden { display: none !important; }
+
+/* 토스트 알림 */
+.tmpl-toast {
+  position: absolute; bottom: 16px; left: 50%; transform: translateX(-50%);
+  background: #1F2937; color: #fff; font-size: 13px; border-radius: 8px;
+  padding: 8px 18px; white-space: nowrap; z-index: 200;
+  animation: tmpl-fadein .2s ease;
+}
+@keyframes tmpl-fadein { from { opacity: 0; transform: translateX(-50%) translateY(6px); } to { opacity: 1; transform: translateX(-50%) translateY(0); } }
 `;
 
 const TPL = `
@@ -226,6 +235,11 @@ export class PoaTemplateDialog extends HTMLElement {
     this.shadow.getElementById('btn-append')! .addEventListener('click', () => this._apply('append'));
     this.shadow.getElementById('btn-replace')!.addEventListener('click', () => this._apply('replace'));
 
+    // 사용자 링크 복사 이벤트
+    this.shadow.addEventListener('poa-tmpl-copy-link', () => {
+      this._showToast('링크가 복사되었습니다.');
+    });
+
     // TemplateTree 이벤트
     this.shadow.addEventListener('poa-tmpl-select', e => {
       const { node } = (e as CustomEvent).detail as { node: TemplateNode };
@@ -296,6 +310,14 @@ export class PoaTemplateDialog extends HTMLElement {
     this.mgr.addTemplate(name, html, folderId, isPublic);
     this.tree.render();
     this.shadow.getElementById('save-overlay')!.classList.add('hidden');
+  }
+
+  private _showToast(msg: string): void {
+    const t = document.createElement('div');
+    t.className = 'tmpl-toast';
+    t.textContent = msg;
+    this.shadow.querySelector('.dlg')!.appendChild(t);
+    setTimeout(() => t.remove(), 2200);
   }
 
   private _fillFolderSelect(): void {

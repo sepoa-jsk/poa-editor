@@ -41,11 +41,31 @@ const CSS = `
   border-bottom-color: #2563EB;
   background: transparent;
 }
+.tab[data-user-disabled] {
+  opacity: 0.4;
+  cursor: not-allowed;
+  pointer-events: none;
+}
+.user-mode-badge {
+  margin-left: auto;
+  align-self: center;
+  background: #EFF6FF;
+  color: #1D4ED8;
+  border: 1px solid #BFDBFE;
+  border-radius: 4px;
+  padding: 2px 8px;
+  font-size: 11px;
+  font-weight: 600;
+  white-space: nowrap;
+}
 `;
+
+const USER_DISABLED_TABS = new Set<MenuTab>(['edit', 'insert', 'table', 'format', 'misc']);
 
 export class PoaMenuBar extends HTMLElement {
   private shadow: ShadowRoot;
   private _activeTab: MenuTab = 'edit';
+  private _userMode = false;
 
   private readonly busHandler = ({ tab }: { tab: MenuTab }): void => {
     this._activeTab = tab;
@@ -72,6 +92,33 @@ export class PoaMenuBar extends HTMLElement {
 
   disconnectedCallback(): void {
     eventBus.off<{ tab: MenuTab }>(BusEvent.MENUBAR_CHANGE, this.busHandler);
+  }
+
+  /** 사용자 모드 적용: 편집·삽입·표·서식·기타 탭 비활성화, 뱃지 표시 */
+  applyUserMode(): void {
+    this._userMode = true;
+    // 현재 탭이 비활성화 대상이면 파일 탭으로 전환
+    if (USER_DISABLED_TABS.has(this._activeTab)) {
+      eventBus.emit(BusEvent.MENUBAR_CHANGE, { tab: 'file' as MenuTab });
+    }
+    this._applyUserModeStyles();
+  }
+
+  private _applyUserModeStyles(): void {
+    if (!this._userMode) return;
+    this.shadow.querySelectorAll<HTMLButtonElement>('.tab').forEach(btn => {
+      const tab = btn.dataset.tab as MenuTab;
+      if (USER_DISABLED_TABS.has(tab)) {
+        btn.dataset.userDisabled = 'true';
+      }
+    });
+    const bar = this.shadow.querySelector('.menubar')!;
+    if (!bar.querySelector('.user-mode-badge')) {
+      const badge = document.createElement('span');
+      badge.className = 'user-mode-badge';
+      badge.textContent = '사용자 모드';
+      bar.appendChild(badge);
+    }
   }
 
   private updateActive(): void {

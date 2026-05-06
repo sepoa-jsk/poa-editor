@@ -4,6 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>poa-editor v1.0.0 Demo</title>
+  <link rel="stylesheet" href="/src/styles/user-mode.css">
   <style>
     *, *::before, *::after { box-sizing: border-box; }
     body {
@@ -11,6 +12,7 @@
       font-family: '맑은 고딕', 'Malgun Gothic', sans-serif;
       background: #f0f2f5; min-height: 100vh;
     }
+    .hidden { display: none !important; }
     .header {
       max-width: 900px; margin: 0 auto 16px;
       display: flex; align-items: baseline; gap: 12px;
@@ -59,6 +61,7 @@
     <span>v1.0.0 Demo · Vanilla Web Components Rich Text Editor</span>
   </div>
 
+  <div id="editor-root" style="display:contents">
   <poa-editor id="editor" placeholder="여기에 입력하세요..."></poa-editor>
 
   <p class="section-label">콘텐츠</p>
@@ -77,8 +80,36 @@
   </div>
 
   <pre id="output"></pre>
+  </div><!-- #editor-root -->
+
+  <div id="user-mode-root"></div>
 
   <script type="module" src="/src/index.ts"></script>
+  <script type="module">
+    import { getAppMode, getTemplateId } from '/src/core/AppMode.ts';
+    import { TemplateManager } from '/src/modules/template/TemplateManager.ts';
+    import { UserModePage } from '/src/pages/UserModePage.ts';
+
+    const mode = getAppMode();
+    if (mode === 'user') {
+      const templateId = getTemplateId();
+      if (templateId) {
+        // 템플릿 있음: 기존 에디터 UI 유지, 편집 제한만 적용
+        const mgr = new TemplateManager();
+        const node = mgr.getById(templateId);
+        const editor = document.getElementById('editor');
+        if (node?.content) editor.setHTML(node.content);
+        editor.enterUserMode(node?.name ?? '문서');
+      } else {
+        // 템플릿 없음: 선택 화면 표시 (에디터 숨김)
+        document.getElementById('editor-root').classList.add('hidden');
+        document.body.classList.add('user-mode');
+        const container = document.getElementById('user-mode-root');
+        const page = new UserModePage(container);
+        page.renderTemplateSelector();
+      }
+    }
+  </script>
   <script type="module">
     const editor = document.getElementById('editor');
     const output = document.getElementById('output');

@@ -1,4 +1,5 @@
 import type { TemplateManager, TemplateNode } from '../modules/template/TemplateManager.js';
+import { buildUserModeUrl } from '../core/AppMode.js';
 
 const STYLE = `
 *, *::before, *::after { box-sizing: border-box; }
@@ -189,6 +190,22 @@ export class PoaTemplateTree extends HTMLElement {
     });
 
     m.appendChild(renameBtn);
+
+    if (node.type === 'template') {
+      const linkBtn = document.createElement('button');
+      linkBtn.textContent = '사용자 링크 복사';
+      linkBtn.addEventListener('click', () => {
+        this._hideCtx();
+        const url = buildUserModeUrl(node.id);
+        navigator.clipboard.writeText(url).then(() => {
+          this._emit('poa-tmpl-copy-link', { id: node.id, url });
+        }).catch(() => {
+          this._emit('poa-tmpl-copy-link', { id: node.id, url });
+        });
+      });
+      m.appendChild(linkBtn);
+    }
+
     m.appendChild(delBtn);
     this.shadow.appendChild(m);
     this.ctxMenu = m;
