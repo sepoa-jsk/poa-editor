@@ -346,6 +346,9 @@ export class FieldInserter {
     let currentEl: HTMLInputElement | HTMLTextAreaElement =
       el as HTMLInputElement | HTMLTextAreaElement;
 
+    // sizeFixed 상태를 요소의 resize 스타일에 즉시 동기화
+    currentEl.style.resize = sizeFixed === '1' ? 'none' : (isMultiline ? 'both' : 'horizontal');
+
     const opt = (val: string, cur: string, text: string): string =>
       `<option value="${val}"${val === cur ? ' selected' : ''}>${text}</option>`;
 
@@ -538,7 +541,9 @@ export class FieldInserter {
       currentEl.style.fontFamily = v || 'inherit';
     });
     q<HTMLSelectElement>('pf-size-fixed').addEventListener('change', (ev) => {
-      span.setAttribute(ATTR.sizeFixed, (ev.target as HTMLSelectElement).value);
+      const v = (ev.target as HTMLSelectElement).value;
+      span.setAttribute(ATTR.sizeFixed, v);
+      currentEl.style.resize = v === '1' ? 'none' : (currentEl.tagName === 'TEXTAREA' ? 'both' : 'horizontal');
     });
 
     // 줄바꿈 허용 토글: input ↔ textarea 교체
@@ -563,6 +568,10 @@ export class FieldInserter {
       const ff = span.getAttribute(ATTR.fontFamily) ?? '';
       newEl.style.fontFamily = ff || 'inherit';
       newEl.style.textAlign  = span.getAttribute(ATTR.textAlign) ?? 'left';
+
+      // resize 허용 여부 적용
+      const sf = span.getAttribute(ATTR.sizeFixed) ?? '0';
+      newEl.style.resize = sf === '1' ? 'none' : (useMultiline ? 'both' : 'horizontal');
 
       // 크기 복원 (ResizeObserver가 저장한 값)
       const dw = span.getAttribute(ATTR.dataWidth);
