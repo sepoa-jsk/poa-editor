@@ -1035,7 +1035,7 @@ slot[name="content"] { display: contents; }
     return FieldInserter.exportFields(DOMPurify.sanitize(clone.innerHTML, {
       ADD_ATTR: ['data-field-id','data-placeholder','data-prefix','data-suffix',
                  'data-multiline','data-font-size','data-text-align','data-font-family',
-                 'data-size-fixed','value'],
+                 'data-size-fixed','data-raw-value','data-number-format','data-date-format','value'],
     }));
   }
 

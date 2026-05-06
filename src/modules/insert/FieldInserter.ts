@@ -13,6 +13,7 @@ const ATTR = {
   fieldType:    'data-field-type',
   numberFormat: 'data-number-format',
   dateFormat:   'data-date-format',
+  rawValue:     'data-raw-value',
 } as const;
 
 const NUMBER_FORMAT_LABELS: ReadonlyArray<readonly [string, string]> = [
@@ -35,7 +36,7 @@ const DATE_FORMAT_LABELS: ReadonlyArray<readonly [string, string]> = [
 ];
 
 const FONT_SIZE_OPTIONS: ReadonlyArray<readonly [string, string]> = [
-  ['0',  '상속'],
+  ['0',  '문서 기본값'],
   ['8',  '8px'],  ['9',  '9px'],  ['10', '10px'], ['11', '11px'],
   ['12', '12px'], ['13', '13px'], ['14', '14px'], ['15', '15px'],
   ['16', '16px'], ['18', '18px'], ['20', '20px'], ['22', '22px'],
@@ -54,6 +55,9 @@ const FONT_OPTIONS: ReadonlyArray<readonly [string, string]> = [
   ["'Arial'",             'Arial'],
 ];
 
+// 타입 배지
+const TYPE_BADGE: Record<string, string> = { text: 'T', textarea: '☰', number: '#', date: '📅' };
+
 const FIELD_INPUT_STYLE = [
   'border:1px solid #93C5FD',
   'border-radius:4px',
@@ -68,59 +72,136 @@ const FIELD_INPUT_STYLE = [
   'box-sizing:border-box',
 ].join(';');
 
-// 타입 배지 텍스트
-const TYPE_BADGE: Record<string, string> = { text: 'T', number: '#', date: '📅' };
+// ── 숫자 포맷 헬퍼 ──────────────────────────────────────────────────────────
 
-// 텍스트 / 여러 줄 아이콘
-const ICON_TEXT = `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><rect x="3" y="9" width="18" height="6" rx="2"/></svg>`;
-const ICON_MULTI = `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><rect x="3" y="5" width="18" height="14" rx="2"/><line x1="7" y1="9" x2="17" y2="9"/><line x1="7" y1="12" x2="17" y2="12"/><line x1="7" y1="15" x2="13" y2="15"/></svg>`;
+const KOR_NUMS = ['', '일', '이', '삼', '사', '오', '육', '칠', '팔', '구'];
 
-// 팝업 공통 CSS (한 번만 주입)
+function groupToKorean(n: number): string {
+  if (n <= 0 || n > 9999) return '';
+  let result = '';
+  const d = [Math.floor(n / 1000), Math.floor((n % 1000) / 100), Math.floor((n % 100) / 10), n % 10];
+  const units = ['천', '백', '십', ''];
+  for (let i = 0; i < 4; i++) {
+    if (d[i] === 0) continue;
+    const digit = (d[i] === 1 && i < 3) ? '' : KOR_NUMS[d[i]];
+    result += digit + units[i];
+  }
+  return result;
+}
+
+/** 숫자를 한국식 단위 문자열로 변환 (예: 1억 2345만 6789) */
+function toKoreanUnits(num: number): string {
+  if (num === 0) return '0';
+  const sign = num < 0 ? '-' : '';
+  let n = Math.abs(Math.floor(num));
+  const parts: string[] = [];
+  const groups: [number, string][] = [
+    [1_000_000_000_000, '조'],
+    [100_000_000, '억'],
+    [10_000, '만'],
+  ];
+  for (const [unit, label] of groups) {
+    const q = Math.floor(n / unit);
+    if (q > 0) { parts.push(q.toLocaleString('ko-KR') + label); n %= unit; }
+  }
+  if (n > 0) parts.push(n.toLocaleString('ko-KR'));
+  return sign + parts.join(' ');
+}
+
+/** 숫자를 한국어 전체 읽기로 변환 (예: 일백만원) */
+function toKoreanFull(num: number): string {
+  if (num === 0) return '영원';
+  const sign = num < 0 ? '마이너스 ' : '';
+  let n = Math.abs(Math.floor(num));
+  const parts: string[] = [];
+  const groups: [number, string][] = [
+    [1_000_000_000_000, '조'],
+    [100_000_000, '억'],
+    [10_000, '만'],
+  ];
+  for (const [unit, label] of groups) {
+    const q = Math.floor(n / unit);
+    if (q > 0) { parts.push(groupToKorean(q) + label); n %= unit; }
+  }
+  if (n > 0) parts.push(groupToKorean(n));
+  return sign + parts.join('') + '원';
+}
+
+export function formatNumber(raw: string, format: string): string {
+  const clean = raw.replace(/[,\s]/g, '');
+  const num   = parseFloat(clean);
+  if (!clean || isNaN(num)) return raw;
+
+  switch (format) {
+    case 'comma':      return num.toLocaleString('ko-KR');
+    case 'comma_won':  return num.toLocaleString('ko-KR') + '원';
+    case 'korean':     return toKoreanUnits(num);
+    case 'korean_full': return toKoreanFull(num);
+    case 'decimal2':
+      return num.toLocaleString('ko-KR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+    case 'percent':
+      return num.toLocaleString('ko-KR', { maximumFractionDigits: 1 }) + '%';
+    case 'percent2':
+      return num.toLocaleString('ko-KR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + '%';
+    default: return raw;
+  }
+}
+
+// ── 팝업 CSS 주입 ───────────────────────────────────────────────────────────
+
 const POPUP_STYLE_ID = 'poa-field-popup-style';
 function injectPopupStyles(doc: Document): void {
   if (doc.getElementById(POPUP_STYLE_ID)) return;
   const s = doc.createElement('style');
   s.id = POPUP_STYLE_ID;
   s.textContent = `
-.poa-field-popup *{box-sizing:border-box;}
+.poa-field-popup *{box-sizing:border-box;margin:0;padding:0;}
 .poa-field-popup .pf-input,.poa-field-popup .pf-select{
-  width:100%;border:1.5px solid #E5E7EB;border-radius:6px;
-  padding:7px 10px;font-size:13px;color:#111827;background:#fff;
-  outline:none;font-family:inherit;transition:border-color .15s;
+  width:100%;border:1.5px solid #E5E7EB;border-radius:7px;
+  padding:8px 10px;font-size:13px;color:#111827;background:#fff;
+  outline:none;font-family:inherit;transition:border-color .15s,box-shadow .15s;
 }
 .poa-field-popup .pf-input:focus,.poa-field-popup .pf-select:focus{
-  border-color:#2563EB;box-shadow:0 0 0 3px rgba(37,99,235,.1);
+  border-color:#3B82F6;box-shadow:0 0 0 3px rgba(59,130,246,.15);
 }
 .poa-field-popup .pf-field{margin-bottom:10px;}
 .poa-field-popup .pf-field-lbl{
-  display:block;font-size:12px;font-weight:600;color:#374151;margin-bottom:4px;
+  display:block;font-size:11px;font-weight:700;color:#6B7280;
+  letter-spacing:.05em;text-transform:uppercase;margin-bottom:5px;
 }
-.poa-field-popup .pf-row2{display:grid;grid-template-columns:1fr 1fr;gap:8px;}
-.poa-field-popup .pf-type-btn{
-  display:flex;align-items:center;justify-content:center;gap:5px;
-  flex:1;height:34px;border-radius:6px;cursor:pointer;
-  font-size:12px;font-weight:600;
+.poa-field-popup .pf-row2{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
+.poa-field-popup .pf-sec{border-top:1px solid #F3F4F6;}
+.poa-field-popup .pf-sec-hdr{
+  display:flex;align-items:center;gap:5px;width:100%;
+  padding:9px 16px 7px;border:none;background:none;cursor:pointer;
+  font-size:10px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;
+  color:#9CA3AF;text-align:left;font-family:inherit;
+  transition:color .12s;
+}
+.poa-field-popup .pf-sec-hdr:hover{color:#6B7280;}
+.poa-field-popup .pf-sec-body{padding:0 16px 12px;}
+.poa-field-popup .pf-align-btn{
+  display:inline-flex;align-items:center;justify-content:center;
+  width:36px;height:34px;border-radius:7px;cursor:pointer;
   border:1.5px solid #E5E7EB;background:#fff;color:#6B7280;
   transition:all .12s;font-family:inherit;
 }
-.poa-field-popup .pf-type-btn.active{
-  border-color:#2563EB;background:#EFF6FF;color:#2563EB;
+.poa-field-popup .pf-align-btn.active{
+  border-color:#3B82F6;background:#EFF6FF;color:#2563EB;
 }
-.poa-field-popup .pf-type-btn:hover:not(.active){
+.poa-field-popup .pf-align-btn:hover:not(.active){
   background:#F9FAFB;border-color:#D1D5DB;
 }
-.poa-field-popup .pf-sec-hdr{
-  display:flex;align-items:center;gap:4px;width:100%;
-  padding:10px 14px 5px;border:none;background:none;cursor:pointer;
-  font-size:10px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;
-  color:#9CA3AF;text-align:left;font-family:inherit;
-}
-.poa-field-popup .pf-sec-hdr:hover{color:#6B7280;}
-.poa-field-popup .pf-sec-body{padding:2px 14px 10px;}
-.poa-field-popup .pf-divider{height:1px;background:#F3F4F6;margin:0;}
 `;
   doc.head.appendChild(s);
 }
+
+// 정렬 아이콘 SVG
+const ALIGN_ICONS: Record<string, string> = {
+  left: `<svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><rect x="3" y="5" width="12" height="2.5" rx="1.2"/><rect x="3" y="10.7" width="18" height="2.5" rx="1.2"/><rect x="3" y="16.5" width="14" height="2.5" rx="1.2"/></svg>`,
+  center: `<svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><rect x="6" y="5" width="12" height="2.5" rx="1.2"/><rect x="3" y="10.7" width="18" height="2.5" rx="1.2"/><rect x="5" y="16.5" width="14" height="2.5" rx="1.2"/></svg>`,
+  right: `<svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><rect x="9" y="5" width="12" height="2.5" rx="1.2"/><rect x="3" y="10.7" width="18" height="2.5" rx="1.2"/><rect x="7" y="16.5" width="14" height="2.5" rx="1.2"/></svg>`,
+};
 
 /**
  * 에디터에 문서 양식 필드(<span.poa-field>)를 삽입하고
@@ -176,18 +257,17 @@ export class FieldInserter {
     span.setAttribute(ATTR.prefix,      '');
     span.setAttribute(ATTR.suffix,      '');
     span.setAttribute(ATTR.fieldType,   field.type);
+    // textarea 타입은 초기부터 multiline=1
+    if (field.type === 'textarea') span.setAttribute(ATTR.multiline, '1');
     span.contentEditable = 'false';
 
-    const inputType =
-      field.type === 'date'   ? 'date'   :
-      field.type === 'number' ? 'number' : 'text';
-
     const input = ownerDoc.createElement('input');
-    input.type        = inputType;
+    input.type        = 'text'; // 포맷 표시를 위해 모든 타입 text 사용
     input.className   = 'poa-field-input';
     input.placeholder = field.label;
     input.setAttribute(ATTR.fieldId, field.id);
     input.style.cssText = FIELD_INPUT_STYLE;
+    if (field.type === 'date') input.setAttribute('data-input-type', 'date');
 
     span.appendChild(input);
     range.deleteContents();
@@ -211,7 +291,6 @@ export class FieldInserter {
 
     const prefix       = span.getAttribute(ATTR.prefix)       ?? '';
     const suffix       = span.getAttribute(ATTR.suffix)       ?? '';
-    const multiline    = span.getAttribute(ATTR.multiline)    ?? '0';
     const fontSize     = span.getAttribute(ATTR.fontSize)     ?? '0';
     const textAlign    = span.getAttribute(ATTR.textAlign)    ?? 'left';
     const fontFamily   = span.getAttribute(ATTR.fontFamily)   ?? '';
@@ -219,15 +298,15 @@ export class FieldInserter {
     const fieldType    = span.getAttribute(ATTR.fieldType)    ?? 'text';
     const numberFormat = span.getAttribute(ATTR.numberFormat) ?? 'none';
     const dateFormat   = span.getAttribute(ATTR.dateFormat)   ?? 'YYYY-MM-DD';
+    const rawValue     = span.getAttribute(ATTR.rawValue)     ?? input.value;
     const label        = input.placeholder;
-    const isText       = fieldType === 'text';
     const isNumber     = fieldType === 'number';
     const isDate       = fieldType === 'date';
 
     const opt = (val: string, cur: string, text: string): string =>
       `<option value="${val}"${val === cur ? ' selected' : ''}>${text}</option>`;
 
-    // 글자 크기 드롭다운 — 현재 값이 리스트에 없으면 앞에 추가
+    // 글자 크기 드롭다운
     const fsInList = FONT_SIZE_OPTIONS.some(([v]) => v === fontSize);
     const fsExtra  = (!fsInList && fontSize !== '0')
       ? `<option value="${fontSize}" selected>${fontSize}px</option>` : '';
@@ -248,31 +327,24 @@ export class FieldInserter {
         </select>
       </div>` : '';
 
-    // 텍스트 서브타입 카드 (text 타입만)
-    const typeCards = isText ? `
-      <div style="display:flex;gap:8px;padding:8px 14px 10px;">
-        <button class="pf-type-btn${multiline === '0' ? ' active' : ''}" data-multiline="0">
-          ${ICON_TEXT} 텍스트
-        </button>
-        <button class="pf-type-btn${multiline === '1' ? ' active' : ''}" data-multiline="1">
-          ${ICON_MULTI} 여러 줄
-        </button>
-      </div>
-      <div class="pf-divider"></div>` : '';
+    // 정렬 아이콘 버튼 (왼쪽/가운데/오른쪽)
+    const alignBtns = (['left', 'center', 'right'] as const).map((a) =>
+      `<button class="pf-align-btn${textAlign === a ? ' active' : ''}" data-align="${a}" title="${a === 'left' ? '왼쪽' : a === 'center' ? '가운데' : '오른쪽'}">${ALIGN_ICONS[a]}</button>`,
+    ).join('');
 
-    // ── 팝업 HTML ─────────────────────────────────────────────────
+    // ── 팝업 DOM ────────────────────────────────────────────────────
     const popup = ownerDoc.createElement('div');
     popup.className = 'poa-field-popup';
     popup.style.cssText = [
       'position:fixed',
       `left:${Math.round(rect.left)}px`,
-      `top:${Math.round(rect.bottom + 4)}px`,
+      `top:${Math.round(rect.bottom + 6)}px`,
       'width:360px',
       'visibility:hidden',
       'background:#fff',
-      'border:1px solid #E5E7EB',
-      'border-radius:10px',
-      'box-shadow:0 8px 32px rgba(0,0,0,.18)',
+      'border:1px solid #E2E8F0',
+      'border-radius:12px',
+      'box-shadow:0 10px 40px rgba(0,0,0,.15),0 2px 8px rgba(0,0,0,.08)',
       'z-index:99999',
       'font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif',
       'font-size:13px',
@@ -281,78 +353,73 @@ export class FieldInserter {
 
     popup.innerHTML = `
 <!-- 헤더 -->
-<div style="display:flex;align-items:center;justify-content:space-between;padding:12px 14px;border-bottom:1px solid #F3F4F6;">
-  <div style="display:flex;align-items:center;gap:8px;">
-    <span style="display:inline-flex;align-items:center;justify-content:center;width:24px;height:24px;background:#EFF6FF;border-radius:6px;color:#2563EB;font-size:11px;font-weight:700;flex-shrink:0;">${TYPE_BADGE[fieldType] ?? 'T'}</span>
+<div style="padding:13px 16px 12px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid #F1F5F9;">
+  <div style="display:flex;align-items:center;gap:9px;">
+    <span style="display:inline-flex;align-items:center;justify-content:center;width:26px;height:26px;background:linear-gradient(135deg,#3B82F6,#2563EB);border-radius:7px;color:#fff;font-size:11px;font-weight:700;flex-shrink:0;">${TYPE_BADGE[fieldType] ?? 'T'}</span>
     <span style="font-size:14px;font-weight:700;color:#111827;">${label}</span>
   </div>
-  <button id="pf-close" style="border:none;background:transparent;font-size:18px;cursor:pointer;color:#9CA3AF;padding:0 4px;line-height:1;border-radius:4px;" title="닫기">✕</button>
+  <button id="pf-close" style="display:flex;align-items:center;justify-content:center;width:26px;height:26px;border:none;background:#F8FAFC;border-radius:6px;font-size:15px;cursor:pointer;color:#94A3B8;transition:all .12s;" title="닫기">✕</button>
 </div>
 
-${typeCards}
-
-<!-- 값 설정 섹션 -->
-<button class="pf-sec-hdr" data-sec="value"><span class="pf-sec-arrow">▾</span> 값 설정</button>
-<div id="pf-body-value" class="pf-sec-body">
-  ${formatRow}
-  <div class="pf-field">
-    <span class="pf-field-lbl">기본값</span>
-    <input id="pf-value" type="${input.type}" value="${input.value}" placeholder="${label}" class="pf-input">
-  </div>
-</div>
-<div class="pf-divider"></div>
-
-<!-- 표시 설정 섹션 -->
-<button class="pf-sec-hdr" data-sec="display"><span class="pf-sec-arrow">▾</span> 표시 설정</button>
-<div id="pf-body-display" class="pf-sec-body">
-  <div class="pf-row2">
+<!-- 섹션: 값 설정 -->
+<div class="pf-sec">
+  <button class="pf-sec-hdr" data-sec="value"><span class="pf-sec-arrow">▾</span> 값 설정</button>
+  <div id="pf-body-value" class="pf-sec-body">
+    ${formatRow}
     <div class="pf-field" style="margin-bottom:0;">
-      <span class="pf-field-lbl">앞에 붙일 텍스트</span>
-      <input id="pf-prefix" type="text" value="${prefix}" class="pf-input">
-    </div>
-    <div class="pf-field" style="margin-bottom:0;">
-      <span class="pf-field-lbl">뒤에 붙일 텍스트</span>
-      <input id="pf-suffix" type="text" value="${suffix}" class="pf-input">
+      <span class="pf-field-lbl">기본값</span>
+      <input id="pf-value" type="${isNumber ? 'number' : isDate ? 'date' : 'text'}" value="${isNumber ? rawValue : input.value}" placeholder="${label}" class="pf-input">
     </div>
   </div>
 </div>
-<div class="pf-divider"></div>
 
-<!-- 글자 설정 섹션 -->
-<button class="pf-sec-hdr" data-sec="font"><span class="pf-sec-arrow">▾</span> 글자 설정</button>
-<div id="pf-body-font" class="pf-sec-body">
-  <div class="pf-row2">
-    <div class="pf-field" style="margin-bottom:0;">
-      <span class="pf-field-lbl">글자 크기</span>
-      <select id="pf-fontsize" class="pf-select">${fsExtra}${fsOptions}</select>
+<!-- 섹션: 글자 설정 -->
+<div class="pf-sec">
+  <button class="pf-sec-hdr" data-sec="font"><span class="pf-sec-arrow">▾</span> 글자 설정</button>
+  <div id="pf-body-font" class="pf-sec-body">
+    <div class="pf-row2">
+      <div class="pf-field">
+        <span class="pf-field-lbl">글자 크기</span>
+        <select id="pf-fontsize" class="pf-select">${fsExtra}${fsOptions}</select>
+      </div>
+      <div class="pf-field">
+        <span class="pf-field-lbl">정렬</span>
+        <div style="display:flex;gap:5px;">${alignBtns}</div>
+      </div>
     </div>
-    <div class="pf-field" style="margin-bottom:0;">
-      <span class="pf-field-lbl">정렬 방식</span>
-      <select id="pf-align" class="pf-select">
-        ${opt('left','','왼쪽')}${opt('center','','가운데')}
-        ${opt('right','','오른쪽')}${opt('justify','','양쪽')}
-      </select>
+    <div class="pf-row2">
+      <div class="pf-field" style="margin-bottom:0;">
+        <span class="pf-field-lbl">글꼴</span>
+        <select id="pf-font" class="pf-select">
+          ${FONT_OPTIONS.map(([v, t]) => opt(v, fontFamily, t)).join('')}
+        </select>
+      </div>
+      <div class="pf-field" style="margin-bottom:0;">
+        <span class="pf-field-lbl">크기 고정</span>
+        <select id="pf-size-fixed" class="pf-select">
+          ${opt('0', sizeFixed, '사용 안 함')}${opt('1', sizeFixed, '사용')}
+        </select>
+      </div>
     </div>
   </div>
-  <div style="height:8px;"></div>
-  <div class="pf-row2">
-    <div class="pf-field" style="margin-bottom:0;">
-      <span class="pf-field-lbl">글꼴</span>
-      <select id="pf-font" class="pf-select">
-        ${FONT_OPTIONS.map(([v, t]) => opt(v, fontFamily, t)).join('')}
-      </select>
-    </div>
-    <div class="pf-field" style="margin-bottom:0;">
-      <span class="pf-field-lbl">크기 고정</span>
-      <select id="pf-size-fixed" class="pf-select">
-        ${opt('0', sizeFixed, '사용 안 함')}${opt('1', sizeFixed, '사용')}
-      </select>
+</div>
+
+<!-- 섹션: 표시 설정 (하단) -->
+<div class="pf-sec">
+  <button class="pf-sec-hdr" data-sec="display"><span class="pf-sec-arrow">▾</span> 표시 설정</button>
+  <div id="pf-body-display" class="pf-sec-body">
+    <div class="pf-row2">
+      <div class="pf-field" style="margin-bottom:0;">
+        <span class="pf-field-lbl">앞에 붙일 텍스트</span>
+        <input id="pf-prefix" type="text" value="${prefix}" class="pf-input">
+      </div>
+      <div class="pf-field" style="margin-bottom:0;">
+        <span class="pf-field-lbl">뒤에 붙일 텍스트</span>
+        <input id="pf-suffix" type="text" value="${suffix}" class="pf-input">
+      </div>
     </div>
   </div>
 </div>`;
-
-    // 텍스트 정렬 옵션 직접 설정 (선택 값 누락 방지)
-    (popup.querySelector('#pf-align') as HTMLSelectElement).value = textAlign;
 
     ownerDoc.body.appendChild(popup);
     this.popupEl = popup;
@@ -367,8 +434,8 @@ ${typeCards}
       const pr = this.popupEl.getBoundingClientRect();
 
       let left = rect.left;
-      let top  = rect.bottom + 4;
-      if (top  + pr.height > vh) top  = rect.top - pr.height - 4;
+      let top  = rect.bottom + 6;
+      if (top  + pr.height > vh) top  = rect.top - pr.height - 6;
       if (left + pr.width  > vw) left = rect.right - pr.width;
       left = Math.max(4, left);
       top  = Math.max(4, top);
@@ -381,9 +448,18 @@ ${typeCards}
     // ── 이벤트 바인딩 ──────────────────────────────────────────────
     const q = <T extends HTMLElement>(id: string) => popup.querySelector<T>(`#${id}`)!;
 
+    // 값 변경 — number 타입은 raw 저장 + 포맷 표시, 나머지는 직접 반영
     q<HTMLInputElement>('pf-value').addEventListener('input', (ev) => {
-      input.value = (ev.target as HTMLInputElement).value;
+      const v = (ev.target as HTMLInputElement).value;
+      if (isNumber) {
+        span.setAttribute(ATTR.rawValue, v);
+        const fmt = span.getAttribute(ATTR.numberFormat) ?? 'none';
+        input.value = fmt === 'none' ? v : formatNumber(v, fmt);
+      } else {
+        input.value = v;
+      }
     });
+
     q<HTMLInputElement>('pf-prefix').addEventListener('input', (ev) => {
       span.setAttribute(ATTR.prefix, (ev.target as HTMLInputElement).value);
     });
@@ -395,11 +471,6 @@ ${typeCards}
       span.setAttribute(ATTR.fontSize, v);
       input.style.fontSize = v === '0' ? 'inherit' : `${v}px`;
     });
-    q<HTMLSelectElement>('pf-align').addEventListener('change', (ev) => {
-      const v = (ev.target as HTMLSelectElement).value;
-      span.setAttribute(ATTR.textAlign, v);
-      input.style.textAlign = v;
-    });
     q<HTMLSelectElement>('pf-font').addEventListener('change', (ev) => {
       const v = (ev.target as HTMLSelectElement).value;
       span.setAttribute(ATTR.fontFamily, v);
@@ -408,9 +479,13 @@ ${typeCards}
     q<HTMLSelectElement>('pf-size-fixed').addEventListener('change', (ev) => {
       span.setAttribute(ATTR.sizeFixed, (ev.target as HTMLSelectElement).value);
     });
+
     if (isNumber) {
       q<HTMLSelectElement>('pf-numformat').addEventListener('change', (ev) => {
-        span.setAttribute(ATTR.numberFormat, (ev.target as HTMLSelectElement).value);
+        const fmt = (ev.target as HTMLSelectElement).value;
+        span.setAttribute(ATTR.numberFormat, fmt);
+        const raw = span.getAttribute(ATTR.rawValue) ?? '';
+        input.value = fmt === 'none' ? raw : formatNumber(raw, fmt);
       });
     }
     if (isDate) {
@@ -419,23 +494,21 @@ ${typeCards}
       });
     }
 
-    // 텍스트 서브타입 카드 클릭
-    if (isText) {
-      popup.querySelectorAll<HTMLButtonElement>('.pf-type-btn').forEach((btn) => {
-        btn.addEventListener('click', () => {
-          popup.querySelectorAll<HTMLButtonElement>('.pf-type-btn').forEach((b) => b.classList.remove('active'));
-          btn.classList.add('active');
-          const ml = btn.dataset.multiline ?? '0';
-          span.setAttribute(ATTR.multiline, ml);
-        });
+    // 정렬 아이콘 버튼
+    popup.querySelectorAll<HTMLButtonElement>('.pf-align-btn').forEach((btn) => {
+      btn.addEventListener('click', () => {
+        popup.querySelectorAll<HTMLButtonElement>('.pf-align-btn').forEach((b) => b.classList.remove('active'));
+        btn.classList.add('active');
+        const align = btn.dataset.align ?? 'left';
+        span.setAttribute(ATTR.textAlign, align);
+        input.style.textAlign = align;
       });
-    }
+    });
 
     // 섹션 접기/펼치기
     popup.querySelectorAll<HTMLButtonElement>('.pf-sec-hdr').forEach((hdr) => {
       hdr.addEventListener('click', () => {
-        const secId = hdr.dataset.sec;
-        const body  = popup.querySelector<HTMLElement>(`#pf-body-${secId}`);
+        const body  = popup.querySelector<HTMLElement>(`#pf-body-${hdr.dataset.sec}`);
         const arrow = hdr.querySelector<HTMLElement>('.pf-sec-arrow');
         if (!body || !arrow) return;
         const open       = body.style.display !== 'none';
@@ -444,7 +517,11 @@ ${typeCards}
       });
     });
 
-    popup.querySelector('#pf-close')!.addEventListener('click', () => this.closePopup());
+    // 닫기 버튼 hover 스타일
+    const closeBtn = popup.querySelector<HTMLButtonElement>('#pf-close')!;
+    closeBtn.addEventListener('mouseenter', () => { closeBtn.style.background = '#F1F5F9'; closeBtn.style.color = '#374151'; });
+    closeBtn.addEventListener('mouseleave', () => { closeBtn.style.background = '#F8FAFC'; closeBtn.style.color = '#94A3B8'; });
+    closeBtn.addEventListener('click', () => this.closePopup());
 
     // 팝업 외부 mousedown → 닫기
     const outsideHandler = (ev: MouseEvent): void => {

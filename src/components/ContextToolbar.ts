@@ -17,7 +17,7 @@ interface DropdownDef {
 /** null = 구분선 */
 type GroupDef = ReadonlyArray<BDef | DropdownDef | null>;
 
-const TYPE_ICONS: Record<string, string> = { text: 'T', number: '#', date: '📅' };
+const TYPE_ICONS: Record<string, string> = { text: 'T', textarea: '☰', number: '#', date: '📅' };
 
 const TABS: Record<MenuTab, ReadonlyArray<GroupDef>> = {
   file: [
