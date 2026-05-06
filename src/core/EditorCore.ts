@@ -26,7 +26,7 @@ export class EditorCore {
       this.inputTimer = null;
       if (this.root) {
         void this.historyManager.push(this.root.innerHTML, 'input').then(() => {
-          console.log('[EditorCore inputHandler] debounce push 완료 | canUndo:', this.historyManager.canUndo());
+          if (import.meta.env.DEV) console.log('[EditorCore inputHandler] debounce push 완료 | canUndo:', this.historyManager.canUndo());
           this.config.onHistoryPush?.();
         });
       }
@@ -106,7 +106,7 @@ export class EditorCore {
     await this.flushInput();
     this.commandManager.execute(cmd);
     await this.historyManager.push(this.root.innerHTML, cmd.name);
-    console.log('[EditorCore execute] push 완료 | canUndo:', this.historyManager.canUndo(),
+    if (import.meta.env.DEV) console.log('[EditorCore execute] push 완료 | canUndo:', this.historyManager.canUndo(),
       '| canRedo:', this.historyManager.canRedo(),
       '| stackSize:', this.historyManager.getStackSize());
   }

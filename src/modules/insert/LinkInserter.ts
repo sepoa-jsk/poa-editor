@@ -1,12 +1,14 @@
+const ALLOWED_PROTOCOLS = new Set(['http:', 'https:', 'mailto:', 'tel:']);
+
 /**
- * URL 생성자로 href 유효성 검사.
- * 내부 책갈피 링크(#anchor) 및 mailto:, tel: 스킴 허용.
+ * URL 유효성 검사 — 허용 프로토콜(http/https/mailto/tel)과 내부 책갈피(#)만 통과.
+ * javascript: 등 위험 프로토콜은 명시적으로 차단한다.
  */
 export function validateLinkUrl(url: string): boolean {
   if (url.startsWith('#')) return url.length > 1;
   try {
-    new URL(url);
-    return true;
+    const parsed = new URL(url);
+    return ALLOWED_PROTOCOLS.has(parsed.protocol);
   } catch {
     return false;
   }

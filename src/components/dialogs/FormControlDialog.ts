@@ -1,3 +1,4 @@
+import DOMPurify from 'dompurify';
 import {
   buildFormControlHtml, generateControlId,
 } from '../../modules/form/FormControlInserter.js';
@@ -725,7 +726,13 @@ export class PoaFormControlDialog extends HTMLElement {
     try {
       const config = this._buildConfig();
       const html   = buildFormControlHtml(config);
-      box.innerHTML = html;
+      box.innerHTML = DOMPurify.sanitize(html, {
+        USE_PROFILES: { html: true },
+        ADD_ATTR: ['disabled', 'readonly', 'checked', 'selected', 'multiple',
+                   'required', 'placeholder', 'maxlength', 'rows', 'cols',
+                   'min', 'max', 'for', 'aria-required', 'aria-describedby', 'style'],
+        FORBID_ATTR: ['onerror', 'onload', 'onclick', 'onmouseover'],
+      });
     } catch { box.innerHTML = ''; }
   }
 

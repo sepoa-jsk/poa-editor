@@ -2,7 +2,11 @@ import DOMPurify from 'dompurify';
 
 /** HTML 문자열을 DOMPurify로 정제한다 (XSS 방어) */
 export function sanitize(html: string): string {
-  return DOMPurify.sanitize(html, { USE_PROFILES: { html: true } });
+  return DOMPurify.sanitize(html, {
+    USE_PROFILES: { html: true },
+    FORBID_TAGS: ['script', 'object', 'embed'],
+    FORBID_ATTR: ['onerror', 'onload', 'onclick', 'onmouseover', 'onfocus', 'onblur'],
+  });
 }
 
 /** HTML 문자열에서 평문 텍스트를 추출한다 */

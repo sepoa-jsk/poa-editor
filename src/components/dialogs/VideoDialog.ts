@@ -99,6 +99,8 @@ input:focus, select:focus { outline: none; border-color: #3B82F6; }
 .btn:hover { background: #F3F4F6; }
 .btn.primary { background: #1F2937; color: #fff; border-color: #1F2937; }
 .btn.primary:hover { background: #374151; }
+.err-msg { color: #d32f2f; font-size: 12px; margin-top: 4px; display: none; }
+.err-msg.show { display: block; }
 `;
 
 export class PoaVideoDialog extends HTMLElement {
@@ -143,6 +145,7 @@ export class PoaVideoDialog extends HTMLElement {
         <div class="section">
           <div class="label">소스 URL</div>
           <input id="v-src" type="url" placeholder="https://example.com/video.mp4">
+          <div class="err-msg" id="v-err"></div>
         </div>
         <div class="section">
           <div class="label">파일 형식</div>
@@ -197,6 +200,7 @@ export class PoaVideoDialog extends HTMLElement {
         <div class="section">
           <div class="label">공유 URL</div>
           <input id="e-url" type="url" placeholder="https://youtube.com/watch?v=...">
+          <div class="err-msg" id="e-err"></div>
           <div style="font-size:11px;color:#9CA3AF;margin-top:4px">
             지원: YouTube, Vimeo, Dailymotion
           </div>
@@ -307,7 +311,7 @@ export class PoaVideoDialog extends HTMLElement {
   private buildVideoHtml(): string | null {
     const sd  = this.shadow;
     const src = (sd.getElementById('v-src') as HTMLInputElement | null)?.value.trim() ?? '';
-    if (!src) { alert('소스 URL을 입력하세요.'); return null; }
+    if (!src) { this._showError('v-err', '소스 URL을 입력하세요.'); return null; }
 
     const type    = (sd.querySelector<HTMLInputElement>('input[name="v-type"]:checked')?.value ?? 'video/mp4') as VideoMimeType;
     const poster  = (sd.getElementById('v-poster') as HTMLInputElement | null)?.value.trim();
@@ -328,11 +332,18 @@ export class PoaVideoDialog extends HTMLElement {
     });
   }
 
+  private _showError(id: string, msg: string): void {
+    const el = this.shadow.getElementById(id);
+    if (!el) return;
+    el.textContent = msg;
+    el.classList.add('show');
+  }
+
   private buildEmbedHtml(): string | null {
     const sd  = this.shadow;
     const url = (sd.getElementById('e-url') as HTMLInputElement | null)?.value.trim() ?? '';
     const parsed = parseEmbedUrl(url);
-    if (!parsed) { alert('지원하지 않는 URL입니다. YouTube, Vimeo, Dailymotion URL을 입력하세요.'); return null; }
+    if (!parsed) { this._showError('e-err', '지원하지 않는 URL입니다. YouTube, Vimeo, Dailymotion URL을 입력하세요.'); return null; }
 
     const w = parseInt((sd.getElementById('e-width')  as HTMLInputElement | null)?.value ?? '640', 10);
     const h = parseInt((sd.getElementById('e-height') as HTMLInputElement | null)?.value ?? '360', 10);

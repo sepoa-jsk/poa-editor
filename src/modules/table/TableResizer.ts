@@ -106,7 +106,7 @@ export class TableResizer {
       };
       document.body.style.cursor    = 'col-resize';
       document.body.style.userSelect = 'none';
-      console.log('[TableResizer] col resize 시작', {
+      if (import.meta.env.DEV) console.log('[TableResizer] col resize 시작', {
         cellIndex: td.cellIndex,
         startW:    td.offsetWidth,
         startX:    e.clientX,
@@ -123,7 +123,7 @@ export class TableResizer {
       };
       document.body.style.cursor    = 'row-resize';
       document.body.style.userSelect = 'none';
-      console.log('[TableResizer] row resize 시작', {
+      if (import.meta.env.DEV) console.log('[TableResizer] row resize 시작', {
         startH: tr.offsetHeight,
         startY: e.clientY,
       });
