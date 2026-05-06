@@ -262,13 +262,10 @@ export class FieldInserter {
     span.setAttribute(ATTR.prefix,      '');
     span.setAttribute(ATTR.suffix,      '');
     span.setAttribute(ATTR.fieldType,   field.type);
-    const isMultiline = field.type === 'textarea';
-    if (isMultiline) span.setAttribute(ATTR.multiline, '1');
+    span.setAttribute(ATTR.multiline, '1');
     span.contentEditable = 'false';
 
-    const fieldEl: HTMLElement = isMultiline
-      ? this.createTextarea(ownerDoc, field.label, field.id)
-      : this.createInput(ownerDoc, field.label, field.id);
+    const fieldEl: HTMLElement = this.createTextarea(ownerDoc, field.label, field.id);
 
     if (field.type === 'date') fieldEl.setAttribute('data-input-type', 'date');
 
@@ -329,7 +326,7 @@ export class FieldInserter {
     const fontFamily   = span.getAttribute(ATTR.fontFamily)   ?? '';
     const sizeFixed    = span.getAttribute(ATTR.sizeFixed)    ?? '0';
     const fieldType    = span.getAttribute(ATTR.fieldType)    ?? 'text';
-    const multiline    = span.getAttribute(ATTR.multiline)    ?? '0';
+    const multiline    = span.getAttribute(ATTR.multiline)    ?? '1';
     const numberFormat = span.getAttribute(ATTR.numberFormat) ?? 'none';
     const dateFormat   = span.getAttribute(ATTR.dateFormat)   ?? 'YYYY-MM-DD';
     const label        = el.getAttribute('placeholder') ?? '';
