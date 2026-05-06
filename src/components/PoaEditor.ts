@@ -399,6 +399,10 @@ slot[name="content"] { display: contents; }
         void this.core.captureHistory('paste');
         this.statusBar.update(this.contentEl.innerHTML);
       },
+      onPasteImage: () => {
+        void this.core.captureHistory('pasteImage');
+        this.statusBar.update(this.contentEl.innerHTML);
+      },
     });
     this.clipboardHandler.register();
 
