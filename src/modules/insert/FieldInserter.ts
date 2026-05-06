@@ -411,7 +411,7 @@ export class FieldInserter {
       span.setAttribute(ATTR.dateFormat, 'YYYY-MM-DD');
     }
     span.contentEditable = 'false';
-    span.style.cssText = 'margin:0;padding:0;display:inline-flex;align-items:center;vertical-align:middle;max-width:100%;position:relative;';
+    span.style.cssText = 'margin:0;padding:0;display:inline-flex;align-items:center;vertical-align:middle;max-width:100%;position:relative;line-height:1;';
 
     const handle = ownerDoc.createElement('span');
     handle.className = 'poa-field-drag-handle';
@@ -430,8 +430,20 @@ export class FieldInserter {
     span.appendChild(handle);
     span.appendChild(fieldEl);
     span.appendChild(resizeHandle);
-    range.deleteContents();
-    range.insertNode(span);
+
+    // td/th 안에 삽입 시 빈 노드(<br>, 빈 <p>, 공백 텍스트)로 인한 줄 분리 방지
+    const containerCell = this.findContainerCell(range);
+    if (containerCell && this.isCellEffectivelyEmpty(containerCell)) {
+      // 빈 셀: 기존 노드 전체 제거 후 span 직속 appendChild
+      while (containerCell.firstChild) containerCell.removeChild(containerCell.firstChild);
+      containerCell.appendChild(span);
+    } else {
+      range.deleteContents();
+      range.insertNode(span);
+      // 삽입 후 셀 내 잔여 빈 노드 제거
+      if (containerCell) this.cleanCellAfterInsert(containerCell, span);
+    }
+
     range.setStartAfter(span);
     range.collapse(true);
     sel?.removeAllRanges();
@@ -459,6 +471,46 @@ export class FieldInserter {
     el.setAttribute(ATTR.fieldId, fieldId);
     el.style.cssText = FIELD_TEXTAREA_STYLE;
     return el;
+  }
+
+  /** range가 포함된 가장 가까운 td/th 반환 */
+  private findContainerCell(range: Range): HTMLTableCellElement | null {
+    let node: Node | null = range.commonAncestorContainer;
+    while (node) {
+      if (node.nodeType === Node.ELEMENT_NODE) {
+        const tag = (node as HTMLElement).tagName;
+        if (tag === 'TD' || tag === 'TH') return node as HTMLTableCellElement;
+      }
+      node = node.parentNode;
+    }
+    return null;
+  }
+
+  /** td/th가 실질적으로 비어있는지 확인 (<br>, 공백 텍스트, 빈 <p>만 있는 경우) */
+  private isCellEffectivelyEmpty(cell: HTMLElement): boolean {
+    if ((cell.textContent ?? '').trim() !== '') return false;
+    return Array.from(cell.childNodes).every((node) => {
+      if (node.nodeType === Node.TEXT_NODE) return (node.textContent ?? '').trim() === '';
+      const tag = (node as Element).tagName;
+      if (tag === 'BR') return true;
+      if (tag === 'P') return ((node as HTMLElement).textContent ?? '').trim() === '';
+      return false;
+    });
+  }
+
+  /** 삽입 후 td/th 내 잔여 빈 노드 제거 (span 내부는 보존) */
+  private cleanCellAfterInsert(cell: HTMLElement, span: HTMLElement): void {
+    Array.from(cell.querySelectorAll('br')).forEach((br) => {
+      if (!span.contains(br)) br.remove();
+    });
+    Array.from(cell.childNodes).forEach((node) => {
+      if (node !== span && node.nodeType === Node.TEXT_NODE && (node.textContent ?? '').trim() === '') {
+        cell.removeChild(node);
+      }
+    });
+    Array.from(cell.querySelectorAll('p')).forEach((p) => {
+      if (!span.contains(p) && (p.textContent ?? '').trim() === '') p.remove();
+    });
   }
 
   private attachResizeObserver(el: HTMLElement, span: HTMLElement): void {

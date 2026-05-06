@@ -134,11 +134,35 @@ poa-editor {
   vertical-align: middle;
   box-sizing: border-box;
   min-width: 30px;
+  line-height: normal;
 }
 
 .poa-editor-content table td > *,
 .poa-editor-content table th > * {
   vertical-align: middle;
+}
+
+/* 표 셀 안 양식 필드 세로 정렬 */
+.poa-editor-content table td span.poa-field,
+.poa-editor-content table th span.poa-field {
+  display: inline-flex;
+  align-items: center;
+  vertical-align: middle;
+  line-height: 1;
+  margin: 0;
+  padding: 0;
+}
+
+.poa-editor-content table td span.poa-field input.poa-field-input,
+.poa-editor-content table th span.poa-field input.poa-field-input,
+.poa-editor-content table td span.poa-field textarea.poa-field-input,
+.poa-editor-content table th span.poa-field textarea.poa-field-input {
+  display: inline-block;
+  vertical-align: middle;
+  margin: 0;
+  line-height: normal;
+  height: auto;
+  box-sizing: border-box;
 }
 
 /* 열/행 드래그 리사이즈 중 커서 고정 */
