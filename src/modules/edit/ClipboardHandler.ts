@@ -29,7 +29,16 @@ function plainToHtml(text: string): string {
     .join('');
 }
 
-/** 엑셀/스프레드시트에서 붙여넣은 표 HTML에 기본 선·패딩 스타일 적용 */
+/** 표 관련 속성을 허용하는 DOMPurify 설정으로 정제 */
+function sanitizeWithTable(html: string): string {
+  return DOMPurify.sanitize(html, {
+    USE_PROFILES: { html: true },
+    ADD_ATTR: ['style', 'border', 'width', 'height', 'colspan', 'rowspan', 'cellpadding', 'cellspacing'],
+    ADD_TAGS: ['table', 'tr', 'td', 'th', 'thead', 'tbody', 'tfoot', 'colgroup', 'col'],
+  });
+}
+
+/** 워드/일반 HTML의 표에 기본 선·패딩 스타일 적용 */
 function fixTableStyles(html: string): string {
   const doc = new DOMParser().parseFromString(html, 'text/html');
 
@@ -53,21 +62,51 @@ function fixTableStyles(html: string): string {
   return doc.body.innerHTML;
 }
 
-/** 표 관련 속성을 허용하는 DOMPurify 설정으로 정제 */
-function sanitizeWithTable(html: string): string {
-  return DOMPurify.sanitize(html, {
-    USE_PROFILES: { html: true },
-    ADD_ATTR: ['style', 'border', 'width', 'height', 'colspan', 'rowspan', 'cellpadding', 'cellspacing'],
-    ADD_TAGS: ['table', 'tr', 'td', 'th', 'thead', 'tbody', 'tfoot', 'colgroup', 'col'],
+/** 클립보드 HTML이 엑셀 출처인지 확인 */
+function isExcelHTML(html: string): boolean {
+  return html.includes('xmlns:x="urn:schemas-microsoft-com:office:excel"')
+    || html.includes('mso-number-format')
+    || html.includes('x:str');
+}
+
+/**
+ * 엑셀 HTML에서 xl* 클래스, mso- 스타일 제거 후 표 구조만 추출
+ * 기본 테두리·패딩 스타일 적용
+ */
+function sanitizeExcelHTML(html: string): string {
+  const doc = new DOMParser().parseFromString(html, 'text/html');
+
+  doc.querySelectorAll('[class^="xl"]').forEach((el) => {
+    el.removeAttribute('class');
   });
+
+  doc.querySelectorAll<HTMLElement>('td, th').forEach((el) => {
+    const raw = el.getAttribute('style') ?? '';
+    const cleaned = raw
+      .split(';')
+      .filter((s) => !s.trim().startsWith('mso-'))
+      .join(';');
+    el.setAttribute('style', cleaned);
+    if (!el.style.border && !el.style.borderTop) el.style.border = '1px solid #000000';
+    if (!el.style.padding) el.style.padding = '4px 8px';
+  });
+
+  doc.querySelectorAll<HTMLTableElement>('table').forEach((table) => {
+    table.setAttribute('border', '1');
+    table.style.borderCollapse = 'collapse';
+    if (!table.style.width) table.style.width = '100%';
+  });
+
+  const table = doc.querySelector('table');
+  return table ? sanitizeWithTable(table.outerHTML) : '';
 }
 
 /**
  * contenteditable 요소의 붙여넣기 이벤트를 가로채
- * - 이미지: FileReader Base64 변환 후 커서 위치에 <img> 삽입
- * - 표 HTML: 기본 border/padding 스타일 보정 후 DOMPurify 정제
- * - 일반 HTML: DOMPurify 정제
- * - 평문: 단락으로 변환 후 Selection API로 삽입
+ * 포맷 우선순위:
+ *   1. text/html  — 엑셀 표 / 워드 표 / 일반 HTML 삽입
+ *   2. text/plain — 줄바꿈 단락으로 변환 후 삽입
+ *   3. image/*    — 순수 이미지 붙여넣기일 때만 Base64 <img> 삽입
  * execCommand 미사용.
  */
 export class ClipboardHandler {
@@ -75,67 +114,76 @@ export class ClipboardHandler {
   private readonly options: ClipboardHandlerOptions;
 
   private readonly pasteHandler = (e: ClipboardEvent): void => {
-    const items = e.clipboardData?.items;
+    const cd = e.clipboardData;
+    if (!cd) return;
 
-    // ── 1. 이미지 우선 처리 ─────────────────────────────────────────
-    if (items) {
-      for (const item of Array.from(items)) {
-        if (ALLOWED_IMAGE_TYPES.has(item.type)) {
-          e.preventDefault();
-          const file = item.getAsFile();
-          if (!file) continue;
-
-          const reader = new FileReader();
-          reader.onload = (ev) => {
-            const base64 = ev.target?.result as string;
-            if (!base64) return;
-
-            const ownerDoc = this.root.ownerDocument;
-            const img = ownerDoc.createElement('img');
-            img.src = base64;
-            img.style.maxWidth = '100%';
-            img.alt = '붙여넣기 이미지';
-
-            const sel = ownerDoc.getSelection();
-            if (sel && sel.rangeCount > 0) {
-              const range = sel.getRangeAt(0);
-              range.deleteContents();
-              range.insertNode(img);
-              range.setStartAfter(img);
-              range.collapse(true);
-              sel.removeAllRanges();
-              sel.addRange(range);
-            } else {
-              this.root.appendChild(img);
-            }
-
-            this.options.onPasteImage?.();
-          };
-          reader.readAsDataURL(file);
-          return;
-        }
-      }
-    }
-
-    // ── 2. HTML / 텍스트 처리 ──────────────────────────────────────
-    e.preventDefault();
-    const rawHtml = e.clipboardData?.getData('text/html') ?? '';
-    const rawText = e.clipboardData?.getData('text/plain') ?? '';
-
-    if (!rawHtml && !rawText) return;
-
-    let html: string;
+    // ── 1. HTML 우선 처리 (엑셀·워드·일반) ────────────────────────
+    const rawHtml = cd.getData('text/html');
     if (rawHtml) {
-      html = rawHtml.includes('<table')
-        ? sanitizeWithTable(fixTableStyles(rawHtml))
-        : sanitize(rawHtml);
-    } else {
-      html = plainToHtml(rawText);
-    }
-    if (!html) return;
+      e.preventDefault();
 
-    this.insertAtCursor(html);
-    this.options.onPaste?.(html);
+      let html: string;
+      if (isExcelHTML(rawHtml)) {
+        html = sanitizeExcelHTML(rawHtml);
+      } else if (rawHtml.includes('<table')) {
+        html = sanitizeWithTable(fixTableStyles(rawHtml));
+      } else {
+        html = sanitize(rawHtml);
+      }
+
+      if (!html) return;
+      this.insertAtCursor(html);
+      this.options.onPaste?.(html);
+      return;
+    }
+
+    // ── 2. 평문 처리 ───────────────────────────────────────────────
+    const rawText = cd.getData('text/plain');
+    if (rawText) {
+      e.preventDefault();
+      const html = plainToHtml(rawText);
+      if (!html) return;
+      this.insertAtCursor(html);
+      this.options.onPaste?.(html);
+      return;
+    }
+
+    // ── 3. 이미지 처리 (text/html, text/plain 모두 없을 때) ────────
+    const items = Array.from(cd.items);
+    const imageItem = items.find((item) => ALLOWED_IMAGE_TYPES.has(item.type));
+    if (imageItem) {
+      e.preventDefault();
+      const file = imageItem.getAsFile();
+      if (!file) return;
+
+      const reader = new FileReader();
+      reader.onload = (ev) => {
+        const base64 = ev.target?.result as string;
+        if (!base64) return;
+
+        const ownerDoc = this.root.ownerDocument;
+        const img = ownerDoc.createElement('img');
+        img.src = base64;
+        img.style.maxWidth = '100%';
+        img.alt = '붙여넣기 이미지';
+
+        const sel = ownerDoc.getSelection();
+        if (sel && sel.rangeCount > 0) {
+          const range = sel.getRangeAt(0);
+          range.deleteContents();
+          range.insertNode(img);
+          range.setStartAfter(img);
+          range.collapse(true);
+          sel.removeAllRanges();
+          sel.addRange(range);
+        } else {
+          this.root.appendChild(img);
+        }
+
+        this.options.onPasteImage?.();
+      };
+      reader.readAsDataURL(file);
+    }
   };
 
   constructor(root: HTMLElement, options: ClipboardHandlerOptions = {}) {
