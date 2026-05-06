@@ -3,6 +3,7 @@ import type { DocumentField } from './DocumentFields.js';
 const ATTR = {
   fieldId:      'data-field-id',
   placeholder:  'data-placeholder',
+  label:        'data-label',
   prefix:       'data-prefix',
   suffix:       'data-suffix',
   multiline:    'data-multiline',
@@ -387,6 +388,7 @@ export class FieldInserter {
     span.className = 'poa-field';
     span.setAttribute(ATTR.fieldId,     field.id);
     span.setAttribute(ATTR.placeholder, field.placeholder);
+    span.setAttribute(ATTR.label,       field.label);
     span.setAttribute(ATTR.prefix,      '');
     span.setAttribute(ATTR.suffix,      '');
     span.setAttribute(ATTR.fieldType,   field.type);
@@ -938,7 +940,10 @@ ${sizeSection}
   static exportFields(html: string): string {
     const doc = new DOMParser().parseFromString(html, 'text/html');
     doc.querySelectorAll<HTMLElement>('.poa-field').forEach((span) => {
+      // label(사람이 읽기 좋은 이름) → placeholder(#TOKEN) 순으로 fallback
+      const label       = span.getAttribute('data-label')       ?? '';
       const placeholder = span.getAttribute('data-placeholder') ?? '';
+      const emptyText   = label || placeholder;
       const prefix  = span.getAttribute('data-prefix')  ?? '';
       const suffix  = span.getAttribute('data-suffix')  ?? '';
       const width   = span.getAttribute('data-width');
@@ -963,7 +968,7 @@ ${sizeSection}
           value = rawVal;
         }
       } else {
-        value = placeholder;
+        value = emptyText;
       }
       const finalText = `${prefix}${value}${suffix}`;
 

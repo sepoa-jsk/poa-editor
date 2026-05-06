@@ -1066,7 +1066,7 @@ slot[name="content"] { display: contents; }
     liveTAs.forEach((ta, i) => { if (cloneTAs[i]) cloneTAs[i].textContent = ta.value; });
     clone.querySelectorAll('[data-poa-temp]').forEach((el) => el.remove());
     return FieldInserter.exportFields(DOMPurify.sanitize(clone.innerHTML, {
-      ADD_ATTR: ['data-field-id','data-placeholder','data-prefix','data-suffix',
+      ADD_ATTR: ['data-field-id','data-placeholder','data-label','data-prefix','data-suffix',
                  'data-multiline','data-font-size','data-text-align','data-font-family',
                  'data-size-fixed','data-raw-value','data-number-format','data-date-format',
                  'data-width','data-height','value'],
