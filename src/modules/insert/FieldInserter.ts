@@ -449,6 +449,14 @@ export class FieldInserter {
     sel?.removeAllRanges();
     sel?.addRange(range);
 
+    // 부모의 실제 폰트 크기를 input에 명시적으로 적용 (브라우저 UA 기본값 override)
+    const ownerWin = ownerDoc.defaultView;
+    if (ownerWin) {
+      const parentEl = span.parentElement;
+      const computedSize = parentEl ? ownerWin.getComputedStyle(parentEl).fontSize : '';
+      if (computedSize) fieldEl.style.fontSize = computedSize;
+    }
+
     this.attachResizeObserver(fieldEl, span);
     this.attachResizeDrag(resizeHandle, fieldEl, span);
     this.lastInsertedEl = fieldEl;
@@ -821,7 +829,11 @@ ${sizeSection}
     q<HTMLSelectElement>('pf-fontsize').addEventListener('change', (ev) => {
       const v = (ev.target as HTMLSelectElement).value;
       span.setAttribute(ATTR.fontSize, v);
-      currentEl.style.fontSize = v === '0' ? 'inherit' : `${v}px`;
+      if (v === '0') {
+        currentEl.style.fontSize = ''; // 인라인 제거 → CSS font-size:inherit !important 동작
+      } else {
+        currentEl.style.fontSize = `${v}px`;
+      }
     });
     q<HTMLSelectElement>('pf-font').addEventListener('change', (ev) => {
       const v = (ev.target as HTMLSelectElement).value;

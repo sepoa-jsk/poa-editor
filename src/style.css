@@ -239,6 +239,18 @@ span.poa-field:hover .poa-field-resize-handle {
 /* 용지 모드의 에디터 영역 — PaperSizeManager.applyToEditor() 가 인라인으로 덮어씀 */
 .poa-editor-content {
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+  font-size: 12pt;
+}
+
+/* 양식 필드 input/textarea 폰트 — 브라우저 UA 기본값 override */
+.poa-editor-content span.poa-field input.poa-field-input,
+.poa-editor-content span.poa-field textarea.poa-field-input {
+  font-size: inherit !important;
+  font-family: inherit !important;
+  font-weight: inherit !important;
+  line-height: inherit !important;
+  color: #1E40AF;
+  -webkit-text-size-adjust: 100%;
 }
 
 /* 인쇄 시 배경색 제거 및 transform 리셋 */
