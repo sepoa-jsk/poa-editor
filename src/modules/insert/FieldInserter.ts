@@ -34,6 +34,26 @@ const DATE_FORMAT_LABELS: ReadonlyArray<readonly [string, string]> = [
   ['DD-MM-YYYY',     'DD-MM-YYYY  예) 31-01-2025'],
 ];
 
+const FONT_SIZE_OPTIONS: ReadonlyArray<readonly [string, string]> = [
+  ['0',  '상속'],
+  ['8',  '8px'],  ['9',  '9px'],  ['10', '10px'], ['11', '11px'],
+  ['12', '12px'], ['13', '13px'], ['14', '14px'], ['15', '15px'],
+  ['16', '16px'], ['18', '18px'], ['20', '20px'], ['22', '22px'],
+  ['24', '24px'], ['28', '28px'], ['32', '32px'], ['36', '36px'],
+  ['40', '40px'], ['48', '48px'], ['56', '56px'], ['64', '64px'], ['72', '72px'],
+];
+
+const FONT_OPTIONS: ReadonlyArray<readonly [string, string]> = [
+  ['',                    '문서 기본값'],
+  ["'Noto Sans KR'",      'Noto Sans KR'],
+  ["'Roboto'",            'Roboto'],
+  ["'Malgun Gothic'",     '맑은 고딕'],
+  ["'Dotum'",             '돋움체'],
+  ["'Gulim'",             '굴림체'],
+  ["'Batang'",            '바탕체'],
+  ["'Arial'",             'Arial'],
+];
+
 const FIELD_INPUT_STYLE = [
   'border:1px solid #93C5FD',
   'border-radius:4px',
@@ -47,6 +67,60 @@ const FIELD_INPUT_STYLE = [
   'vertical-align:middle',
   'box-sizing:border-box',
 ].join(';');
+
+// 타입 배지 텍스트
+const TYPE_BADGE: Record<string, string> = { text: 'T', number: '#', date: '📅' };
+
+// 텍스트 / 여러 줄 아이콘
+const ICON_TEXT = `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><rect x="3" y="9" width="18" height="6" rx="2"/></svg>`;
+const ICON_MULTI = `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><rect x="3" y="5" width="18" height="14" rx="2"/><line x1="7" y1="9" x2="17" y2="9"/><line x1="7" y1="12" x2="17" y2="12"/><line x1="7" y1="15" x2="13" y2="15"/></svg>`;
+
+// 팝업 공통 CSS (한 번만 주입)
+const POPUP_STYLE_ID = 'poa-field-popup-style';
+function injectPopupStyles(doc: Document): void {
+  if (doc.getElementById(POPUP_STYLE_ID)) return;
+  const s = doc.createElement('style');
+  s.id = POPUP_STYLE_ID;
+  s.textContent = `
+.poa-field-popup *{box-sizing:border-box;}
+.poa-field-popup .pf-input,.poa-field-popup .pf-select{
+  width:100%;border:1.5px solid #E5E7EB;border-radius:6px;
+  padding:7px 10px;font-size:13px;color:#111827;background:#fff;
+  outline:none;font-family:inherit;transition:border-color .15s;
+}
+.poa-field-popup .pf-input:focus,.poa-field-popup .pf-select:focus{
+  border-color:#2563EB;box-shadow:0 0 0 3px rgba(37,99,235,.1);
+}
+.poa-field-popup .pf-field{margin-bottom:10px;}
+.poa-field-popup .pf-field-lbl{
+  display:block;font-size:12px;font-weight:600;color:#374151;margin-bottom:4px;
+}
+.poa-field-popup .pf-row2{display:grid;grid-template-columns:1fr 1fr;gap:8px;}
+.poa-field-popup .pf-type-btn{
+  display:flex;align-items:center;justify-content:center;gap:5px;
+  flex:1;height:34px;border-radius:6px;cursor:pointer;
+  font-size:12px;font-weight:600;
+  border:1.5px solid #E5E7EB;background:#fff;color:#6B7280;
+  transition:all .12s;font-family:inherit;
+}
+.poa-field-popup .pf-type-btn.active{
+  border-color:#2563EB;background:#EFF6FF;color:#2563EB;
+}
+.poa-field-popup .pf-type-btn:hover:not(.active){
+  background:#F9FAFB;border-color:#D1D5DB;
+}
+.poa-field-popup .pf-sec-hdr{
+  display:flex;align-items:center;gap:4px;width:100%;
+  padding:10px 14px 5px;border:none;background:none;cursor:pointer;
+  font-size:10px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;
+  color:#9CA3AF;text-align:left;font-family:inherit;
+}
+.poa-field-popup .pf-sec-hdr:hover{color:#6B7280;}
+.poa-field-popup .pf-sec-body{padding:2px 14px 10px;}
+.poa-field-popup .pf-divider{height:1px;background:#F3F4F6;margin:0;}
+`;
+  doc.head.appendChild(s);
+}
 
 /**
  * 에디터에 문서 양식 필드(<span.poa-field>)를 삽입하고
@@ -132,7 +206,8 @@ export class FieldInserter {
     const span = input.closest('.poa-field') as HTMLElement | null;
     if (!span) return;
     const ownerDoc = input.ownerDocument;
-    const rect     = input.getBoundingClientRect();
+    injectPopupStyles(ownerDoc);
+    const rect = input.getBoundingClientRect();
 
     const prefix       = span.getAttribute(ATTR.prefix)       ?? '';
     const suffix       = span.getAttribute(ATTR.suffix)       ?? '';
@@ -145,31 +220,45 @@ export class FieldInserter {
     const numberFormat = span.getAttribute(ATTR.numberFormat) ?? 'none';
     const dateFormat   = span.getAttribute(ATTR.dateFormat)   ?? 'YYYY-MM-DD';
     const label        = input.placeholder;
+    const isText       = fieldType === 'text';
     const isNumber     = fieldType === 'number';
     const isDate       = fieldType === 'date';
 
-    // ── 공통 스타일 헬퍼 ──────────────────────────────────────────
-    const inputStyle  = 'width:100%;box-sizing:border-box;padding:4px 7px;border:1px solid #D1D5DB;border-radius:3px;font-size:13px;outline:none;background:#fff;color:#111;';
-    const selectStyle = inputStyle;
-    const fsLabel     = fontSize === '0' ? '상속' : fontSize;
-    const lbl = (text: string): string =>
-      `<label style="font-size:12px;color:#6B7280;white-space:nowrap;">${text}</label>`;
     const opt = (val: string, cur: string, text: string): string =>
       `<option value="${val}"${val === cur ? ' selected' : ''}>${text}</option>`;
 
-    const hdrStyle  = 'display:flex;align-items:center;gap:5px;padding:6px 12px;background:#F9FAFB;border-top:1px solid #E5E7EB;font-size:11px;font-weight:600;color:#6B7280;cursor:pointer;user-select:none;-webkit-user-select:none;letter-spacing:0.04em;';
-    const bodyStyle = 'padding:8px 12px;display:grid;grid-template-columns:108px 1fr;gap:6px 10px;align-items:center;';
+    // 글자 크기 드롭다운 — 현재 값이 리스트에 없으면 앞에 추가
+    const fsInList = FONT_SIZE_OPTIONS.some(([v]) => v === fontSize);
+    const fsExtra  = (!fsInList && fontSize !== '0')
+      ? `<option value="${fontSize}" selected>${fontSize}px</option>` : '';
+    const fsOptions = FONT_SIZE_OPTIONS.map(([v, t]) => opt(v, fontSize, t)).join('');
 
-    // ── 타입별 포맷 행 ─────────────────────────────────────────────
+    // 타입별 포맷 행
     const formatRow = isNumber ? `
-      ${lbl('숫자 표시 형식')}
-      <select id="pf-numformat" style="${selectStyle}">
-        ${NUMBER_FORMAT_LABELS.map(([v, t]) => opt(v, numberFormat, t)).join('')}
-      </select>` : isDate ? `
-      ${lbl('날짜 표시 형식')}
-      <select id="pf-dateformat" style="${selectStyle}">
-        ${DATE_FORMAT_LABELS.map(([v, t]) => opt(v, dateFormat, t)).join('')}
-      </select>` : '';
+      <div class="pf-field">
+        <span class="pf-field-lbl">숫자 표시 형식</span>
+        <select id="pf-numformat" class="pf-select">
+          ${NUMBER_FORMAT_LABELS.map(([v, t]) => opt(v, numberFormat, t)).join('')}
+        </select>
+      </div>` : isDate ? `
+      <div class="pf-field">
+        <span class="pf-field-lbl">날짜 표시 형식</span>
+        <select id="pf-dateformat" class="pf-select">
+          ${DATE_FORMAT_LABELS.map(([v, t]) => opt(v, dateFormat, t)).join('')}
+        </select>
+      </div>` : '';
+
+    // 텍스트 서브타입 카드 (text 타입만)
+    const typeCards = isText ? `
+      <div style="display:flex;gap:8px;padding:8px 14px 10px;">
+        <button class="pf-type-btn${multiline === '0' ? ' active' : ''}" data-multiline="0">
+          ${ICON_TEXT} 텍스트
+        </button>
+        <button class="pf-type-btn${multiline === '1' ? ' active' : ''}" data-multiline="1">
+          ${ICON_MULTI} 여러 줄
+        </button>
+      </div>
+      <div class="pf-divider"></div>` : '';
 
     // ── 팝업 HTML ─────────────────────────────────────────────────
     const popup = ownerDoc.createElement('div');
@@ -178,73 +267,87 @@ export class FieldInserter {
       'position:fixed',
       `left:${Math.round(rect.left)}px`,
       `top:${Math.round(rect.bottom + 4)}px`,
-      'width:300px',
+      'width:360px',
       'visibility:hidden',
       'background:#fff',
       'border:1px solid #E5E7EB',
-      'border-radius:8px',
-      'box-shadow:0 4px 20px rgba(0,0,0,.18)',
+      'border-radius:10px',
+      'box-shadow:0 8px 32px rgba(0,0,0,.18)',
       'z-index:99999',
+      'font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif',
       'font-size:13px',
-      'font-family:-apple-system,BlinkMacSystemFont,sans-serif',
       'overflow:hidden',
     ].join(';');
 
     popup.innerHTML = `
-<div style="display:flex;align-items:center;justify-content:space-between;padding:10px 14px;border-bottom:1px solid #E5E7EB;font-weight:600;color:#111827;font-size:13px;">
-  <span>${label}</span>
-  <button id="pf-close" style="border:none;background:transparent;font-size:16px;cursor:pointer;color:#9CA3AF;padding:0 4px;line-height:1;" title="닫기">✕</button>
+<!-- 헤더 -->
+<div style="display:flex;align-items:center;justify-content:space-between;padding:12px 14px;border-bottom:1px solid #F3F4F6;">
+  <div style="display:flex;align-items:center;gap:8px;">
+    <span style="display:inline-flex;align-items:center;justify-content:center;width:24px;height:24px;background:#EFF6FF;border-radius:6px;color:#2563EB;font-size:11px;font-weight:700;flex-shrink:0;">${TYPE_BADGE[fieldType] ?? 'T'}</span>
+    <span style="font-size:14px;font-weight:700;color:#111827;">${label}</span>
+  </div>
+  <button id="pf-close" style="border:none;background:transparent;font-size:18px;cursor:pointer;color:#9CA3AF;padding:0 4px;line-height:1;border-radius:4px;" title="닫기">✕</button>
 </div>
 
-<div class="pf-sec">
-  <div class="pf-sec-hdr" data-sec="value" style="${hdrStyle}">▾ 값 설정</div>
-  <div id="pf-body-value" style="${bodyStyle}">
-    ${formatRow}
-    ${lbl('기본값')}
-    <input id="pf-value" type="${input.type}" value="${input.value}" placeholder="${label}" style="${inputStyle}">
+${typeCards}
+
+<!-- 값 설정 섹션 -->
+<button class="pf-sec-hdr" data-sec="value"><span class="pf-sec-arrow">▾</span> 값 설정</button>
+<div id="pf-body-value" class="pf-sec-body">
+  ${formatRow}
+  <div class="pf-field">
+    <span class="pf-field-lbl">기본값</span>
+    <input id="pf-value" type="${input.type}" value="${input.value}" placeholder="${label}" class="pf-input">
   </div>
 </div>
+<div class="pf-divider"></div>
 
-<div class="pf-sec">
-  <div class="pf-sec-hdr" data-sec="display" style="${hdrStyle}">▾ 표시 설정</div>
-  <div id="pf-body-display" style="${bodyStyle}">
-    ${lbl('앞에 붙일 텍스트')}
-    <input id="pf-prefix" type="text" value="${prefix}" style="${inputStyle}">
-    ${lbl('뒤에 붙일 텍스트')}
-    <input id="pf-suffix" type="text" value="${suffix}" style="${inputStyle}">
-    ${lbl('줄바꿈 허용')}
-    <select id="pf-multiline" style="${selectStyle}">
-      ${opt('0', multiline, '사용 안 함')}${opt('1', multiline, '사용')}
-    </select>
-  </div>
-</div>
-
-<div class="pf-sec">
-  <div class="pf-sec-hdr" data-sec="font" style="${hdrStyle}">▾ 글자 설정</div>
-  <div id="pf-body-font" style="${bodyStyle}">
-    ${lbl('글자 크기')}
-    <div style="display:flex;align-items:center;gap:6px;">
-      <input id="pf-fontsize" type="range" min="0" max="72" value="${fontSize}" style="flex:1;accent-color:#3B82F6;">
-      <span id="pf-fontsize-val" style="font-size:12px;color:#374151;min-width:28px;text-align:right;">${fsLabel}</span>
+<!-- 표시 설정 섹션 -->
+<button class="pf-sec-hdr" data-sec="display"><span class="pf-sec-arrow">▾</span> 표시 설정</button>
+<div id="pf-body-display" class="pf-sec-body">
+  <div class="pf-row2">
+    <div class="pf-field" style="margin-bottom:0;">
+      <span class="pf-field-lbl">앞에 붙일 텍스트</span>
+      <input id="pf-prefix" type="text" value="${prefix}" class="pf-input">
     </div>
-    ${lbl('정렬 방식')}
-    <select id="pf-align" style="${selectStyle}">
-      ${opt('left','','왼쪽')}${opt('center','','가운데')}
-      ${opt('right','','오른쪽')}${opt('justify','','양쪽')}
-    </select>
-    ${lbl('글꼴')}
-    <select id="pf-font" style="${selectStyle}">
-      ${opt('',               fontFamily, '문서 기본값')}
-      ${opt("'Dotum'",        fontFamily, '돋움체')}
-      ${opt("'Gulim'",        fontFamily, '굴림체')}
-      ${opt("'Malgun Gothic'",fontFamily, '맑은 고딕')}
-      ${opt("'Batang'",       fontFamily, '바탕체')}
-      ${opt("'Arial'",        fontFamily, 'Arial')}
-    </select>
-    ${lbl('크기 고정')}
-    <select id="pf-size-fixed" style="${selectStyle}">
-      ${opt('0', sizeFixed, '사용 안 함')}${opt('1', sizeFixed, '사용')}
-    </select>
+    <div class="pf-field" style="margin-bottom:0;">
+      <span class="pf-field-lbl">뒤에 붙일 텍스트</span>
+      <input id="pf-suffix" type="text" value="${suffix}" class="pf-input">
+    </div>
+  </div>
+</div>
+<div class="pf-divider"></div>
+
+<!-- 글자 설정 섹션 -->
+<button class="pf-sec-hdr" data-sec="font"><span class="pf-sec-arrow">▾</span> 글자 설정</button>
+<div id="pf-body-font" class="pf-sec-body">
+  <div class="pf-row2">
+    <div class="pf-field" style="margin-bottom:0;">
+      <span class="pf-field-lbl">글자 크기</span>
+      <select id="pf-fontsize" class="pf-select">${fsExtra}${fsOptions}</select>
+    </div>
+    <div class="pf-field" style="margin-bottom:0;">
+      <span class="pf-field-lbl">정렬 방식</span>
+      <select id="pf-align" class="pf-select">
+        ${opt('left','','왼쪽')}${opt('center','','가운데')}
+        ${opt('right','','오른쪽')}${opt('justify','','양쪽')}
+      </select>
+    </div>
+  </div>
+  <div style="height:8px;"></div>
+  <div class="pf-row2">
+    <div class="pf-field" style="margin-bottom:0;">
+      <span class="pf-field-lbl">글꼴</span>
+      <select id="pf-font" class="pf-select">
+        ${FONT_OPTIONS.map(([v, t]) => opt(v, fontFamily, t)).join('')}
+      </select>
+    </div>
+    <div class="pf-field" style="margin-bottom:0;">
+      <span class="pf-field-lbl">크기 고정</span>
+      <select id="pf-size-fixed" class="pf-select">
+        ${opt('0', sizeFixed, '사용 안 함')}${opt('1', sizeFixed, '사용')}
+      </select>
+    </div>
   </div>
 </div>`;
 
@@ -254,19 +357,18 @@ export class FieldInserter {
     ownerDoc.body.appendChild(popup);
     this.popupEl = popup;
 
-    // 뷰포트 경계 보정 (실제 크기 측정 후 위치 결정)
+    // 뷰포트 경계 보정
     requestAnimationFrame(() => {
       if (!this.popupEl) return;
       const win = ownerDoc.defaultView;
       if (!win) return;
-      const vw  = win.innerWidth;
-      const vh  = win.innerHeight;
-      const pr  = this.popupEl.getBoundingClientRect();
+      const vw = win.innerWidth;
+      const vh = win.innerHeight;
+      const pr = this.popupEl.getBoundingClientRect();
 
       let left = rect.left;
       let top  = rect.bottom + 4;
-
-      if (top + pr.height > vh) top  = rect.top - pr.height - 4;
+      if (top  + pr.height > vh) top  = rect.top - pr.height - 4;
       if (left + pr.width  > vw) left = rect.right - pr.width;
       left = Math.max(4, left);
       top  = Math.max(4, top);
@@ -288,14 +390,8 @@ export class FieldInserter {
     q<HTMLInputElement>('pf-suffix').addEventListener('input', (ev) => {
       span.setAttribute(ATTR.suffix, (ev.target as HTMLInputElement).value);
     });
-    q<HTMLSelectElement>('pf-multiline').addEventListener('change', (ev) => {
-      span.setAttribute(ATTR.multiline, (ev.target as HTMLSelectElement).value);
-    });
-    const pfFontSize = q<HTMLInputElement>('pf-fontsize');
-    const pfFsVal    = q<HTMLElement>('pf-fontsize-val');
-    pfFontSize.addEventListener('input', () => {
-      const v = pfFontSize.value;
-      pfFsVal.textContent = v === '0' ? '상속' : v;
+    q<HTMLSelectElement>('pf-fontsize').addEventListener('change', (ev) => {
+      const v = (ev.target as HTMLSelectElement).value;
       span.setAttribute(ATTR.fontSize, v);
       input.style.fontSize = v === '0' ? 'inherit' : `${v}px`;
     });
@@ -323,15 +419,28 @@ export class FieldInserter {
       });
     }
 
+    // 텍스트 서브타입 카드 클릭
+    if (isText) {
+      popup.querySelectorAll<HTMLButtonElement>('.pf-type-btn').forEach((btn) => {
+        btn.addEventListener('click', () => {
+          popup.querySelectorAll<HTMLButtonElement>('.pf-type-btn').forEach((b) => b.classList.remove('active'));
+          btn.classList.add('active');
+          const ml = btn.dataset.multiline ?? '0';
+          span.setAttribute(ATTR.multiline, ml);
+        });
+      });
+    }
+
     // 섹션 접기/펼치기
-    popup.querySelectorAll<HTMLElement>('.pf-sec-hdr').forEach((hdr) => {
+    popup.querySelectorAll<HTMLButtonElement>('.pf-sec-hdr').forEach((hdr) => {
       hdr.addEventListener('click', () => {
-        const secId  = hdr.dataset.sec;
-        const body   = popup.querySelector<HTMLElement>(`#pf-body-${secId}`);
-        if (!body) return;
-        const open   = body.style.display !== 'none';
-        body.style.display  = open ? 'none' : 'grid';
-        hdr.textContent = (open ? '▸ ' : '▾ ') + hdr.textContent!.slice(2);
+        const secId = hdr.dataset.sec;
+        const body  = popup.querySelector<HTMLElement>(`#pf-body-${secId}`);
+        const arrow = hdr.querySelector<HTMLElement>('.pf-sec-arrow');
+        if (!body || !arrow) return;
+        const open       = body.style.display !== 'none';
+        body.style.display = open ? 'none' : 'block';
+        arrow.textContent  = open ? '▸' : '▾';
       });
     });
 
