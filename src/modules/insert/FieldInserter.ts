@@ -133,6 +133,21 @@ function toKoreanFull(num: number): string {
   return sign + parts.join('') + '원';
 }
 
+/** 날짜 원시값(YYYY-MM-DD)을 선택된 형식으로 변환 */
+export function formatDate(raw: string, format: string): string {
+  const m = raw.match(/^(\d{4})-(\d{2})-(\d{2})$/);
+  if (!m) return raw;
+  const [, yyyy, mm, dd] = m;
+  switch (format) {
+    case 'YYYY-MM-DD':     return `${yyyy}-${mm}-${dd}`;
+    case 'YYYY년MM월DD일': return `${yyyy}년 ${mm}월 ${dd}일`;
+    case 'YYYY. MM. DD':   return `${yyyy}. ${mm}. ${dd}`;
+    case 'MM/DD/YYYY':     return `${mm}/${dd}/${yyyy}`;
+    case 'DD-MM-YYYY':     return `${dd}-${mm}-${yyyy}`;
+    default: return raw;
+  }
+}
+
 export function formatNumber(raw: string, format: string): string {
   const clean = raw.replace(/[,\s]/g, '');
   const num   = parseFloat(clean);
@@ -198,6 +213,16 @@ function injectPopupStyles(doc: Document): void {
 }
 .poa-field-popup .pf-align-btn:hover:not(.active){
   background:#F9FAFB;border-color:#D1D5DB;
+}
+.poa-field-popup .pf-move-btn{
+  display:inline-flex;align-items:center;justify-content:center;
+  width:24px;height:24px;border-radius:5px;cursor:pointer;
+  border:1px solid #E5E7EB;background:#F9FAFB;color:#6B7280;
+  font-size:13px;transition:all .1s;font-family:inherit;
+  line-height:1;
+}
+.poa-field-popup .pf-move-btn:hover{
+  background:#EFF6FF;border-color:#93C5FD;color:#2563EB;
 }
 `;
   doc.head.appendChild(s);
@@ -375,9 +400,11 @@ export class FieldInserter {
       ` title="${a === 'left' ? '왼쪽' : a === 'center' ? '가운데' : '오른쪽'}">${ALIGN_ICONS[a]}</button>`,
     ).join('');
 
+    // date pf-value는 date picker를 위해 raw(YYYY-MM-DD) 값을 표시
+    const pfValueInitial = isNumber ? rawValue : isDate ? (span.getAttribute(ATTR.rawValue) ?? '') : elValue;
     const pfValueHtml = isMultiline
       ? `<textarea id="pf-value" placeholder="${label}" class="pf-textarea">${elValue}</textarea>`
-      : `<input id="pf-value" type="${isNumber ? 'number' : isDate ? 'date' : 'text'}" value="${isNumber ? rawValue : elValue}" placeholder="${label}" class="pf-input">`;
+      : `<input id="pf-value" type="${isNumber ? 'number' : isDate ? 'date' : 'text'}" value="${pfValueInitial}" placeholder="${label}" class="pf-input">`;
 
     // ── 팝업 DOM ────────────────────────────────────────────────────
     const popup = ownerDoc.createElement('div');
@@ -399,12 +426,19 @@ export class FieldInserter {
     ].join(';');
 
     popup.innerHTML = `
-<div style="padding:13px 16px 12px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid #F1F5F9;">
-  <div style="display:flex;align-items:center;gap:9px;">
+<div style="padding:10px 12px 10px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid #F1F5F9;gap:8px;">
+  <div style="display:flex;align-items:center;gap:8px;min-width:0;">
     <span style="display:inline-flex;align-items:center;justify-content:center;width:26px;height:26px;background:linear-gradient(135deg,#3B82F6,#2563EB);border-radius:7px;color:#fff;font-size:11px;font-weight:700;flex-shrink:0;">${TYPE_BADGE[fieldType] ?? 'T'}</span>
-    <span style="font-size:14px;font-weight:700;color:#111827;">${label}</span>
+    <span style="font-size:13px;font-weight:700;color:#111827;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${label}</span>
   </div>
-  <button id="pf-close" style="display:flex;align-items:center;justify-content:center;width:26px;height:26px;border:none;background:#F8FAFC;border-radius:6px;font-size:15px;cursor:pointer;color:#94A3B8;transition:all .12s;" title="닫기">✕</button>
+  <div style="display:flex;align-items:center;gap:4px;flex-shrink:0;">
+    <button class="pf-move-btn" data-dir="left"  title="왼쪽으로 이동">←</button>
+    <button class="pf-move-btn" data-dir="right" title="오른쪽으로 이동">→</button>
+    <button class="pf-move-btn" data-dir="up"    title="위로 이동">↑</button>
+    <button class="pf-move-btn" data-dir="down"  title="아래로 이동">↓</button>
+    <div style="width:1px;height:16px;background:#E5E7EB;margin:0 2px;"></div>
+    <button id="pf-close" style="display:flex;align-items:center;justify-content:center;width:26px;height:26px;border:none;background:#F8FAFC;border-radius:6px;font-size:15px;cursor:pointer;color:#94A3B8;transition:all .12s;" title="닫기">✕</button>
+  </div>
 </div>
 
 <div class="pf-sec">
@@ -517,6 +551,10 @@ export class FieldInserter {
         span.setAttribute(ATTR.rawValue, v);
         const fmt = span.getAttribute(ATTR.numberFormat) ?? 'none';
         setVal(fmt === 'none' ? v : formatNumber(v, fmt));
+      } else if (isDate) {
+        span.setAttribute(ATTR.rawValue, v);
+        const fmt = span.getAttribute(ATTR.dateFormat) ?? 'YYYY-MM-DD';
+        setVal(v ? formatDate(v, fmt) : '');
       } else {
         setVal(v);
       }
@@ -601,7 +639,10 @@ export class FieldInserter {
     }
     if (isDate) {
       q<HTMLSelectElement>('pf-dateformat').addEventListener('change', (ev) => {
-        span.setAttribute(ATTR.dateFormat, (ev.target as HTMLSelectElement).value);
+        const fmt = (ev.target as HTMLSelectElement).value;
+        span.setAttribute(ATTR.dateFormat, fmt);
+        const raw = span.getAttribute(ATTR.rawValue) ?? '';
+        if (raw) setVal(formatDate(raw, fmt));
       });
     }
 
@@ -628,6 +669,18 @@ export class FieldInserter {
       });
     });
 
+    // 이동 버튼
+    popup.querySelectorAll<HTMLButtonElement>('.pf-move-btn').forEach((btn) => {
+      btn.addEventListener('mousedown', (ev) => {
+        ev.preventDefault(); // 팝업 포커스 유지
+        const dir = btn.dataset.dir as 'left' | 'right' | 'up' | 'down' | undefined;
+        if (dir) {
+          this.moveField(span, dir);
+          this.contentEl?.dispatchEvent(new Event('input', { bubbles: true }));
+        }
+      });
+    });
+
     // 닫기 버튼
     const closeBtn = q<HTMLButtonElement>('pf-close');
     closeBtn.addEventListener('mouseenter', () => { closeBtn.style.background = '#F1F5F9'; closeBtn.style.color = '#374151'; });
@@ -642,6 +695,47 @@ export class FieldInserter {
       }
     };
     setTimeout(() => ownerDoc.addEventListener('mousedown', outsideHandler), 0);
+  }
+
+  private moveField(span: HTMLElement, dir: 'left' | 'right' | 'up' | 'down'): void {
+    const parent = span.parentNode;
+    if (!parent) return;
+    switch (dir) {
+      case 'left': {
+        const prev = span.previousSibling;
+        if (prev) parent.insertBefore(span, prev);
+        break;
+      }
+      case 'right': {
+        const next = span.nextSibling;
+        if (next) parent.insertBefore(span, next.nextSibling);
+        break;
+      }
+      case 'up': {
+        const target = this.getAdjacentBlock(span, 'prev');
+        if (target) target.appendChild(span);
+        break;
+      }
+      case 'down': {
+        const target = this.getAdjacentBlock(span, 'next');
+        if (target) target.insertBefore(span, target.firstChild);
+        break;
+      }
+    }
+  }
+
+  private getAdjacentBlock(span: HTMLElement, which: 'prev' | 'next'): HTMLElement | null {
+    const BLOCK = new Set(['P','DIV','LI','TD','TH','H1','H2','H3','H4','H5','H6','BLOCKQUOTE','PRE']);
+    let block: HTMLElement | null = span.parentElement;
+    while (block && !BLOCK.has(block.tagName) && block !== this.contentEl) {
+      block = block.parentElement;
+    }
+    if (!block || block === this.contentEl) return null;
+    let sib: Element | null = which === 'prev' ? block.previousElementSibling : block.nextElementSibling;
+    while (sib && !BLOCK.has(sib.tagName)) {
+      sib = which === 'prev' ? sib.previousElementSibling : sib.nextElementSibling;
+    }
+    return sib as HTMLElement | null;
   }
 
   private closePopup(): void {
