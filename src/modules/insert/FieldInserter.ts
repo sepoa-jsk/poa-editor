@@ -1,16 +1,29 @@
 import type { DocumentField } from './DocumentFields.js';
 
 const ATTR = {
-  fieldId:     'data-field-id',
-  placeholder: 'data-placeholder',
-  prefix:      'data-prefix',
-  suffix:      'data-suffix',
-  multiline:   'data-multiline',
-  fontSize:    'data-font-size',
-  textAlign:   'data-text-align',
-  fontFamily:  'data-font-family',
-  sizeFixed:   'data-size-fixed',
+  fieldId:      'data-field-id',
+  placeholder:  'data-placeholder',
+  prefix:       'data-prefix',
+  suffix:       'data-suffix',
+  multiline:    'data-multiline',
+  fontSize:     'data-font-size',
+  textAlign:    'data-text-align',
+  fontFamily:   'data-font-family',
+  sizeFixed:    'data-size-fixed',
+  fieldType:    'data-field-type',
+  numberFormat: 'data-number-format',
 } as const;
+
+const NUMBER_FORMAT_LABELS: ReadonlyArray<readonly [string, string]> = [
+  ['none',        '포맷 없음'],
+  ['comma',       '천 단위 (1,000,000)'],
+  ['comma_won',   '천 단위 + 원 (1,000,000원)'],
+  ['korean',      '한국식 단위 (100만)'],
+  ['korean_full', '한국식 전체 (일백만원)'],
+  ['decimal2',    '소수점 2자리 (1,000,000.00)'],
+  ['percent',     '퍼센트 (10.5%)'],
+  ['percent2',    '퍼센트 소수점 2자리 (10.50%)'],
+];
 
 const FIELD_INPUT_STYLE = [
   'border:1px solid #93C5FD',
@@ -79,6 +92,7 @@ export class FieldInserter {
     span.setAttribute(ATTR.placeholder, field.placeholder);
     span.setAttribute(ATTR.prefix,      '');
     span.setAttribute(ATTR.suffix,      '');
+    span.setAttribute(ATTR.fieldType,   field.type);
     span.contentEditable = 'false';
 
     const inputType =
@@ -111,14 +125,17 @@ export class FieldInserter {
     const ownerDoc = input.ownerDocument;
     const rect = input.getBoundingClientRect();
 
-    const prefix     = span.getAttribute(ATTR.prefix)     ?? '';
-    const suffix     = span.getAttribute(ATTR.suffix)     ?? '';
-    const multiline  = span.getAttribute(ATTR.multiline)  ?? '0';
-    const fontSize   = span.getAttribute(ATTR.fontSize)   ?? '0';
-    const textAlign  = span.getAttribute(ATTR.textAlign)  ?? 'left';
-    const fontFamily = span.getAttribute(ATTR.fontFamily) ?? '';
-    const sizeFixed  = span.getAttribute(ATTR.sizeFixed)  ?? '0';
-    const label      = input.placeholder;
+    const prefix       = span.getAttribute(ATTR.prefix)       ?? '';
+    const suffix       = span.getAttribute(ATTR.suffix)       ?? '';
+    const multiline    = span.getAttribute(ATTR.multiline)    ?? '0';
+    const fontSize     = span.getAttribute(ATTR.fontSize)     ?? '0';
+    const textAlign    = span.getAttribute(ATTR.textAlign)    ?? 'left';
+    const fontFamily   = span.getAttribute(ATTR.fontFamily)   ?? '';
+    const sizeFixed    = span.getAttribute(ATTR.sizeFixed)    ?? '0';
+    const fieldType    = span.getAttribute(ATTR.fieldType)    ?? 'text';
+    const numberFormat = span.getAttribute(ATTR.numberFormat) ?? 'none';
+    const label        = input.placeholder;
+    const isNumber     = fieldType === 'number';
 
     const popup = ownerDoc.createElement('div');
     popup.className = 'poa-field-popup';
@@ -138,10 +155,16 @@ export class FieldInserter {
 
     const inputStyle = 'width:100%;box-sizing:border-box;padding:4px 7px;border:1px solid #D1D5DB;border-radius:3px;font-size:13px;outline:none;';
     const selectStyle = inputStyle;
-    const fsLabel = fontSize === '0' ? '상속' : `${fontSize}px`;
+    const fsLabel = fontSize === '0' ? '상속' : fontSize;
 
     const opt = (val: string, cur: string, text: string): string =>
       `<option value="${val}"${val === cur ? ' selected' : ''}>${text}</option>`;
+
+    const numFormatRow = isNumber ? `
+  <label style="font-size:12px;color:#6B7280;">숫자 포맷</label>
+  <select id="pf-numformat" style="${selectStyle}">
+    ${NUMBER_FORMAT_LABELS.map(([v, t]) => opt(v, numberFormat, t)).join('')}
+  </select>` : '';
 
     popup.innerHTML = `
 <div style="display:flex;align-items:center;justify-content:space-between;padding:8px 12px;border-bottom:1px solid #E5E7EB;font-weight:600;color:#111827;">
@@ -150,7 +173,7 @@ export class FieldInserter {
 </div>
 <div style="padding:10px 12px;display:grid;grid-template-columns:90px 1fr;gap:7px 10px;align-items:center;">
   <label style="font-size:12px;color:#6B7280;">값</label>
-  <input id="pf-value" type="${input.type}" value="${input.value}" placeholder="${label}" style="${inputStyle}">
+  <input id="pf-value" type="${input.type}" value="${input.value}" placeholder="${label}" style="${inputStyle}">${numFormatRow}
   <label style="font-size:12px;color:#6B7280;">접두사</label>
   <input id="pf-prefix" type="text" value="${prefix}" style="${inputStyle}">
   <label style="font-size:12px;color:#6B7280;">접미사</label>
@@ -225,7 +248,7 @@ export class FieldInserter {
     });
     pfFontSize.addEventListener('input', () => {
       const v = pfFontSize.value;
-      pfFsVal.textContent = v === '0' ? '상속' : `${v}px`;
+      pfFsVal.textContent = v === '0' ? '상속' : v;
       span.setAttribute(ATTR.fontSize, v);
       input.style.fontSize = v === '0' ? 'inherit' : `${v}px`;
     });
@@ -240,6 +263,13 @@ export class FieldInserter {
     pfSizeFixed.addEventListener('change', () => {
       span.setAttribute(ATTR.sizeFixed, pfSizeFixed.value);
     });
+
+    if (isNumber) {
+      const pfNumFormat = q<HTMLSelectElement>('pf-numformat');
+      pfNumFormat.addEventListener('change', () => {
+        span.setAttribute(ATTR.numberFormat, pfNumFormat.value);
+      });
+    }
 
     popup.querySelector('#pf-close')!.addEventListener('click', () => this.closePopup());
 
