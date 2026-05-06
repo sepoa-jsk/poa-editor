@@ -14,6 +14,8 @@ const ATTR = {
   numberFormat: 'data-number-format',
   dateFormat:   'data-date-format',
   rawValue:     'data-raw-value',
+  dataWidth:    'data-width',
+  dataHeight:   'data-height',
 } as const;
 
 const NUMBER_FORMAT_LABELS: ReadonlyArray<readonly [string, string]> = [
@@ -55,22 +57,28 @@ const FONT_OPTIONS: ReadonlyArray<readonly [string, string]> = [
   ["'Arial'",             'Arial'],
 ];
 
-// 타입 배지
 const TYPE_BADGE: Record<string, string> = { text: 'T', textarea: '☰', number: '#', date: '📅' };
 
-const FIELD_INPUT_STYLE = [
+const BASE_FIELD_STYLE = [
   'border:1px solid #93C5FD',
   'border-radius:4px',
-  'padding:2px 8px',
   'font-size:inherit',
   'background:#EFF6FF',
   'color:#1E40AF',
-  'min-width:120px',
+  'min-width:80px',
+  'max-width:600px',
+  'overflow:auto',
   'outline:none',
   'font-family:inherit',
-  'vertical-align:middle',
   'box-sizing:border-box',
 ].join(';');
+
+const FIELD_INPUT_STYLE =
+  `${BASE_FIELD_STYLE};padding:2px 8px;vertical-align:middle;resize:horizontal;`;
+
+const FIELD_TEXTAREA_STYLE =
+  `${BASE_FIELD_STYLE};padding:4px 8px;vertical-align:top;resize:both;` +
+  `min-height:40px;max-height:400px;line-height:1.5;`;
 
 // ── 숫자 포맷 헬퍼 ──────────────────────────────────────────────────────────
 
@@ -89,7 +97,6 @@ function groupToKorean(n: number): string {
   return result;
 }
 
-/** 숫자를 한국식 단위 문자열로 변환 (예: 1억 2345만 6789) */
 function toKoreanUnits(num: number): string {
   if (num === 0) return '0';
   const sign = num < 0 ? '-' : '';
@@ -108,7 +115,6 @@ function toKoreanUnits(num: number): string {
   return sign + parts.join(' ');
 }
 
-/** 숫자를 한국어 전체 읽기로 변환 (예: 일백만원) */
 function toKoreanFull(num: number): string {
   if (num === 0) return '영원';
   const sign = num < 0 ? '마이너스 ' : '';
@@ -156,12 +162,13 @@ function injectPopupStyles(doc: Document): void {
   s.id = POPUP_STYLE_ID;
   s.textContent = `
 .poa-field-popup *{box-sizing:border-box;margin:0;padding:0;}
-.poa-field-popup .pf-input,.poa-field-popup .pf-select{
+.poa-field-popup .pf-input,.poa-field-popup .pf-select,.poa-field-popup .pf-textarea{
   width:100%;border:1.5px solid #E5E7EB;border-radius:7px;
   padding:8px 10px;font-size:13px;color:#111827;background:#fff;
   outline:none;font-family:inherit;transition:border-color .15s,box-shadow .15s;
 }
-.poa-field-popup .pf-input:focus,.poa-field-popup .pf-select:focus{
+.poa-field-popup .pf-textarea{resize:vertical;min-height:60px;}
+.poa-field-popup .pf-input:focus,.poa-field-popup .pf-select:focus,.poa-field-popup .pf-textarea:focus{
   border-color:#3B82F6;box-shadow:0 0 0 3px rgba(59,130,246,.15);
 }
 .poa-field-popup .pf-field{margin-bottom:10px;}
@@ -196,7 +203,6 @@ function injectPopupStyles(doc: Document): void {
   doc.head.appendChild(s);
 }
 
-// 정렬 아이콘 SVG
 const ALIGN_ICONS: Record<string, string> = {
   left: `<svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><rect x="3" y="5" width="12" height="2.5" rx="1.2"/><rect x="3" y="10.7" width="18" height="2.5" rx="1.2"/><rect x="3" y="16.5" width="14" height="2.5" rx="1.2"/></svg>`,
   center: `<svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><rect x="6" y="5" width="12" height="2.5" rx="1.2"/><rect x="3" y="10.7" width="18" height="2.5" rx="1.2"/><rect x="5" y="16.5" width="14" height="2.5" rx="1.2"/></svg>`,
@@ -216,7 +222,7 @@ export class FieldInserter {
     if (!target.classList.contains('poa-field-input')) return;
     e.preventDefault();
     e.stopPropagation();
-    this.openPopup(target as HTMLInputElement);
+    this.openPopup(target);
   };
 
   attach(contentEl: HTMLElement): void {
@@ -233,7 +239,6 @@ export class FieldInserter {
     this.closePopup();
   }
 
-  /** savedRange(또는 현재 커서) 위치에 필드를 삽입한다 */
   insertField(field: DocumentField, savedRange: Range | null): void {
     if (!this.contentEl) return;
     const ownerDoc = this.contentEl.ownerDocument;
@@ -257,37 +262,65 @@ export class FieldInserter {
     span.setAttribute(ATTR.prefix,      '');
     span.setAttribute(ATTR.suffix,      '');
     span.setAttribute(ATTR.fieldType,   field.type);
-    // textarea 타입은 초기부터 multiline=1
-    if (field.type === 'textarea') span.setAttribute(ATTR.multiline, '1');
+    const isMultiline = field.type === 'textarea';
+    if (isMultiline) span.setAttribute(ATTR.multiline, '1');
     span.contentEditable = 'false';
 
-    const input = ownerDoc.createElement('input');
-    input.type        = 'text'; // 포맷 표시를 위해 모든 타입 text 사용
-    input.className   = 'poa-field-input';
-    input.placeholder = field.label;
-    input.setAttribute(ATTR.fieldId, field.id);
-    input.style.cssText = FIELD_INPUT_STYLE;
-    if (field.type === 'date') input.setAttribute('data-input-type', 'date');
+    const fieldEl: HTMLElement = isMultiline
+      ? this.createTextarea(ownerDoc, field.label, field.id)
+      : this.createInput(ownerDoc, field.label, field.id);
 
-    span.appendChild(input);
+    if (field.type === 'date') fieldEl.setAttribute('data-input-type', 'date');
+
+    span.appendChild(fieldEl);
     range.deleteContents();
     range.insertNode(span);
     range.setStartAfter(span);
     range.collapse(true);
     sel?.removeAllRanges();
     sel?.addRange(range);
+
+    this.attachResizeObserver(fieldEl, span);
+  }
+
+  private createInput(doc: Document, placeholder: string, fieldId: string): HTMLInputElement {
+    const el = doc.createElement('input');
+    el.type        = 'text';
+    el.className   = 'poa-field-input';
+    el.placeholder = placeholder;
+    el.setAttribute(ATTR.fieldId, fieldId);
+    el.style.cssText = FIELD_INPUT_STYLE;
+    return el;
+  }
+
+  private createTextarea(doc: Document, placeholder: string, fieldId: string): HTMLTextAreaElement {
+    const el = doc.createElement('textarea');
+    el.className   = 'poa-field-input';
+    el.placeholder = placeholder;
+    el.setAttribute(ATTR.fieldId, fieldId);
+    el.style.cssText = FIELD_TEXTAREA_STYLE;
+    return el;
+  }
+
+  private attachResizeObserver(el: HTMLElement, span: HTMLElement): void {
+    if (typeof ResizeObserver === 'undefined') return;
+    const ro = new ResizeObserver(() => {
+      span.setAttribute(ATTR.dataWidth,  String(el.offsetWidth));
+      span.setAttribute(ATTR.dataHeight, String(el.offsetHeight));
+    });
+    ro.observe(el);
   }
 
   // ── 속성 팝업 ──────────────────────────────────────────────────────────────
 
-  private openPopup(input: HTMLInputElement): void {
+  private openPopup(el: HTMLElement): void {
     this.closePopup();
 
-    const span = input.closest('.poa-field') as HTMLElement | null;
+    const span = el.closest('.poa-field') as HTMLElement | null;
     if (!span) return;
-    const ownerDoc = input.ownerDocument;
+    const ownerDoc = el.ownerDocument;
     injectPopupStyles(ownerDoc);
-    const rect = input.getBoundingClientRect();
+    const rect = el.getBoundingClientRect();
 
     const prefix       = span.getAttribute(ATTR.prefix)       ?? '';
     const suffix       = span.getAttribute(ATTR.suffix)       ?? '';
@@ -296,23 +329,31 @@ export class FieldInserter {
     const fontFamily   = span.getAttribute(ATTR.fontFamily)   ?? '';
     const sizeFixed    = span.getAttribute(ATTR.sizeFixed)    ?? '0';
     const fieldType    = span.getAttribute(ATTR.fieldType)    ?? 'text';
+    const multiline    = span.getAttribute(ATTR.multiline)    ?? '0';
     const numberFormat = span.getAttribute(ATTR.numberFormat) ?? 'none';
     const dateFormat   = span.getAttribute(ATTR.dateFormat)   ?? 'YYYY-MM-DD';
-    const rawValue     = span.getAttribute(ATTR.rawValue)     ?? input.value;
-    const label        = input.placeholder;
+    const label        = el.getAttribute('placeholder') ?? '';
     const isNumber     = fieldType === 'number';
     const isDate       = fieldType === 'date';
+    const isMultiline  = multiline === '1';
+
+    const elValue = el.tagName === 'TEXTAREA'
+      ? (el as HTMLTextAreaElement).value
+      : (el as HTMLInputElement).value;
+    const rawValue = span.getAttribute(ATTR.rawValue) ?? elValue;
+
+    // currentEl은 multiline 토글 시 재할당되므로 let 선언
+    let currentEl: HTMLInputElement | HTMLTextAreaElement =
+      el as HTMLInputElement | HTMLTextAreaElement;
 
     const opt = (val: string, cur: string, text: string): string =>
       `<option value="${val}"${val === cur ? ' selected' : ''}>${text}</option>`;
 
-    // 글자 크기 드롭다운
     const fsInList = FONT_SIZE_OPTIONS.some(([v]) => v === fontSize);
     const fsExtra  = (!fsInList && fontSize !== '0')
       ? `<option value="${fontSize}" selected>${fontSize}px</option>` : '';
     const fsOptions = FONT_SIZE_OPTIONS.map(([v, t]) => opt(v, fontSize, t)).join('');
 
-    // 타입별 포맷 행
     const formatRow = isNumber ? `
       <div class="pf-field">
         <span class="pf-field-lbl">숫자 표시 형식</span>
@@ -327,10 +368,14 @@ export class FieldInserter {
         </select>
       </div>` : '';
 
-    // 정렬 아이콘 버튼 (왼쪽/가운데/오른쪽)
     const alignBtns = (['left', 'center', 'right'] as const).map((a) =>
-      `<button class="pf-align-btn${textAlign === a ? ' active' : ''}" data-align="${a}" title="${a === 'left' ? '왼쪽' : a === 'center' ? '가운데' : '오른쪽'}">${ALIGN_ICONS[a]}</button>`,
+      `<button class="pf-align-btn${textAlign === a ? ' active' : ''}" data-align="${a}"` +
+      ` title="${a === 'left' ? '왼쪽' : a === 'center' ? '가운데' : '오른쪽'}">${ALIGN_ICONS[a]}</button>`,
     ).join('');
+
+    const pfValueHtml = isMultiline
+      ? `<textarea id="pf-value" placeholder="${label}" class="pf-textarea">${elValue}</textarea>`
+      : `<input id="pf-value" type="${isNumber ? 'number' : isDate ? 'date' : 'text'}" value="${isNumber ? rawValue : elValue}" placeholder="${label}" class="pf-input">`;
 
     // ── 팝업 DOM ────────────────────────────────────────────────────
     const popup = ownerDoc.createElement('div');
@@ -352,7 +397,6 @@ export class FieldInserter {
     ].join(';');
 
     popup.innerHTML = `
-<!-- 헤더 -->
 <div style="padding:13px 16px 12px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid #F1F5F9;">
   <div style="display:flex;align-items:center;gap:9px;">
     <span style="display:inline-flex;align-items:center;justify-content:center;width:26px;height:26px;background:linear-gradient(135deg,#3B82F6,#2563EB);border-radius:7px;color:#fff;font-size:11px;font-weight:700;flex-shrink:0;">${TYPE_BADGE[fieldType] ?? 'T'}</span>
@@ -361,19 +405,17 @@ export class FieldInserter {
   <button id="pf-close" style="display:flex;align-items:center;justify-content:center;width:26px;height:26px;border:none;background:#F8FAFC;border-radius:6px;font-size:15px;cursor:pointer;color:#94A3B8;transition:all .12s;" title="닫기">✕</button>
 </div>
 
-<!-- 섹션: 값 설정 -->
 <div class="pf-sec">
   <button class="pf-sec-hdr" data-sec="value"><span class="pf-sec-arrow">▾</span> 값 설정</button>
   <div id="pf-body-value" class="pf-sec-body">
     ${formatRow}
     <div class="pf-field" style="margin-bottom:0;">
       <span class="pf-field-lbl">기본값</span>
-      <input id="pf-value" type="${isNumber ? 'number' : isDate ? 'date' : 'text'}" value="${isNumber ? rawValue : input.value}" placeholder="${label}" class="pf-input">
+      ${pfValueHtml}
     </div>
   </div>
 </div>
 
-<!-- 섹션: 글자 설정 -->
 <div class="pf-sec">
   <button class="pf-sec-hdr" data-sec="font"><span class="pf-sec-arrow">▾</span> 글자 설정</button>
   <div id="pf-body-font" class="pf-sec-body">
@@ -401,10 +443,17 @@ export class FieldInserter {
         </select>
       </div>
     </div>
+    <div style="margin-top:10px;">
+      <div class="pf-field" style="margin-bottom:0;">
+        <span class="pf-field-lbl">줄바꿈 허용</span>
+        <select id="pf-multiline" class="pf-select">
+          ${opt('0', multiline, '사용 안 함')}${opt('1', multiline, '사용')}
+        </select>
+      </div>
+    </div>
   </div>
 </div>
 
-<!-- 섹션: 표시 설정 (하단) -->
 <div class="pf-sec">
   <button class="pf-sec-hdr" data-sec="display"><span class="pf-sec-arrow">▾</span> 표시 설정</button>
   <div id="pf-body-display" class="pf-sec-body">
@@ -448,15 +497,26 @@ export class FieldInserter {
     // ── 이벤트 바인딩 ──────────────────────────────────────────────
     const q = <T extends HTMLElement>(id: string) => popup.querySelector<T>(`#${id}`)!;
 
-    // 값 변경 — number 타입은 raw 저장 + 포맷 표시, 나머지는 직접 반영
-    q<HTMLInputElement>('pf-value').addEventListener('input', (ev) => {
-      const v = (ev.target as HTMLInputElement).value;
+    const getVal = (): string =>
+      currentEl.tagName === 'TEXTAREA'
+        ? (currentEl as HTMLTextAreaElement).value
+        : (currentEl as HTMLInputElement).value;
+
+    const setVal = (v: string): void => {
+      if (currentEl.tagName === 'TEXTAREA') (currentEl as HTMLTextAreaElement).value = v;
+      else                                  (currentEl as HTMLInputElement).value = v;
+    };
+
+    // 기본값 입력
+    const pfValueEl = popup.querySelector<HTMLElement>('#pf-value')!;
+    pfValueEl.addEventListener('input', (ev) => {
+      const v = (ev.target as HTMLInputElement | HTMLTextAreaElement).value;
       if (isNumber) {
         span.setAttribute(ATTR.rawValue, v);
         const fmt = span.getAttribute(ATTR.numberFormat) ?? 'none';
-        input.value = fmt === 'none' ? v : formatNumber(v, fmt);
+        setVal(fmt === 'none' ? v : formatNumber(v, fmt));
       } else {
-        input.value = v;
+        setVal(v);
       }
     });
 
@@ -466,18 +526,60 @@ export class FieldInserter {
     q<HTMLInputElement>('pf-suffix').addEventListener('input', (ev) => {
       span.setAttribute(ATTR.suffix, (ev.target as HTMLInputElement).value);
     });
+
     q<HTMLSelectElement>('pf-fontsize').addEventListener('change', (ev) => {
       const v = (ev.target as HTMLSelectElement).value;
       span.setAttribute(ATTR.fontSize, v);
-      input.style.fontSize = v === '0' ? 'inherit' : `${v}px`;
+      currentEl.style.fontSize = v === '0' ? 'inherit' : `${v}px`;
     });
     q<HTMLSelectElement>('pf-font').addEventListener('change', (ev) => {
       const v = (ev.target as HTMLSelectElement).value;
       span.setAttribute(ATTR.fontFamily, v);
-      input.style.fontFamily = v || 'inherit';
+      currentEl.style.fontFamily = v || 'inherit';
     });
     q<HTMLSelectElement>('pf-size-fixed').addEventListener('change', (ev) => {
       span.setAttribute(ATTR.sizeFixed, (ev.target as HTMLSelectElement).value);
+    });
+
+    // 줄바꿈 허용 토글: input ↔ textarea 교체
+    q<HTMLSelectElement>('pf-multiline').addEventListener('change', (ev) => {
+      const useMultiline = (ev.target as HTMLSelectElement).value === '1';
+      const wasMultiline = currentEl.tagName === 'TEXTAREA';
+      if (useMultiline === wasMultiline) return;
+
+      const val      = getVal();
+      const ph       = currentEl.getAttribute('placeholder') ?? '';
+      const fldId    = span.getAttribute(ATTR.fieldId) ?? '';
+
+      span.setAttribute(ATTR.multiline, useMultiline ? '1' : '0');
+
+      const newEl = useMultiline
+        ? this.createTextarea(ownerDoc, ph, fldId)
+        : this.createInput(ownerDoc, ph, fldId);
+
+      // 기존 스타일 유지
+      const fs = span.getAttribute(ATTR.fontSize) ?? '0';
+      newEl.style.fontSize   = fs === '0' ? 'inherit' : `${fs}px`;
+      const ff = span.getAttribute(ATTR.fontFamily) ?? '';
+      newEl.style.fontFamily = ff || 'inherit';
+      newEl.style.textAlign  = span.getAttribute(ATTR.textAlign) ?? 'left';
+
+      // 크기 복원 (ResizeObserver가 저장한 값)
+      const dw = span.getAttribute(ATTR.dataWidth);
+      const dh = span.getAttribute(ATTR.dataHeight);
+      if (dw) newEl.style.width = `${dw}px`;
+      if (dh && useMultiline) newEl.style.height = `${dh}px`;
+
+      // 값 이전 (줄바꿈 → input이면 공백 치환)
+      if (useMultiline) {
+        (newEl as HTMLTextAreaElement).value = val;
+      } else {
+        (newEl as HTMLInputElement).value = val.replace(/\n/g, ' ');
+      }
+
+      currentEl.replaceWith(newEl);
+      currentEl = newEl;
+      this.attachResizeObserver(newEl, span);
     });
 
     if (isNumber) {
@@ -485,7 +587,7 @@ export class FieldInserter {
         const fmt = (ev.target as HTMLSelectElement).value;
         span.setAttribute(ATTR.numberFormat, fmt);
         const raw = span.getAttribute(ATTR.rawValue) ?? '';
-        input.value = fmt === 'none' ? raw : formatNumber(raw, fmt);
+        setVal(fmt === 'none' ? raw : formatNumber(raw, fmt));
       });
     }
     if (isDate) {
@@ -501,7 +603,7 @@ export class FieldInserter {
         btn.classList.add('active');
         const align = btn.dataset.align ?? 'left';
         span.setAttribute(ATTR.textAlign, align);
-        input.style.textAlign = align;
+        currentEl.style.textAlign = align;
       });
     });
 
@@ -517,8 +619,8 @@ export class FieldInserter {
       });
     });
 
-    // 닫기 버튼 hover 스타일
-    const closeBtn = popup.querySelector<HTMLButtonElement>('#pf-close')!;
+    // 닫기 버튼
+    const closeBtn = q<HTMLButtonElement>('pf-close');
     closeBtn.addEventListener('mouseenter', () => { closeBtn.style.background = '#F1F5F9'; closeBtn.style.color = '#374151'; });
     closeBtn.addEventListener('mouseleave', () => { closeBtn.style.background = '#F8FAFC'; closeBtn.style.color = '#94A3B8'; });
     closeBtn.addEventListener('click', () => this.closePopup());
@@ -543,9 +645,8 @@ export class FieldInserter {
   // ── 저장 내보내기 ────────────────────────────────────────────────────────────
 
   /**
-   * 에디터 HTML 문자열에서 .poa-field 스팬을
-   * 입력값 또는 플레이스홀더 텍스트로 대체한다.
-   * 원본 DOM에는 영향을 주지 않는다.
+   * 에디터 HTML 문자열에서 .poa-field 스팬을 입력값 또는 플레이스홀더로 대체한다.
+   * data-width/data-height가 있으면 크기가 적용된 인라인 span으로 감싼다.
    */
   static exportFields(html: string): string {
     const doc = new DOMParser().parseFromString(html, 'text/html');
@@ -553,10 +654,30 @@ export class FieldInserter {
       const placeholder = span.getAttribute('data-placeholder') ?? '';
       const prefix  = span.getAttribute('data-prefix')  ?? '';
       const suffix  = span.getAttribute('data-suffix')  ?? '';
-      const input   = span.querySelector('input') as HTMLInputElement | null;
-      const rawVal  = input?.getAttribute('value')?.trim() ?? '';
-      const value   = rawVal !== '' ? rawVal : placeholder;
-      span.replaceWith(doc.createTextNode(`${prefix}${value}${suffix}`));
+      const width   = span.getAttribute('data-width');
+      const height  = span.getAttribute('data-height');
+
+      const fieldEl = span.querySelector('.poa-field-input') as HTMLElement | null;
+      let rawVal = '';
+      if (fieldEl?.tagName === 'TEXTAREA') {
+        rawVal = fieldEl.textContent?.trim() ?? '';
+      } else {
+        rawVal = (fieldEl as HTMLInputElement | null)?.getAttribute('value')?.trim() ?? '';
+      }
+
+      const value     = rawVal !== '' ? rawVal : placeholder;
+      const finalText = `${prefix}${value}${suffix}`;
+
+      if (width || height) {
+        const wrapper = doc.createElement('span');
+        wrapper.style.display = 'inline-block';
+        if (width)  wrapper.style.width     = `${width}px`;
+        if (height) wrapper.style.minHeight = `${height}px`;
+        wrapper.textContent = finalText;
+        span.replaceWith(wrapper);
+      } else {
+        span.replaceWith(doc.createTextNode(finalText));
+      }
     });
     return doc.body.innerHTML;
   }
