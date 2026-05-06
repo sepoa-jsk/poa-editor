@@ -177,8 +177,13 @@ export class FileManager {
    * contentEl 내용만 인쇄한다.
    * 숨김 iframe을 생성해 콘텐츠를 복사한 뒤 iframe.print()를 호출하므로
    * 툴바·메뉴바·상태바가 인쇄 영역에 포함되지 않는다.
+   * margin은 PaperSizeManager.getMargin() 에서 전달받은 mm 단위 여백이다.
    */
-  printDocument(contentEl: HTMLElement): void {
+  printDocument(
+    contentEl: HTMLElement,
+    margin?: { top: number; right: number; bottom: number; left: number },
+  ): void {
+    const m = margin ?? { top: 25, right: 30, bottom: 25, left: 30 };
     const iframe = document.createElement('iframe');
     iframe.style.cssText =
       'position:fixed;top:0;left:0;width:0;height:0;' +
@@ -199,7 +204,7 @@ export class FileManager {
 * { box-sizing: border-box; }
 body {
   margin: 0;
-  padding: 25mm;
+  padding: ${m.top}mm ${m.right}mm ${m.bottom}mm ${m.left}mm;
   background: #ffffff;
   font-family: 돋움체, sans-serif;
   font-size: 12pt;

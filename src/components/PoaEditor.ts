@@ -1225,7 +1225,7 @@ slot[name="content"] { display: contents; }
       case 'file:saveas':
         void this.fileManager.saveAsFile(this.getExportHTML()); return;
       case 'file:print':
-        this.fileManager.printDocument(this.contentEl); return;
+        this.fileManager.printDocument(this.contentEl, this.paperSizeManager?.getMargin()); return;
 
       // ── 편집 탭 액션 ─────────────────────────────────────────────
       case 'edit:cut': {
@@ -1368,6 +1368,13 @@ slot[name="content"] { display: contents; }
       case 'paper:size':       this.paperSizeManager?.setPaperSize(value ?? ''); return;
       case 'paper:zoom':
         if (value) this.paperSizeManager?.setZoom(parseInt(value, 10));
+        return;
+      case 'paper:margin':
+        if (value) {
+          try {
+            this.paperSizeManager?.setMargin(JSON.parse(value));
+          } catch { /* invalid JSON, ignore */ }
+        }
         return;
 
       case 'format:painter-copy':
