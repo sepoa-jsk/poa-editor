@@ -84,6 +84,8 @@ const CSS = `
 .btn.primary { border-color: #1976d2; background: #1976d2; color: #fff; }
 .btn.primary:hover { background: #1565c0; }
 .btn:disabled { opacity: .45; cursor: default; }
+#single-attrs { display: none; }
+#multi-attrs  { display: none; }
 `;
 
 function fmt(bytes: number): string {
@@ -95,12 +97,12 @@ function fmt(bytes: number): string {
 /**
  * <poa-image-dialog> — 이미지 삽입 다이얼로그 (URL · 파일 업로드 탭).
  *
+ * 파일 탭 동작:
+ *   - 1장 선택 → alt/title/크기 속성 입력 후 삽입 (단일 모드)
+ *   - 여러 장 선택 → alt 일괄 입력 + 업로드 큐 UI (다중 모드)
+ *
  * 발송 이벤트 (bubbles + composed):
  *   poa-image-insert  { attrs: ImageAttributes }
- *
- * 사용법:
- *   dialog.setUploadConfig({ uploadUrl: '/api/upload' });
- *   dialog.open();
  */
 export class PoaImageDialog extends HTMLElement {
   private shadow: ShadowRoot;
@@ -194,11 +196,56 @@ export class PoaImageDialog extends HTMLElement {
           <small>jpg · png · gif · webp · svg | 최대 20MB</small>
         </div>
         <input id="inp-file" type="file" accept=".jpg,.jpeg,.png,.gif,.webp,.svg" multiple style="display:none">
-        <div class="field">
-          <label>대체 텍스트 (alt) * — 모든 이미지에 일괄 적용</label>
-          <input id="inp-file-alt" type="text" placeholder="이미지 설명">
-          <div class="err" id="err-file-alt">alt 텍스트를 입력하세요.</div>
+
+        <!-- 단일 파일 속성 입력 (1장 선택 시 표시) -->
+        <div id="single-attrs">
+          <div class="field">
+            <label>대체 텍스트 (alt) *</label>
+            <input id="inp-single-alt" type="text" placeholder="이미지 설명 — 접근성 필수">
+            <div class="err" id="err-single-alt">alt 텍스트를 입력하세요.</div>
+          </div>
+          <div class="row2">
+            <div class="field">
+              <label>title</label>
+              <input id="inp-single-title" type="text">
+            </div>
+            <div class="field">
+              <label>정렬 (align)</label>
+              <select id="sel-single-align">
+                <option value="">기본</option>
+                <option value="left">왼쪽 float</option>
+                <option value="right">오른쪽 float</option>
+              </select>
+            </div>
+          </div>
+          <div class="row3">
+            <div class="field">
+              <label>가로 (width)</label>
+              <input id="inp-single-width" type="text" placeholder="200px">
+            </div>
+            <div class="field">
+              <label>세로 (height)</label>
+              <input id="inp-single-height" type="text" placeholder="auto">
+            </div>
+            <div class="field">
+              <label>테두리 (border)</label>
+              <input id="inp-single-border" type="text" placeholder="1px solid #ccc">
+            </div>
+          </div>
+          <div class="preview-box show" id="single-preview">
+            <img id="single-preview-img" alt="미리보기" src="">
+          </div>
         </div>
+
+        <!-- 다중 파일 alt (여러 장 선택 시 표시) -->
+        <div id="multi-attrs">
+          <div class="field">
+            <label>대체 텍스트 (alt) * — 모든 이미지에 일괄 적용</label>
+            <input id="inp-file-alt" type="text" placeholder="이미지 설명">
+            <div class="err" id="err-file-alt">alt 텍스트를 입력하세요.</div>
+          </div>
+        </div>
+
         <ul class="upload-list" id="upload-list"></ul>
         <div class="summary" id="upload-summary"></div>
         <ul class="upload-errors" id="upload-errors"></ul>
@@ -229,6 +276,7 @@ export class PoaImageDialog extends HTMLElement {
 
   private reset(): void {
     const s = this.shadow;
+    // URL 탭 필드
     (s.getElementById('inp-src')    as HTMLInputElement).value = '';
     (s.getElementById('inp-alt')    as HTMLInputElement).value = '';
     (s.getElementById('inp-title')  as HTMLInputElement).value = '';
@@ -238,13 +286,26 @@ export class PoaImageDialog extends HTMLElement {
     (s.getElementById('inp-id')     as HTMLInputElement).value = '';
     (s.getElementById('inp-class')  as HTMLInputElement).value = '';
     (s.getElementById('sel-align')  as HTMLSelectElement).value = '';
-    (s.getElementById('inp-file-alt') as HTMLInputElement).value = '';
     s.getElementById('err-alt')?.classList.remove('show');
-    s.getElementById('err-file-alt')?.classList.remove('show');
     s.getElementById('url-preview')?.classList.remove('show');
+    // 파일 탭 — 단일 모드 필드
+    (s.getElementById('inp-single-alt')    as HTMLInputElement).value = '';
+    (s.getElementById('inp-single-title')  as HTMLInputElement).value = '';
+    (s.getElementById('inp-single-width')  as HTMLInputElement).value = '';
+    (s.getElementById('inp-single-height') as HTMLInputElement).value = '';
+    (s.getElementById('inp-single-border') as HTMLInputElement).value = '';
+    (s.getElementById('sel-single-align')  as HTMLSelectElement).value = '';
+    (s.getElementById('single-preview-img') as HTMLImageElement).src = '';
+    s.getElementById('err-single-alt')?.classList.remove('show');
+    // 파일 탭 — 다중 모드 필드
+    (s.getElementById('inp-file-alt') as HTMLInputElement).value = '';
+    s.getElementById('err-file-alt')?.classList.remove('show');
+    // 공통
     s.getElementById('upload-list')!.innerHTML = '';
     s.getElementById('upload-summary')!.textContent = '';
     s.getElementById('upload-errors')!.innerHTML = '';
+    s.getElementById('single-attrs')!.style.display = 'none';
+    s.getElementById('multi-attrs')!.style.display  = 'none';
     this.selectedFiles = [];
     this.busy = false;
     this.switchTab('url');
@@ -297,27 +358,26 @@ export class PoaImageDialog extends HTMLElement {
       b.classList.toggle('active', (b as HTMLElement).dataset.tab === tab));
     s.querySelectorAll('.panel').forEach((p) =>
       p.classList.toggle('active', p.id === `panel-${tab}`));
-    (s.getElementById('btn-confirm') as HTMLButtonElement).textContent =
-      tab === 'file' ? '업로드 · 삽입' : '삽입';
     this.syncConfirmBtn();
   }
 
-  /**
-   * 현재 활성 탭에 따라 삽입 버튼 활성화 여부를 결정한다.
-   * - URL 탭: src + alt 모두 비어있지 않을 때만 활성화
-   * - 파일 탭: 항상 활성화 (파일 미선택 · alt 빈값은 confirmUpload에서 검증)
-   */
   private syncConfirmBtn(): void {
     const s = this.shadow;
     const btn = s.getElementById('btn-confirm') as HTMLButtonElement;
     const activePanel = s.querySelector('.panel.active');
+
     if (activePanel?.id === 'panel-url') {
       const src = (s.getElementById('inp-src') as HTMLInputElement).value.trim();
       const alt = (s.getElementById('inp-alt') as HTMLInputElement).value.trim();
       btn.disabled = !src || !alt;
-    } else {
-      btn.disabled = false;
+      btn.textContent = '삽입';
+      return;
     }
+
+    // 파일 탭: 모드에 따라 텍스트 및 활성화 상태 설정
+    const isSingleMode = s.getElementById('single-attrs')!.style.display !== 'none';
+    btn.textContent = isSingleMode ? '삽입' : '업로드 · 삽입';
+    btn.disabled = false;
   }
 
   private updatePreview(): void {
@@ -335,13 +395,33 @@ export class PoaImageDialog extends HTMLElement {
   private handleFiles(files: File[]): void {
     const { valid, errors } = this.uploader.validateFiles(files);
     this.selectedFiles.push(...valid);
-    this.renderUploadList();
     this.renderErrors(errors);
-    const total = this.selectedFiles.reduce((s, f) => s + f.size, 0);
-    const summary = this.shadow.getElementById('upload-summary')!;
-    summary.textContent = this.selectedFiles.length > 0
-      ? `${this.selectedFiles.length}개 파일 선택됨 (${fmt(total)} / 20MB)`
-      : '';
+
+    const s = this.shadow;
+    if (this.selectedFiles.length === 1) {
+      // 단일 모드: 속성 입력 폼 표시 + 파일 미리보기
+      s.getElementById('single-attrs')!.style.display = 'block';
+      s.getElementById('multi-attrs')!.style.display  = 'none';
+      s.getElementById('upload-list')!.innerHTML = '';
+      s.getElementById('upload-summary')!.textContent = '';
+
+      const reader = new FileReader();
+      reader.onload = (ev) => {
+        (s.getElementById('single-preview-img') as HTMLImageElement).src =
+          ev.target?.result as string;
+      };
+      reader.readAsDataURL(this.selectedFiles[0]);
+    } else if (this.selectedFiles.length > 1) {
+      // 다중 모드: alt 일괄 입력 + 업로드 큐
+      s.getElementById('single-attrs')!.style.display = 'none';
+      s.getElementById('multi-attrs')!.style.display  = 'block';
+      this.renderUploadList();
+      const total = this.selectedFiles.reduce((acc, f) => acc + f.size, 0);
+      s.getElementById('upload-summary')!.textContent =
+        `${this.selectedFiles.length}개 파일 선택됨 (${fmt(total)} / 20MB)`;
+    }
+
+    this.syncConfirmBtn();
   }
 
   private renderUploadList(items?: ReadonlyArray<UploadItem>): void {
@@ -408,19 +488,72 @@ export class PoaImageDialog extends HTMLElement {
   private async confirmUpload(): Promise<void> {
     if (this.selectedFiles.length === 0) return;
 
-    const alt = (this.shadow.getElementById('inp-file-alt') as HTMLInputElement).value.trim();
-    if (!alt) {
-      this.shadow.getElementById('err-file-alt')!.classList.add('show');
-      (this.shadow.getElementById('inp-file-alt') as HTMLInputElement).focus();
+    const s = this.shadow;
+    const isSingleMode = s.getElementById('single-attrs')!.style.display !== 'none';
+
+    // ── 단일 파일 모드 ──────────────────────────────────────────────
+    if (isSingleMode) {
+      const alt = (s.getElementById('inp-single-alt') as HTMLInputElement).value.trim();
+      if (!alt) {
+        s.getElementById('err-single-alt')!.classList.add('show');
+        (s.getElementById('inp-single-alt') as HTMLInputElement).focus();
+        return;
+      }
+      s.getElementById('err-single-alt')!.classList.remove('show');
+
+      const attrs: ImageAttributes = {
+        alt,
+        title:  (s.getElementById('inp-single-title')  as HTMLInputElement).value.trim() || undefined,
+        width:  (s.getElementById('inp-single-width')  as HTMLInputElement).value.trim() || undefined,
+        height: (s.getElementById('inp-single-height') as HTMLInputElement).value.trim() || undefined,
+        border: (s.getElementById('inp-single-border') as HTMLInputElement).value.trim() || undefined,
+        align:  (s.getElementById('sel-single-align')  as HTMLSelectElement).value || undefined,
+        src: '',
+      };
+
+      this.busy = true;
+      (s.getElementById('btn-confirm') as HTMLButtonElement).disabled = true;
+
+      try {
+        const file = this.selectedFiles[0];
+        if (this.uploadConfig) {
+          const results = await this.uploader.upload([file], {
+            ...this.uploadConfig,
+            onProgress: (items) => this.renderUploadList(items),
+          });
+          const done = results[0];
+          if (done?.status === 'done' && done.url) {
+            this.dispatch('poa-image-insert', { attrs: { ...attrs, src: done.url } });
+          }
+        } else {
+          const src = await this.readAsDataUrl(file);
+          this.dispatch('poa-image-insert', { attrs: { ...attrs, src } });
+        }
+        this.busy = false;
+        this.close();
+      } catch (err) {
+        (this.onErrorFn ?? ((m) => console.error(m)))(
+          err instanceof Error ? err.message : '파일 읽기에 실패했습니다.',
+        );
+        this.busy = false;
+        this.syncConfirmBtn();
+      }
       return;
     }
-    this.shadow.getElementById('err-file-alt')!.classList.remove('show');
+
+    // ── 다중 파일 모드 ─────────────────────────────────────────────
+    const alt = (s.getElementById('inp-file-alt') as HTMLInputElement).value.trim();
+    if (!alt) {
+      s.getElementById('err-file-alt')!.classList.add('show');
+      (s.getElementById('inp-file-alt') as HTMLInputElement).focus();
+      return;
+    }
+    s.getElementById('err-file-alt')!.classList.remove('show');
 
     this.busy = true;
-    (this.shadow.getElementById('btn-confirm') as HTMLButtonElement).disabled = true;
+    (s.getElementById('btn-confirm') as HTMLButtonElement).disabled = true;
 
     if (!this.uploadConfig) {
-      // 업로드 서버 URL 미설정 → FileReader로 Base64 변환 후 직접 삽입
       try {
         for (const file of this.selectedFiles) {
           const dataUrl = await this.readAsDataUrl(file);
@@ -431,14 +564,15 @@ export class PoaImageDialog extends HTMLElement {
         this.busy = false;
         this.close();
       } catch (err) {
-        (this.onErrorFn ?? ((m) => console.error(m)))(err instanceof Error ? err.message : '파일 읽기에 실패했습니다.');
+        (this.onErrorFn ?? ((m) => console.error(m)))(
+          err instanceof Error ? err.message : '파일 읽기에 실패했습니다.',
+        );
         this.busy = false;
         this.syncConfirmBtn();
       }
       return;
     }
 
-    // 업로드 서버 URL 설정됨 → FormData REST API 업로드
     const results = await this.uploader.upload(this.selectedFiles, {
       ...this.uploadConfig,
       onProgress: (items) => this.renderUploadList(items),
