@@ -72,6 +72,9 @@ export { EmojiInserter, searchEmojis, EMOJI_CATEGORIES, EMOJI_KEYWORDS } from '.
 export type { EmojiCategory } from './modules/insert/EmojiInserter.js';
 export { TooltipManager } from './modules/insert/TooltipManager.js';
 export type { TooltipEntry } from './modules/insert/TooltipManager.js';
+export { FieldInserter } from './modules/insert/FieldInserter.js';
+export { DOCUMENT_FIELDS, FIELD_MAP } from './modules/insert/DocumentFields.js';
+export type { DocumentField } from './modules/insert/DocumentFields.js';
 export { PoaEmojiDialog }          from './components/dialogs/EmojiDialog.js';
 export { PoaTooltipDialog }        from './components/dialogs/TooltipDialog.js';
 export { PoaInputPropertyDialog }  from './components/dialogs/InputPropertyDialog.js';

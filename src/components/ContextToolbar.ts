@@ -2,11 +2,22 @@ import { eventBus, BusEvent } from '../utils/eventBus.js';
 import type { MenuTab } from '../core/types.js';
 import type { ViewMode } from '../modules/view/ViewManager.js';
 import { Icons, ACTION_ICON } from '../utils/icons.js';
+import { DOCUMENT_FIELDS } from '../modules/insert/DocumentFields.js';
 
 /** [label, action, value?, title?] */
 type BDef = readonly [string, string, string?, string?];
+/** 드롭다운 버튼 정의 */
+interface DropdownDef {
+  readonly dropdown: true;
+  readonly id: string;
+  readonly label: string;
+  /** [label, action, value?, typeIcon?] */
+  readonly items: ReadonlyArray<readonly [string, string, string?, string?]>;
+}
 /** null = 구분선 */
-type GroupDef = ReadonlyArray<BDef | null>;
+type GroupDef = ReadonlyArray<BDef | DropdownDef | null>;
+
+const TYPE_ICONS: Record<string, string> = { text: 'T', number: '#', date: '📅' };
 
 const TABS: Record<MenuTab, ReadonlyArray<GroupDef>> = {
   file: [
@@ -25,6 +36,8 @@ const TABS: Record<MenuTab, ReadonlyArray<GroupDef>> = {
     [['서명','insert:signature'],['이모지','insert:emoji']],
     [['툴팁','insert:tooltip'],['툴팁 관리','insert:tooltip-list']],
     [['날짜·시간','insert:datetime'],['가로줄','insert:hr'],['기호','insert:symbol']],
+    [{ dropdown: true, id: 'doc-field', label: '양식 필드',
+       items: DOCUMENT_FIELDS.map(f => [f.label, 'insert:field', f.id, TYPE_ICONS[f.type]] as const) }],
   ],
   view: [
     [['디자인','view:design'],['HTML','view:html'],['미리보기','view:preview'],['텍스트','view:text'],['페이지','view:page']],
@@ -103,6 +116,38 @@ const CSS = `
   font-weight: 600;
 }
 
+/* 드롭다운 */
+.dropdown-wrap { position: relative; }
+.dropdown-toggle::after { content: ' ▾'; font-size: 9px; }
+.dropdown-menu {
+  display: none;
+  position: absolute;
+  top: calc(100% + 2px); left: 0;
+  min-width: 160px;
+  background: #fff;
+  border: 1px solid #E5E7EB;
+  border-radius: 6px;
+  box-shadow: 0 4px 16px rgba(0,0,0,.12);
+  z-index: 9999;
+  padding: 4px 0;
+  max-height: 260px;
+  overflow-y: auto;
+}
+.dropdown-menu.open { display: block; }
+.drop-item {
+  display: flex; align-items: center; gap: 8px;
+  padding: 5px 12px;
+  font-size: 12px; color: #374151;
+  cursor: pointer; white-space: nowrap;
+}
+.drop-item:hover { background: #F3F4F6; }
+.type-icon {
+  display: inline-flex; align-items: center; justify-content: center;
+  width: 16px; height: 16px;
+  font-size: 10px; font-weight: 700; color: #6B7280;
+  background: #F3F4F6; border-radius: 2px; flex-shrink: 0;
+}
+
 /* 툴팁 */
 .btn::after {
   content: attr(data-tip);
@@ -133,6 +178,7 @@ export class PoaContextToolbar extends HTMLElement {
   private shadow: ShadowRoot;
   private activeTab: MenuTab = 'edit';
   private activeViewMode: ViewMode = 'design';
+  private outsideHandler: ((e: MouseEvent) => void) | null = null;
 
   private readonly busHandler = ({ tab }: { tab: MenuTab }): void => {
     this.activeTab = tab;
@@ -158,33 +204,42 @@ export class PoaContextToolbar extends HTMLElement {
   disconnectedCallback(): void {
     eventBus.off<{ tab: MenuTab }>(BusEvent.MENUBAR_CHANGE, this.busHandler);
     eventBus.off<{ mode: ViewMode }>(BusEvent.VIEW_CHANGE, this.viewHandler);
+    this.closeAllDropdowns();
   }
 
   private render(): void {
+    this.closeAllDropdowns();
     const groups = TABS[this.activeTab] ?? [];
     const parts: string[] = [];
 
     for (let gi = 0; gi < groups.length; gi++) {
       if (gi > 0) parts.push('<div class="sep"></div>');
       parts.push('<div class="group">');
-      for (const btn of groups[gi]) {
-        if (btn === null) {
+      for (const item of groups[gi]) {
+        if (item === null) {
           parts.push('<div class="sep" style="margin:0 2px;"></div>');
+        } else if ('dropdown' in item && item.dropdown) {
+          const menuItems = item.items.map(([label, action, value, typeIcon]) => {
+            const da = value ? ` data-value="${value}"` : '';
+            const icon = typeIcon ? `<span class="type-icon">${typeIcon}</span>` : '';
+            return `<div class="drop-item" data-action="${action}"${da}>${icon}${label}</div>`;
+          }).join('');
+          parts.push(
+            `<div class="dropdown-wrap" id="dd-${item.id}">` +
+            `<button class="btn dropdown-toggle" data-dropdown-id="${item.id}">${item.label}</button>` +
+            `<div class="dropdown-menu" id="menu-${item.id}">${menuItems}</div>` +
+            `</div>`,
+          );
         } else {
-          const [label, action, value, title] = btn;
+          const [label, action, value, title] = item as BDef;
           const da = value ? ` data-value="${value}"` : '';
           const isActive = VIEW_MODE_ACTIONS.has(action)
             && action === `view:${this.activeViewMode}`;
           const cls = isActive ? ' active' : '';
           const tip = title ?? label;
-
-          // 아이콘이 있으면 SVG + 텍스트, 없으면 텍스트만
           const iconKey = ACTION_ICON[action];
           const iconSvg = iconKey ? Icons[iconKey] : '';
-          const content = iconSvg
-            ? `${iconSvg}<span>${label}</span>`
-            : label;
-
+          const content = iconSvg ? `${iconSvg}<span>${label}</span>` : label;
           parts.push(
             `<button class="btn${cls}" data-action="${action}"${da} data-tip="${tip}">${content}</button>`,
           );
@@ -196,7 +251,42 @@ export class PoaContextToolbar extends HTMLElement {
     this.shadow.innerHTML = `<style>${CSS}</style><div class="ctx-bar">${parts.join('')}</div>`;
 
     this.shadow.querySelector('.ctx-bar')!.addEventListener('mousedown', (e) => {
-      const btn = (e.target as HTMLElement).closest<HTMLButtonElement>('.btn');
+      const target = e.target as HTMLElement;
+
+      // 드롭다운 토글 버튼
+      const toggleBtn = target.closest<HTMLButtonElement>('.dropdown-toggle');
+      if (toggleBtn) {
+        const ddId = toggleBtn.dataset.dropdownId;
+        if (!ddId) return;
+        e.preventDefault();
+        const menu = this.shadow.getElementById(`menu-${ddId}`);
+        if (!menu) return;
+        const isOpen = menu.classList.contains('open');
+        this.closeAllDropdowns();
+        if (!isOpen) {
+          menu.classList.add('open');
+          this.setupOutsideClick(ddId);
+        }
+        return;
+      }
+
+      // 드롭다운 메뉴 항목
+      const dropItem = target.closest<HTMLElement>('.drop-item');
+      if (dropItem) {
+        const action = dropItem.dataset.action;
+        const value  = dropItem.dataset.value;
+        if (!action) return;
+        e.preventDefault();
+        this.closeAllDropdowns();
+        this.dispatchEvent(new CustomEvent('poa-action', {
+          bubbles: true, composed: true,
+          detail: { type: action, value },
+        }));
+        return;
+      }
+
+      // 일반 버튼
+      const btn = target.closest<HTMLButtonElement>('.btn');
       if (!btn || btn.disabled) return;
       const action = btn.dataset.action;
       if (!action) return;
@@ -207,5 +297,24 @@ export class PoaContextToolbar extends HTMLElement {
         detail: { type: action, value },
       }));
     });
+  }
+
+  private closeAllDropdowns(): void {
+    this.shadow.querySelectorAll('.dropdown-menu.open').forEach(m => m.classList.remove('open'));
+    if (this.outsideHandler) {
+      document.removeEventListener('mousedown', this.outsideHandler);
+      this.outsideHandler = null;
+    }
+  }
+
+  private setupOutsideClick(ddId: string): void {
+    this.outsideHandler = (e: MouseEvent): void => {
+      const wrap = this.shadow.getElementById(`dd-${ddId}`);
+      if (!wrap) return;
+      if (!e.composedPath().includes(wrap)) {
+        this.closeAllDropdowns();
+      }
+    };
+    document.addEventListener('mousedown', this.outsideHandler);
   }
 }

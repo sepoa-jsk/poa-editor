@@ -62,6 +62,8 @@ import type { PoaTooltipDialog }        from './dialogs/TooltipDialog.js';
 import type { PoaInputPropertyDialog }  from './dialogs/InputPropertyDialog.js';
 import { EmojiInserter }               from '../modules/insert/EmojiInserter.js';
 import { TooltipManager }              from '../modules/insert/TooltipManager.js';
+import { FieldInserter }               from '../modules/insert/FieldInserter.js';
+import { FIELD_MAP }                   from '../modules/insert/DocumentFields.js';
 
 const INDENT_STEP_EM = 2;
 const BLOCK_TAGS = new Set(['p', 'div', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'li', 'blockquote', 'pre']);
@@ -136,6 +138,7 @@ export class PoaEditor extends HTMLElement {
   private inputPropertyDialog!:   PoaInputPropertyDialog;
   private emojiInserter!:         EmojiInserter;
   private tooltipManager!:        TooltipManager;
+  private fieldInserter!:         FieldInserter;
   /** 현재 선택(파란 outline)된 표 — null이면 미선택 */
   private selectedTable: HTMLTableElement | null = null;
   /** 표 컨텍스트 진입 직전 탭 — 표에서 벗어날 때 복귀에 사용 */
@@ -263,6 +266,8 @@ slot[name="content"] { display: contents; }
     this.tooltipManager    = new TooltipManager(this.contentEl);
     TooltipManager.injectStyles();
     TooltipManager.attachHoverPopup(this.contentEl);
+    this.fieldInserter = new FieldInserter();
+    this.fieldInserter.attach(this.contentEl);
 
     this.toast = new PoaToast();
     this.imageInsertDialog.setOnError((msg) => this.toast.show(msg, 'error'));
@@ -961,10 +966,10 @@ slot[name="content"] { display: contents; }
       });
     });
     this.shadow.addEventListener('poa-file-save', () => {
-      void this.fileManager.saveFile(this.getHTML());
+      void this.fileManager.saveFile(this.getExportHTML());
     });
     this.shadow.addEventListener('poa-file-saveas', () => {
-      void this.fileManager.saveAsFile(this.getHTML());
+      void this.fileManager.saveAsFile(this.getExportHTML());
     });
     this.shadow.addEventListener('poa-autosave-restore', (e) => {
       const { html } = (e as CustomEvent).detail as { html: string };
@@ -1003,6 +1008,7 @@ slot[name="content"] { display: contents; }
     PrivacyChecker.removeHighlights(this.contentEl);
     this.formulaManager.detachAll();
     this.formControlEditor.detach();
+    this.fieldInserter.detach();
     this.core.unmount();
   }
 
@@ -1013,6 +1019,24 @@ slot[name="content"] { display: contents; }
     const clone = this.contentEl.cloneNode(true) as HTMLDivElement;
     clone.querySelectorAll('[data-poa-temp]').forEach((el) => el.remove());
     return DOMPurify.sanitize(clone.innerHTML);
+  }
+
+  /**
+   * 문서 양식 필드(.poa-field)를 입력값(또는 플레이스홀더)으로 치환한 HTML을 반환한다.
+   * 파일 저장 시 사용하며 원본 DOM에는 영향을 주지 않는다.
+   */
+  getExportHTML(): string {
+    // cloneNode는 IDL value를 복사하지 않으므로 라이브 input 값을 attribute로 먼저 동기화
+    this.contentEl.querySelectorAll<HTMLInputElement>('input.poa-field-input').forEach((input) => {
+      if (input.value) input.setAttribute('value', input.value);
+    });
+    const clone = this.contentEl.cloneNode(true) as HTMLDivElement;
+    clone.querySelectorAll('[data-poa-temp]').forEach((el) => el.remove());
+    return FieldInserter.exportFields(DOMPurify.sanitize(clone.innerHTML, {
+      ADD_ATTR: ['data-field-id','data-placeholder','data-prefix','data-suffix',
+                 'data-multiline','data-font-size','data-text-align','data-font-family',
+                 'data-size-fixed','value'],
+    }));
   }
 
   setHTML(html: string): void {
@@ -1160,9 +1184,9 @@ slot[name="content"] { display: contents; }
           void this.core.captureHistory('fileOpen');
         }); return;
       case 'file:save':
-        void this.fileManager.saveFile(this.getHTML()); return;
+        void this.fileManager.saveFile(this.getExportHTML()); return;
       case 'file:saveas':
-        void this.fileManager.saveAsFile(this.getHTML()); return;
+        void this.fileManager.saveAsFile(this.getExportHTML()); return;
       case 'file:print':
         window.print(); return;
 
@@ -1366,6 +1390,14 @@ slot[name="content"] { display: contents; }
       case 'insert:tooltip-list':
         this.tooltipDialog.openList(this.tooltipManager.getAll());
         return;
+      case 'insert:field': {
+        const field = value ? FIELD_MAP[value] : undefined;
+        if (!field) { this.toast.show('알 수 없는 양식 필드입니다.', 'error'); return; }
+        this.fieldInserter.insertField(field, this.savedRange);
+        await this.core.captureHistory('insertField');
+        this.statusBar.update(this.contentEl.innerHTML);
+        return;
+      }
       case 'insert:hr': case 'insert:symbol': case 'insert:multi-image':
       case 'help:shortcuts': case 'help:guide': case 'help:about':
         this.toast.show(`'${type}' 기능은 준비 중입니다.`, 'info');
