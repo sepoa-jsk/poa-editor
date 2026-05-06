@@ -259,7 +259,19 @@ ${printStyle}
     if (filename.endsWith('.txt')) {
       return textToHtml(rawText);
     }
-    // .html / .htm → DOMPurify 정제
-    return sanitize(rawText);
+    // .html / .htm → DOMPurify 정제 후 td/th verticalAlign 정규화
+    const clean = sanitize(rawText);
+    return this.normalizeTableCells(clean);
+  }
+
+  private normalizeTableCells(html: string): string {
+    const parser = new DOMParser();
+    const doc = parser.parseFromString(html, 'text/html');
+    doc.querySelectorAll<HTMLTableCellElement>('td, th').forEach((cell) => {
+      if (!cell.style.verticalAlign) {
+        cell.style.verticalAlign = 'middle';
+      }
+    });
+    return doc.body.innerHTML;
   }
 }

@@ -75,10 +75,11 @@ const BASE_FIELD_STYLE = [
 ].join(';');
 
 const FIELD_INPUT_STYLE =
-  `${BASE_FIELD_STYLE};padding:1px 4px;vertical-align:middle;resize:horizontal;height:auto;`;
+  `${BASE_FIELD_STYLE};display:inline-block;padding:1px 4px;vertical-align:middle;` +
+  `resize:horizontal;height:auto;`;
 
 const FIELD_TEXTAREA_STYLE =
-  `${BASE_FIELD_STYLE};padding:2px 4px;vertical-align:top;resize:both;` +
+  `${BASE_FIELD_STYLE};display:inline-block;padding:2px 4px;vertical-align:middle;resize:both;` +
   `max-height:400px;line-height:inherit;min-height:1.5em;height:auto;`;
 
 // ── 숫자 포맷 헬퍼 ──────────────────────────────────────────────────────────

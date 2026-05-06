@@ -136,6 +136,11 @@ poa-editor {
   min-width: 30px;
 }
 
+.poa-editor-content table td > *,
+.poa-editor-content table th > * {
+  vertical-align: middle;
+}
+
 /* 열/행 드래그 리사이즈 중 커서 고정 */
 .poa-editor-content table.col-resizing * {
   cursor: col-resize !important;
