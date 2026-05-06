@@ -116,6 +116,9 @@ export class ViewManager {
   isRulerVisible(): boolean { return this.rulerVisible; }
   isGridVisible(): boolean { return this.gridVisible; }
 
+  /** 디자인 뷰 스크롤 컨테이너 (.poa-view-content-row) — PaperSizeManager 에서 래퍼로 사용 */
+  getScrollContainer(): HTMLDivElement | null { return this.contentRow; }
+
   async switchTo(mode: ViewMode): Promise<void> {
     if (this.mode === mode) return;
 

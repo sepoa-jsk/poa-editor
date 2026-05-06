@@ -64,6 +64,7 @@ import { EmojiInserter }               from '../modules/insert/EmojiInserter.js'
 import { TooltipManager }              from '../modules/insert/TooltipManager.js';
 import { FieldInserter }               from '../modules/insert/FieldInserter.js';
 import { FIELD_MAP }                   from '../modules/insert/DocumentFields.js';
+import { PaperSizeManager }            from '../modules/view/PaperSizeManager.js';
 
 const INDENT_STEP_EM = 2;
 const BLOCK_TAGS = new Set(['p', 'div', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'li', 'blockquote', 'pre']);
@@ -139,6 +140,7 @@ export class PoaEditor extends HTMLElement {
   private emojiInserter!:         EmojiInserter;
   private tooltipManager!:        TooltipManager;
   private fieldInserter!:         FieldInserter;
+  private paperSizeManager!:      PaperSizeManager;
   /** 현재 선택(파란 outline)된 표 — null이면 미선택 */
   private selectedTable: HTMLTableElement | null = null;
   /** 표 컨텍스트 진입 직전 탭 — 표에서 벗어날 때 복귀에 사용 */
@@ -316,6 +318,17 @@ slot[name="content"] { display: contents; }
       getBookmarks: () => this.bookmarkManager.getAll(),
     });
     this.viewManager.attach();
+
+    // PaperSizeManager: contentRow를 스크롤 컨테이너/배경 래퍼로 활용
+    const scrollContainer = this.viewManager.getScrollContainer();
+    if (scrollContainer) {
+      this.paperSizeManager = new PaperSizeManager(this.contentEl, scrollContainer);
+      this.paperSizeManager.init();
+      // statusBar가 paper-change를 수신하도록 이벤트 전파
+      scrollContainer.addEventListener('paper-change', (e) => {
+        this.statusBar.syncPaper(e as CustomEvent);
+      });
+    }
 
     this.tableWholeResizer = new TableWholeResizer(this.contentEl, {
       onResizeEnd: () => {
@@ -860,6 +873,7 @@ slot[name="content"] { display: contents; }
     });
 
     // Ctrl+F → 찾기, Ctrl+H → 찾기+바꾸기 / ESC → 서식 페인터 해제 / Tab → 목록 들여쓰기
+    // Ctrl+= → 확대, Ctrl+- → 축소, Ctrl+0 → 100% 초기화
     this.contentEl.addEventListener('keydown', (e) => {
       if ((e.ctrlKey || e.metaKey) && e.key === 'f') {
         e.preventDefault();
@@ -869,6 +883,21 @@ slot[name="content"] { display: contents; }
       if ((e.ctrlKey || e.metaKey) && e.key === 'h') {
         e.preventDefault();
         this.findDialog.open('replace');
+        return;
+      }
+      if ((e.ctrlKey || e.metaKey) && (e.key === '=' || e.key === '+')) {
+        e.preventDefault();
+        this.paperSizeManager?.zoomIn();
+        return;
+      }
+      if ((e.ctrlKey || e.metaKey) && e.key === '-') {
+        e.preventDefault();
+        this.paperSizeManager?.zoomOut();
+        return;
+      }
+      if ((e.ctrlKey || e.metaKey) && e.key === '0') {
+        e.preventDefault();
+        this.paperSizeManager?.resetZoom();
         return;
       }
       this.formatPainter.handleKeydown(e);
@@ -1330,6 +1359,15 @@ slot[name="content"] { display: contents; }
         return;
       case 'view:hidden-border':
         this.viewManager.toggleHiddenBorder();
+        return;
+
+      // ── 용지/확대축소 액션 ────────────────────────────────────────
+      case 'paper:zoom-in':   this.paperSizeManager?.zoomIn();                  return;
+      case 'paper:zoom-out':  this.paperSizeManager?.zoomOut();                 return;
+      case 'paper:zoom-reset': this.paperSizeManager?.resetZoom();              return;
+      case 'paper:size':       this.paperSizeManager?.setPaperSize(value ?? ''); return;
+      case 'paper:zoom':
+        if (value) this.paperSizeManager?.setZoom(parseInt(value, 10));
         return;
 
       case 'format:painter-copy':

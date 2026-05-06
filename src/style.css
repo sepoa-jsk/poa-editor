@@ -161,3 +161,31 @@ span.poa-field textarea.poa-field-input {
   min-height: 1.5em;
   height: auto;
 }
+
+/* ── Paper / Zoom layout ────────────────────────────────────────────────── */
+
+/* 디자인 뷰 스크롤 컨테이너 (ViewManager .poa-view-content-row) */
+.poa-view-content-row {
+  box-sizing: border-box;
+}
+
+/* 용지 모드의 에디터 영역 — PaperSizeManager.applyToEditor() 가 인라인으로 덮어씀 */
+.poa-editor-content {
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+}
+
+/* 인쇄 시 배경색 제거 및 transform 리셋 */
+@media print {
+  .poa-view-content-row {
+    background: transparent !important;
+    padding: 0 !important;
+    overflow: visible !important;
+  }
+  .poa-editor-content {
+    transform: none !important;
+    width: 100% !important;
+    min-height: unset !important;
+    padding: 0 !important;
+    box-shadow: none !important;
+  }
+}
