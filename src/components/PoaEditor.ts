@@ -1302,6 +1302,15 @@ slot[name="content"] { display: contents; }
         if (cell) this.cellSplitDialog.open(cell);
         return;
       }
+      case 'table:align-left':
+      case 'table:align-center':
+      case 'table:align-right': {
+        const t = this.getFocusedTable();
+        if (!t) return;
+        this.tableNavigator.applyTableAlign(t, type.replace('table:align-', '') as 'left' | 'center' | 'right');
+        await this.core.captureHistory('tableAlign');
+        return;
+      }
       case 'table:cell-props':
       case 'table:merge':
       case 'table:row-above':

@@ -67,6 +67,7 @@ const TABS: Record<MenuTab, ReadonlyArray<GroupDef>> = {
     [['셀 병합','table:merge'],['셀 나누기','table:split-cell']],
     [['위에 행 삽입','table:row-above'],['아래에 행 삽입','table:row-below'],['왼쪽에 열 삽입','table:col-left'],['오른쪽에 열 삽입','table:col-right']],
     [['행 삭제','table:row-delete'],['열 삭제','table:col-delete'],['표 삭제','table:delete']],
+    [['◀ 왼쪽','table:align-left'],['≡ 가운데','table:align-center'],['▶ 오른쪽','table:align-right']],
   ],
   format: [
     [['서식 복사','format:painter-copy'],['서식 붙여넣기','format:painter-paste'],['서식 제거','format:clear']],

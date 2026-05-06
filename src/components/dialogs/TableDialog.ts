@@ -118,6 +118,15 @@ const CSS = `
 .btn-primary { background: #1565c0; color: #fff; border-color: #1565c0; }
 .btn-primary:hover { background: #1251a3; }
 .btn:not(.btn-primary):hover { background: #f5f5f5; }
+.align-btn {
+  height: 28px; padding: 0 10px;
+  border: 1.5px solid #ccc; border-radius: 3px;
+  font-size: 12px; cursor: pointer; background: #fff; color: #374151;
+}
+.align-btn.active {
+  border-color: #1565c0; background: #e3f0ff; color: #1565c0; font-weight: 600;
+}
+.align-btn:hover:not(.active) { background: #f5f5f5; }
 `;
 
 export class PoaTableDialog extends HTMLElement {
@@ -268,6 +277,7 @@ export class PoaTableDialog extends HTMLElement {
       rows,
       cols,
       width: '100%',
+      align: 'center',   // 신규 표 기본값: 가운데 정렬
       ...preset.baseOptions,
     } as TableOptions;
 
@@ -286,9 +296,14 @@ export class PoaTableDialog extends HTMLElement {
     const firstCell = table.querySelector<HTMLElement>('td,th');
     const bm = firstCell?.style.border.match(/solid\s+(#[\da-fA-F]{3,6}|[a-z]+)/i);
     const borderColor = bm ? bm[1] : '#000000';
-    let align: string = 'left';
-    if (table.style.marginLeft === 'auto' && table.style.marginRight === 'auto') align = 'center';
-    else if (table.style.marginLeft === 'auto') align = 'right';
+    let initAlign: 'left' | 'center' | 'right' = 'left';
+    if (table.style.marginLeft === 'auto' && table.style.marginRight === 'auto') initAlign = 'center';
+    else if (table.style.marginLeft === 'auto') initAlign = 'right';
+
+    const aBtn = (v: 'left' | 'center' | 'right', icon: string, label: string): string => {
+      const a = initAlign === v;
+      return `<button class="align-btn${a ? ' active' : ''}" data-align="${v}">${icon} ${label}</button>`;
+    };
 
     body.innerHTML = `
 <div class="props-form">
@@ -298,19 +313,28 @@ export class PoaTableDialog extends HTMLElement {
   <input  class="p-clr" id="pp-bc" type="color" value="${borderColor}">
   <label class="p-lbl">배경색</label>
   <input  class="p-clr" id="pp-bg" type="color" value="${bgColor}">
-  <label class="p-lbl">정렬</label>
-  <select class="p-sel" id="pp-al">
-    <option value="left">왼쪽</option>
-    <option value="center">가운데</option>
-    <option value="right">오른쪽</option>
-  </select>
+  <label class="p-lbl">표 정렬</label>
+  <div id="pp-align-btns" style="display:flex;gap:5px;">
+    ${aBtn('left',   '◀', '왼쪽')}
+    ${aBtn('center', '≡', '가운데')}
+    ${aBtn('right',  '▶', '오른쪽')}
+  </div>
 </div>
 <div class="props-actions">
-  <button class="btn"         id="pp-cancel">취소</button>
+  <button class="btn"             id="pp-cancel">취소</button>
   <button class="btn btn-primary" id="pp-ok">적용</button>
 </div>`;
 
-    (body.querySelector('#pp-al') as HTMLSelectElement).value = align;
+    let selectedAlign: 'left' | 'center' | 'right' = initAlign;
+
+    body.querySelector('#pp-align-btns')!.addEventListener('click', (e) => {
+      const btn = (e.target as HTMLElement).closest<HTMLButtonElement>('.align-btn');
+      if (!btn) return;
+      selectedAlign = btn.dataset.align as 'left' | 'center' | 'right';
+      body.querySelectorAll<HTMLButtonElement>('.align-btn').forEach((b) => {
+        b.classList.toggle('active', b.dataset.align === selectedAlign);
+      });
+    });
 
     body.querySelector('#pp-cancel')!.addEventListener('click', () => this.close());
     body.querySelector('#pp-ok')!.addEventListener('click', () => {
@@ -318,7 +342,7 @@ export class PoaTableDialog extends HTMLElement {
         width:       (body.querySelector('#pp-w')  as HTMLInputElement).value.trim(),
         borderColor: (body.querySelector('#pp-bc') as HTMLInputElement).value,
         bgColor:     (body.querySelector('#pp-bg') as HTMLInputElement).value,
-        align:       (body.querySelector('#pp-al') as HTMLSelectElement).value as 'left' | 'center' | 'right',
+        align:       selectedAlign,
       };
       this.dispatchEvent(new CustomEvent('poa-table-update', {
         bubbles: true, composed: true,

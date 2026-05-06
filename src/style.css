@@ -124,9 +124,27 @@ poa-editor {
 
 /* ── Editor Content ──────────────────────────────────────────────────────── */
 
+.poa-editor-content table {
+  border-collapse: collapse;
+  table-layout: fixed;
+}
+
 .poa-editor-content table td,
 .poa-editor-content table th {
   vertical-align: middle;
+  box-sizing: border-box;
+  min-width: 30px;
+}
+
+/* 열/행 드래그 리사이즈 중 커서 고정 */
+.poa-editor-content table.col-resizing * {
+  cursor: col-resize !important;
+  user-select: none !important;
+}
+
+.poa-editor-content table.row-resizing * {
+  cursor: row-resize !important;
+  user-select: none !important;
 }
 
 /* ── Document Field (양식 필드) ──────────────────────────────────────────── */
