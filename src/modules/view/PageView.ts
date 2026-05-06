@@ -118,7 +118,9 @@ export class PageView {
   }
 
   private splitByPageBreaks(html: string): string[] {
-    const parts = html.split(/<(?:hr|div)[^>]*class="[^"]*poa-page-break[^"]*"[^>]*>(?:<\/div>)?/i);
+    // <hr class="poa-page-break"> 또는 <div class="poa-page-break">...</div> 전체 매칭
+    const pattern = /<hr[^>]*class="[^"]*poa-page-break[^"]*"[^>]*\/?>|<div[^>]*class="[^"]*poa-page-break[^"]*"[^>]*>[\s\S]*?<\/div>/gi;
+    const parts = html.split(pattern);
     return parts.length > 0 ? parts : [html];
   }
 

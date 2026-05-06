@@ -111,11 +111,12 @@ export class PaperSizeManager {
 
     this.editableArea.style.width           = `${widthPx}px`;
     this.editableArea.style.minHeight       = `${heightPx}px`;
+    this.editableArea.style.height          = 'auto';
     this.editableArea.style.padding         = `${tPx}px ${rPx}px ${bPx}px ${lPx}px`;
     this.editableArea.style.boxSizing       = 'border-box';
     this.editableArea.style.overflowY       = 'visible';
     this.editableArea.style.overflowX       = 'visible';
-    this.editableArea.style.flex            = '';
+    this.editableArea.style.flex            = '0 0 auto'; // shrink 금지 — 내용에 따라 A4 박스 자동 확장
     this.editableArea.style.transform       = `scale(${scale})`;
     this.editableArea.style.transformOrigin = 'top center';
     this.editableArea.style.margin          = '0 auto';

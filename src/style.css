@@ -126,10 +126,13 @@ poa-editor {
 
 .poa-page-break {
   display: block;
-  width: 100%;
+  /* A4 여백(기본 30mm ≈ 113px)을 상쇄해 용지 전체 폭을 채움 */
+  width: calc(100% + 226px);
+  margin-left: -113px;
   border: none;
-  border-top: 2px dashed #aaa;
-  margin: 16px 0;
+  border-top: 2px dashed #bbb;
+  margin-top: 32px;
+  margin-bottom: 32px;
   position: relative;
   cursor: default;
   user-select: none;
@@ -271,6 +274,7 @@ span.poa-field:hover .poa-field-resize-handle {
 /* 디자인 뷰 스크롤 컨테이너 (ViewManager .poa-view-content-row) */
 .poa-view-content-row {
   box-sizing: border-box;
+  overflow-y: auto; /* PaperSizeManager 인라인 스타일과 동일 방향으로 보장 */
 }
 
 /* 용지 모드의 에디터 영역 — PaperSizeManager.applyToEditor() 가 인라인으로 덮어씀 */
