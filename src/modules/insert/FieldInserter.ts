@@ -240,6 +240,16 @@ function injectPopupStyles(doc: Document): void {
 .poa-field-popup .pf-move-btn:hover{
   background:#EFF6FF;border-color:#93C5FD;color:#2563EB;
 }
+.poa-field{display:inline-block;position:relative;vertical-align:middle;}
+.poa-field-drag-handle{
+  display:inline-flex;align-items:center;justify-content:center;
+  width:12px;cursor:grab;color:#93C5FD;font-size:11px;
+  vertical-align:middle;user-select:none;opacity:0;transition:opacity .15s;
+  padding:0;line-height:1;
+}
+.poa-field-drag-handle:active{cursor:grabbing;}
+.poa-field:hover .poa-field-drag-handle{opacity:1;}
+.poa-field.poa-field-dragging{opacity:.5;}
 `;
   doc.head.appendChild(s);
 }
@@ -255,9 +265,10 @@ const ALIGN_ICONS: Record<string, string> = {
  * 필드 클릭 시 속성 팝업을 표시한다.
  */
 export class FieldInserter {
-  private contentEl:   HTMLElement | null = null;
-  private popupEl:     HTMLElement | null = null;
-  private dragCleanup: (() => void) | null = null;
+  private contentEl:    HTMLElement | null = null;
+  private popupEl:      HTMLElement | null = null;
+  private dragCleanup:  (() => void) | null = null;
+  private draggingField: HTMLElement | null = null;
 
   private readonly clickHandler = (e: MouseEvent): void => {
     const target = e.target as HTMLElement;
@@ -267,15 +278,75 @@ export class FieldInserter {
     this.openPopup(target);
   };
 
+  private readonly dragStartHandler = (e: DragEvent): void => {
+    const span = (e.target as HTMLElement).closest<HTMLElement>('.poa-field');
+    if (!span) return;
+    this.draggingField = span;
+    span.classList.add('poa-field-dragging');
+    e.dataTransfer?.setData('text/plain', '');
+    if (e.dataTransfer) e.dataTransfer.effectAllowed = 'move';
+  };
+
+  private readonly dragEndHandler = (e: DragEvent): void => {
+    const span = (e.target as HTMLElement).closest<HTMLElement>('.poa-field');
+    span?.classList.remove('poa-field-dragging');
+    this.draggingField = null;
+  };
+
+  private readonly dragOverHandler = (e: DragEvent): void => {
+    if (!this.draggingField) return;
+    e.preventDefault();
+    if (e.dataTransfer) e.dataTransfer.dropEffect = 'move';
+  };
+
+  private readonly dropHandler = (e: DragEvent): void => {
+    if (!this.draggingField) return;
+    e.preventDefault();
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const doc = this.contentEl!.ownerDocument as any;
+    let range: Range | null = null;
+    if (typeof doc.caretRangeFromPoint === 'function') {
+      range = doc.caretRangeFromPoint(e.clientX, e.clientY) as Range | null;
+    } else if (typeof doc.caretPositionFromPoint === 'function') {
+      const pos = doc.caretPositionFromPoint(e.clientX, e.clientY) as { offsetNode: Node; offset: number } | null;
+      if (pos) {
+        range = (doc as Document).createRange();
+        range.setStart(pos.offsetNode, pos.offset);
+        range.collapse(true);
+      }
+    }
+    if (!range) return;
+    if (this.draggingField.contains(range.startContainer)) return;
+    this.draggingField.classList.remove('poa-field-dragging');
+    this.draggingField.remove();
+    range.insertNode(this.draggingField);
+    range.setStartAfter(this.draggingField);
+    range.collapse(true);
+    const sel = (doc as Document).getSelection();
+    sel?.removeAllRanges();
+    sel?.addRange(range);
+    this.contentEl?.dispatchEvent(new Event('input', { bubbles: true }));
+    this.draggingField = null;
+  };
+
   attach(contentEl: HTMLElement): void {
     this.detach();
     this.contentEl = contentEl;
     contentEl.addEventListener('click', this.clickHandler);
+    contentEl.addEventListener('dragstart', this.dragStartHandler);
+    contentEl.addEventListener('dragend',   this.dragEndHandler);
+    contentEl.addEventListener('dragover',  this.dragOverHandler);
+    contentEl.addEventListener('drop',      this.dropHandler);
+    contentEl.querySelectorAll<HTMLElement>('.poa-field').forEach((s) => { s.draggable = true; });
   }
 
   detach(): void {
     if (this.contentEl) {
       this.contentEl.removeEventListener('click', this.clickHandler);
+      this.contentEl.removeEventListener('dragstart', this.dragStartHandler);
+      this.contentEl.removeEventListener('dragend',   this.dragEndHandler);
+      this.contentEl.removeEventListener('dragover',  this.dragOverHandler);
+      this.contentEl.removeEventListener('drop',      this.dropHandler);
       this.contentEl = null;
     }
     this.closePopup();
@@ -306,13 +377,21 @@ export class FieldInserter {
     span.setAttribute(ATTR.fieldType,   field.type);
     span.setAttribute(ATTR.multiline, '1');
     span.contentEditable = 'false';
+    span.draggable = true;
+
+    const handle = ownerDoc.createElement('span');
+    handle.className = 'poa-field-drag-handle';
+    handle.textContent = '⠿';
+    handle.title = '드래그하여 이동';
 
     const fieldEl: HTMLElement = this.createTextarea(ownerDoc, field.label, field.id);
     // 여러줄 타입만 3행, 나머지는 1행(한 줄 높이)
     (fieldEl as HTMLTextAreaElement).rows = field.type === 'textarea' ? 3 : 1;
+    fieldEl.draggable = false;
 
     if (field.type === 'date') fieldEl.setAttribute('data-input-type', 'date');
 
+    span.appendChild(handle);
     span.appendChild(fieldEl);
     range.deleteContents();
     range.insertNode(span);
