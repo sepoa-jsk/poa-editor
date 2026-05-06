@@ -224,6 +224,18 @@ hr.x-page-break {
   border: none;
   margin: 0;
 }
+/* 페이지 구분선 — 인쇄 시 실제 페이지 분리 */
+div.poa-page-break {
+  display: block;
+  height: 0;
+  overflow: hidden;
+  border: none;
+  margin: 0;
+  padding: 0;
+  page-break-after: always;
+  break-after: page;
+}
+div.poa-page-break * { display: none; }
 @page {
   size: A4 portrait;
   margin: 0;
