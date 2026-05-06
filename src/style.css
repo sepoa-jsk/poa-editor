@@ -121,3 +121,43 @@ poa-editor {
   color: #fff;
 }
 .poa-btn.poa-btn-danger:hover { background: #dc2626; border-color: #dc2626; }
+
+/* ── Editor Content ──────────────────────────────────────────────────────── */
+
+.poa-editor-content table td,
+.poa-editor-content table th {
+  vertical-align: middle;
+}
+
+/* ── Document Field (양식 필드) ──────────────────────────────────────────── */
+
+span.poa-field {
+  display: inline-flex;
+  align-items: center;
+  margin: 0;
+  padding: 0;
+  vertical-align: middle;
+  max-width: 100%;
+}
+
+span.poa-field input.poa-field-input,
+span.poa-field textarea.poa-field-input {
+  margin: 0;
+  box-sizing: border-box;
+  max-width: 100%;
+  min-width: 60px;
+  font-size: inherit;
+  line-height: inherit;
+  vertical-align: middle;
+}
+
+span.poa-field input.poa-field-input {
+  padding: 1px 4px;
+  height: auto;
+}
+
+span.poa-field textarea.poa-field-input {
+  padding: 2px 4px;
+  min-height: 1.5em;
+  height: auto;
+}

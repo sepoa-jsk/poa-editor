@@ -65,20 +65,20 @@ const BASE_FIELD_STYLE = [
   'font-size:inherit',
   'background:#EFF6FF',
   'color:#1E40AF',
-  'min-width:80px',
-  'max-width:600px',
-  'overflow:auto',
+  'min-width:60px',
+  'max-width:100%',
   'outline:none',
   'font-family:inherit',
   'box-sizing:border-box',
+  'margin:0',
 ].join(';');
 
 const FIELD_INPUT_STYLE =
-  `${BASE_FIELD_STYLE};padding:2px 8px;vertical-align:middle;resize:horizontal;`;
+  `${BASE_FIELD_STYLE};padding:1px 4px;vertical-align:middle;resize:horizontal;height:auto;`;
 
 const FIELD_TEXTAREA_STYLE =
-  `${BASE_FIELD_STYLE};padding:4px 8px;vertical-align:top;resize:both;` +
-  `max-height:400px;line-height:1.5;`;
+  `${BASE_FIELD_STYLE};padding:2px 4px;vertical-align:top;resize:both;` +
+  `max-height:400px;line-height:inherit;min-height:1.5em;height:auto;`;
 
 // ── 숫자 포맷 헬퍼 ──────────────────────────────────────────────────────────
 
@@ -392,6 +392,7 @@ export class FieldInserter {
     span.setAttribute(ATTR.fieldType,   field.type);
     span.setAttribute(ATTR.multiline, '1');
     span.contentEditable = 'false';
+    span.style.cssText = 'margin:0;padding:0;display:inline-flex;align-items:center;vertical-align:middle;max-width:100%;';
 
     const handle = ownerDoc.createElement('span');
     handle.className = 'poa-field-drag-handle';
@@ -773,11 +774,52 @@ export class FieldInserter {
     // 이동 버튼
     popup.querySelectorAll<HTMLButtonElement>('.pf-move-btn').forEach((btn) => {
       btn.addEventListener('mousedown', (ev) => {
-        ev.preventDefault(); // 팝업 포커스 유지
+        ev.preventDefault();    // 에디터 포커스 유지
+        ev.stopPropagation();   // 팝업 외부 클릭 감지 핸들러 방지
+
         const dir = btn.dataset.dir as 'left' | 'right' | 'up' | 'down' | undefined;
-        if (dir) {
-          this.moveField(span, dir);
-          this.contentEl?.dispatchEvent(new Event('input', { bubbles: true }));
+        if (!dir || !span.parentNode) return;
+
+        const parent = span.parentElement;
+        const isInCell = parent?.tagName === 'TD' || parent?.tagName === 'TH';
+
+        switch (dir) {
+          case 'left': {
+            const prev = span.previousSibling;
+            if (prev && (!isInCell || parent?.contains(prev))) {
+              span.parentNode.insertBefore(span, prev);
+              this.contentEl?.dispatchEvent(new Event('input', { bubbles: true }));
+            }
+            break;
+          }
+          case 'right': {
+            const next = span.nextSibling;
+            if (next && (!isInCell || parent?.contains(next))) {
+              span.parentNode.insertBefore(next, span);
+              this.contentEl?.dispatchEvent(new Event('input', { bubbles: true }));
+            }
+            break;
+          }
+          case 'up': {
+            const range = ownerDoc.createRange();
+            range.setStartBefore(span);
+            range.collapse(true);
+            const sel = ownerDoc.getSelection();
+            sel?.removeAllRanges();
+            sel?.addRange(range);
+            this.contentEl?.focus();
+            break;
+          }
+          case 'down': {
+            const range = ownerDoc.createRange();
+            range.setStartAfter(span);
+            range.collapse(true);
+            const sel = ownerDoc.getSelection();
+            sel?.removeAllRanges();
+            sel?.addRange(range);
+            this.contentEl?.focus();
+            break;
+          }
         }
       });
     });
@@ -827,47 +869,6 @@ export class FieldInserter {
         ownerDoc.removeEventListener('mouseup',   onUp);
       };
     });
-  }
-
-  private moveField(span: HTMLElement, dir: 'left' | 'right' | 'up' | 'down'): void {
-    const parent = span.parentNode;
-    if (!parent) return;
-    switch (dir) {
-      case 'left': {
-        const prev = span.previousSibling;
-        if (prev) parent.insertBefore(span, prev);
-        break;
-      }
-      case 'right': {
-        const next = span.nextSibling;
-        if (next) parent.insertBefore(span, next.nextSibling);
-        break;
-      }
-      case 'up': {
-        const target = this.getAdjacentBlock(span, 'prev');
-        if (target) target.appendChild(span);
-        break;
-      }
-      case 'down': {
-        const target = this.getAdjacentBlock(span, 'next');
-        if (target) target.insertBefore(span, target.firstChild);
-        break;
-      }
-    }
-  }
-
-  private getAdjacentBlock(span: HTMLElement, which: 'prev' | 'next'): HTMLElement | null {
-    const BLOCK = new Set(['P','DIV','LI','TD','TH','H1','H2','H3','H4','H5','H6','BLOCKQUOTE','PRE']);
-    let block: HTMLElement | null = span.parentElement;
-    while (block && !BLOCK.has(block.tagName) && block !== this.contentEl) {
-      block = block.parentElement;
-    }
-    if (!block || block === this.contentEl) return null;
-    let sib: Element | null = which === 'prev' ? block.previousElementSibling : block.nextElementSibling;
-    while (sib && !BLOCK.has(sib.tagName)) {
-      sib = which === 'prev' ? sib.previousElementSibling : sib.nextElementSibling;
-    }
-    return sib as HTMLElement | null;
   }
 
   private closePopup(): void {

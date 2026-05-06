@@ -1046,6 +1046,9 @@ slot[name="content"] { display: contents; }
 
   setHTML(html: string): void {
     this.contentEl.innerHTML = DOMPurify.sanitize(html);
+    this.contentEl.querySelectorAll<HTMLElement>('td, th').forEach((cell) => {
+      cell.style.verticalAlign = 'middle';
+    });
     this.savedRange = null;
     this.statusBar.update(this.contentEl.innerHTML);
   }

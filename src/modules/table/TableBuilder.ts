@@ -101,8 +101,8 @@ export class TableBuilder {
 
     // ── 셀 공통 스타일 ─────────────────────────────────────────────
     const cellBase = border > 0
-      ? `border:${border}px solid ${borderColor};padding:4px;overflow:hidden;word-break:break-word;`
-      : `border:none;padding:4px;overflow:hidden;word-break:break-word;`;
+      ? `border:${border}px solid ${borderColor};padding:4px;overflow:hidden;word-break:break-word;vertical-align:middle;`
+      : `border:none;padding:4px;overflow:hidden;word-break:break-word;vertical-align:middle;`;
     const headerStyle = cellBase + 'background:#f5f5f5;font-weight:bold;';
 
     // ── THEAD (상단 헤더) ──────────────────────────────────────────
