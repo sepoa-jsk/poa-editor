@@ -174,13 +174,13 @@ export class FileManager {
   // ── 인쇄 ──────────────────────────────────────────────────────────────────
 
   /**
-   * contentEl 내용만 인쇄한다.
-   * 숨김 iframe을 생성해 콘텐츠를 복사한 뒤 iframe.print()를 호출하므로
-   * 툴바·메뉴바·상태바가 인쇄 영역에 포함되지 않는다.
+   * 에디터 본문만 인쇄한다.
+   * html은 FieldInserter.exportFields()로 양식 필드가 텍스트로 변환된 상태여야 한다.
+   * 숨김 iframe을 생성해 iframe.print()를 호출하므로 툴바·메뉴바·상태바는 인쇄되지 않는다.
    * margin은 PaperSizeManager.getMargin() 에서 전달받은 mm 단위 여백이다.
    */
   printDocument(
-    contentEl: HTMLElement,
+    html: string,
     margin?: { top: number; right: number; bottom: number; left: number },
   ): void {
     const m = margin ?? { top: 25, right: 30, bottom: 25, left: 30 };
@@ -224,16 +224,6 @@ hr.x-page-break {
   border: none;
   margin: 0;
 }
-.poa-field {
-  border: none;
-  background: transparent;
-}
-.poa-field input {
-  border: none;
-  background: transparent;
-  color: inherit;
-  font-size: inherit;
-}
 @page {
   size: A4 portrait;
   margin: 0;
@@ -245,7 +235,7 @@ hr.x-page-break {
 <meta charset="utf-8">
 ${styleLinks}
 ${printStyle}
-</head><body>${contentEl.innerHTML}</body></html>`);
+</head><body>${html}</body></html>`);
     doc.close();
 
     const cleanup = (): void => { iframe.remove(); };

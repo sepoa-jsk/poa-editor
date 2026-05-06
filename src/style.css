@@ -213,15 +213,16 @@ span.poa-field textarea.poa-field-input {
     overflow: visible !important;
   }
 
-  /* 양식 필드 인쇄 시 테두리·배경 제거 */
-  .poa-field {
-    border: none !important;
-    background: transparent !important;
-  }
+  /* 양식 필드 — iframe 인쇄에서는 exportFields()로 이미 텍스트 변환되나
+     window.print() 직접 호출 경로를 위해 인라인 스타일도 강제 초기화 */
+  .poa-field-drag-handle { display: none !important; }
   .poa-field input,
   .poa-field textarea {
+    all: unset !important;
     border: none !important;
     background: transparent !important;
+    color: inherit !important;
+    font: inherit !important;
   }
 
   @page {
