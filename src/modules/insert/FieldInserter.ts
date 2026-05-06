@@ -516,6 +516,35 @@ export class FieldInserter {
       ? `<textarea id="pf-value" placeholder="${label}" class="pf-textarea">${elValue}</textarea>`
       : `<input id="pf-value" type="${isNumber ? 'number' : 'text'}" value="${pfValueInitial}" placeholder="${pfValuePlaceholder}" class="pf-input">`;
 
+    const showHeight = currentEl.tagName === 'TEXTAREA';
+    const initWidth  = currentEl.offsetWidth  || parseInt(span.getAttribute(ATTR.dataWidth)  ?? '0', 10) || 120;
+    const initHeight = currentEl.offsetHeight || parseInt(span.getAttribute(ATTR.dataHeight) ?? '0', 10) || 28;
+    const sizeSection = `
+<div class="pf-sec">
+  <button class="pf-sec-hdr" data-sec="size"><span class="pf-sec-arrow">▾</span> 크기 설정</button>
+  <div id="pf-body-size" class="pf-sec-body">
+    <div class="pf-row2">
+      <div class="pf-field" style="margin-bottom:0;">
+        <span class="pf-field-lbl">가로 길이</span>
+        <div style="display:flex;align-items:center;gap:4px;">
+          <input id="pf-width" type="number" value="${initWidth}" min="60" max="800" step="1"
+            style="width:70px;" class="pf-input">
+          <span style="font-size:12px;color:#6B7280;">px</span>
+        </div>
+      </div>
+      ${showHeight ? `
+      <div class="pf-field" style="margin-bottom:0;">
+        <span class="pf-field-lbl">세로 길이</span>
+        <div style="display:flex;align-items:center;gap:4px;">
+          <input id="pf-height" type="number" value="${initHeight}" min="28" max="600" step="1"
+            style="width:70px;" class="pf-input">
+          <span style="font-size:12px;color:#6B7280;">px</span>
+        </div>
+      </div>` : '<div></div>'}
+    </div>
+  </div>
+</div>`;
+
     // ── 팝업 DOM ────────────────────────────────────────────────────
     const POPUP_W = 360;
     const POPUP_H = 340;
@@ -572,6 +601,8 @@ export class FieldInserter {
     </div>
   </div>
 </div>
+
+${sizeSection}
 
 <div class="pf-sec">
   <button class="pf-sec-hdr" data-sec="font"><span class="pf-sec-arrow">▾</span> 글자 설정</button>
@@ -745,6 +776,24 @@ export class FieldInserter {
         if (raw) setVal(applyDateFormat(raw, fmt));
         const pfInput = popup.querySelector<HTMLInputElement>('#pf-value');
         if (pfInput) pfInput.placeholder = DATE_FORMAT_PLACEHOLDER[fmt] ?? '예) 20261231';
+      });
+    }
+
+    // 가로/세로 크기 입력
+    popup.querySelector<HTMLInputElement>('#pf-width')?.addEventListener('change', (ev) => {
+      let v = parseInt((ev.target as HTMLInputElement).value, 10) || 60;
+      v = Math.max(60, Math.min(800, v));
+      (ev.target as HTMLInputElement).value = String(v);
+      currentEl.style.width = `${v}px`;
+      span.setAttribute(ATTR.dataWidth, String(v));
+    });
+    if (showHeight) {
+      popup.querySelector<HTMLInputElement>('#pf-height')?.addEventListener('change', (ev) => {
+        let v = parseInt((ev.target as HTMLInputElement).value, 10) || 28;
+        v = Math.max(28, Math.min(600, v));
+        (ev.target as HTMLInputElement).value = String(v);
+        currentEl.style.height = `${v}px`;
+        span.setAttribute(ATTR.dataHeight, String(v));
       });
     }
 

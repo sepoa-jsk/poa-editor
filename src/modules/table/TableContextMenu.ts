@@ -178,6 +178,10 @@ export class TableContextMenu {
       ? `<p style="margin:0 0 10px;font-size:11px;color:#1565c0;">선택된 ${targetCells.length}개 셀에 일괄 적용됩니다.</p>`
       : '';
 
+    const vaBase = 'height:26px;padding:0 10px;border:1px solid #ccc;border-radius:3px;font-size:12px;cursor:pointer;background:#fff;color:#374151;transition:all .1s;';
+    const vaActive = 'height:26px;padding:0 10px;border:1px solid #1565c0;border-radius:3px;font-size:12px;cursor:pointer;background:#EFF6FF;color:#1565c0;font-weight:600;';
+    const curVa = cur.verticalAlign ?? 'middle';
+
     dlg.innerHTML = `
 <h4 style="margin:0 0 10px;font-size:14px;font-weight:600;">셀 속성</h4>
 ${multiNote}
@@ -211,6 +215,12 @@ ${multiNote}
       placeholder="0=상속">
     <span>px</span>
   </div>
+  <label>세로 정렬</label>
+  <div style="display:flex;gap:4px;">
+    <button type="button" data-va="top"    style="${curVa === 'top'    ? vaActive : vaBase}">위쪽</button>
+    <button type="button" data-va="middle" style="${curVa === 'middle' ? vaActive : vaBase}">가운데</button>
+    <button type="button" data-va="bottom" style="${curVa === 'bottom' ? vaActive : vaBase}">아래쪽</button>
+  </div>
   <label>ID</label>
   <input id="cp-id" type="text" value="${cur.id ?? ''}"
     style="height:26px;border:1px solid #ccc;border-radius:3px;font-size:13px;padding:0 6px;">
@@ -227,19 +237,32 @@ ${multiNote}
     ownerDoc.body.appendChild(overlay);
     (dlg.querySelector('#cp-bs') as HTMLSelectElement).value = cur.borderStyle ?? 'solid';
 
+    // 세로 정렬 버튼 토글
+    const vaBtns = dlg.querySelectorAll<HTMLButtonElement>('[data-va]');
+    const vaBaseStyle = 'height:26px;padding:0 10px;border:1px solid #ccc;border-radius:3px;font-size:12px;cursor:pointer;background:#fff;color:#374151;transition:all .1s;';
+    const vaActiveStyle = 'height:26px;padding:0 10px;border:1px solid #1565c0;border-radius:3px;font-size:12px;cursor:pointer;background:#EFF6FF;color:#1565c0;font-weight:600;';
+    vaBtns.forEach((btn) => {
+      btn.addEventListener('click', () => {
+        vaBtns.forEach((b) => { b.style.cssText = vaBaseStyle; });
+        btn.style.cssText = vaActiveStyle;
+      });
+    });
+
     const close = (): void => overlay.remove();
     dlg.querySelector('#cp-cancel')!.addEventListener('click', close);
     overlay.addEventListener('click', (e) => { if (e.target === overlay) close(); });
     dlg.querySelector('#cp-ok')!.addEventListener('click', () => {
+      const activeVa = dlg.querySelector<HTMLButtonElement>('[data-va][style*="#EFF6FF"]');
       const props: CellProperties = {
-        borderStyle: (dlg.querySelector('#cp-bs')  as HTMLSelectElement).value as CellProperties['borderStyle'],
-        borderWidth: parseInt((dlg.querySelector('#cp-bw')  as HTMLInputElement).value, 10) || 0,
-        borderColor: (dlg.querySelector('#cp-bc')  as HTMLInputElement).value,
-        indent:      parseInt((dlg.querySelector('#cp-ind') as HTMLInputElement).value, 10) || 0,
-        bgColor:     (dlg.querySelector('#cp-bg')  as HTMLInputElement).value,
-        fontSize:    parseInt((dlg.querySelector('#cp-fs')  as HTMLInputElement).value, 10) || 0,
-        id:          (dlg.querySelector('#cp-id')  as HTMLInputElement).value.trim(),
-        className:   (dlg.querySelector('#cp-cls') as HTMLInputElement).value.trim(),
+        borderStyle:   (dlg.querySelector('#cp-bs')  as HTMLSelectElement).value as CellProperties['borderStyle'],
+        borderWidth:   parseInt((dlg.querySelector('#cp-bw')  as HTMLInputElement).value, 10) || 0,
+        borderColor:   (dlg.querySelector('#cp-bc')  as HTMLInputElement).value,
+        indent:        parseInt((dlg.querySelector('#cp-ind') as HTMLInputElement).value, 10) || 0,
+        bgColor:       (dlg.querySelector('#cp-bg')  as HTMLInputElement).value,
+        fontSize:      parseInt((dlg.querySelector('#cp-fs')  as HTMLInputElement).value, 10) || 0,
+        verticalAlign: (activeVa?.dataset.va ?? curVa) as CellProperties['verticalAlign'],
+        id:            (dlg.querySelector('#cp-id')  as HTMLInputElement).value.trim(),
+        className:     (dlg.querySelector('#cp-cls') as HTMLInputElement).value.trim(),
       };
       for (const c of targetCells) CellMerger.applyCellProperties(c, props);
       this.cb.onModified?.();

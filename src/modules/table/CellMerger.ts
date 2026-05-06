@@ -19,6 +19,7 @@ export interface CellProperties {
   fontSize?: number;
   id?: string;
   className?: string;
+  verticalAlign?: 'top' | 'middle' | 'bottom';
 }
 
 export interface MergeResult {
@@ -305,7 +306,7 @@ export class CellMerger {
 
   /** 셀에 CellProperties 를 적용한다 */
   static applyCellProperties(cell: HTMLTableCellElement, props: CellProperties): void {
-    const { borderStyle, borderWidth, borderColor, indent, bgColor, fontSize, id, className } = props;
+    const { borderStyle, borderWidth, borderColor, indent, bgColor, fontSize, id, className, verticalAlign } = props;
 
     if (borderStyle !== undefined || borderWidth !== undefined || borderColor !== undefined) {
       const bStyle = borderStyle ?? 'solid';
@@ -313,8 +314,9 @@ export class CellMerger {
       const bColor = borderColor ?? '#000000';
       cell.style.border = bStyle === 'none' ? 'none' : `${bWidth}px ${bStyle} ${bColor}`;
     }
-    if (indent    !== undefined) cell.style.paddingLeft     = indent > 0 ? `${indent}px` : '';
-    if (bgColor   !== undefined) cell.style.backgroundColor = bgColor;
+    if (indent         !== undefined) cell.style.paddingLeft     = indent > 0 ? `${indent}px` : '';
+    if (bgColor        !== undefined) cell.style.backgroundColor = bgColor;
+    if (verticalAlign  !== undefined) cell.style.verticalAlign   = verticalAlign;
     if (fontSize  !== undefined) {
       const fsVal = fontSize > 0 ? `${fontSize}px` : '';
       cell.style.fontSize = fsVal;
@@ -330,15 +332,17 @@ export class CellMerger {
   /** 셀의 현재 CellProperties 를 읽어 반환한다 */
   static readCellProperties(cell: HTMLTableCellElement): CellProperties {
     const bm = cell.style.border.match(/^(\d+)px\s+(\S+)\s+(.+)$/);
+    const va = cell.style.verticalAlign;
     return {
-      borderStyle:  (bm?.[2] as CellProperties['borderStyle']) ?? 'solid',
-      borderWidth:  bm ? parseInt(bm[1], 10) : 1,
-      borderColor:  bm?.[3] ?? '#000000',
-      indent:       parseFloat(cell.style.paddingLeft) || 0,
-      bgColor:      cell.style.backgroundColor || '',
-      fontSize:     parseFloat(cell.style.fontSize) || 0,
-      id:           cell.id        || '',
-      className:    cell.className || '',
+      borderStyle:   (bm?.[2] as CellProperties['borderStyle']) ?? 'solid',
+      borderWidth:   bm ? parseInt(bm[1], 10) : 1,
+      borderColor:   bm?.[3] ?? '#000000',
+      indent:        parseFloat(cell.style.paddingLeft) || 0,
+      bgColor:       cell.style.backgroundColor || '',
+      fontSize:      parseFloat(cell.style.fontSize) || 0,
+      id:            cell.id        || '',
+      className:     cell.className || '',
+      verticalAlign: (va === 'top' || va === 'bottom') ? va : 'middle',
     };
   }
 
