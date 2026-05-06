@@ -133,11 +133,27 @@ function toKoreanFull(num: number): string {
   return sign + parts.join('') + '원';
 }
 
-/** 날짜 원시값(YYYY-MM-DD)을 선택된 형식으로 변환 */
-export function formatDate(raw: string, format: string): string {
-  const m = raw.match(/^(\d{4})-(\d{2})-(\d{2})$/);
-  if (!m) return raw;
-  const [, yyyy, mm, dd] = m;
+const DATE_FORMAT_PLACEHOLDER: Record<string, string> = {
+  'YYYY-MM-DD':     '예) 2026-12-31',
+  'YYYY년MM월DD일': '예) 2026년 12월 31일',
+  'YYYY. MM. DD':   '예) 2026. 12. 31',
+  'MM/DD/YYYY':     '예) 12/31/2026',
+  'DD-MM-YYYY':     '예) 31-12-2026',
+};
+
+/**
+ * 날짜 입력값에서 숫자만 추출해 YYYYMMDD 파싱 후 지정 형식으로 변환.
+ * 20261231 / 2026-12-31 / 2026.12.31 / 2026/12/31 모두 지원.
+ * 파싱 실패 시 raw 그대로 반환.
+ */
+export function applyDateFormat(raw: string, format: string): string {
+  const digits = raw.replace(/\D/g, '');
+  if (digits.length < 8) return raw;
+  const yyyy = digits.slice(0, 4);
+  const mm   = digits.slice(4, 6);
+  const dd   = digits.slice(6, 8);
+  const y = Number(yyyy), mo = Number(mm), d = Number(dd);
+  if (y < 1000 || y > 9999 || mo < 1 || mo > 12 || d < 1 || d > 31) return raw;
   switch (format) {
     case 'YYYY-MM-DD':     return `${yyyy}-${mm}-${dd}`;
     case 'YYYY년MM월DD일': return `${yyyy}년 ${mm}월 ${dd}일`;
@@ -239,8 +255,9 @@ const ALIGN_ICONS: Record<string, string> = {
  * 필드 클릭 시 속성 팝업을 표시한다.
  */
 export class FieldInserter {
-  private contentEl: HTMLElement | null = null;
-  private popupEl:   HTMLElement | null = null;
+  private contentEl:   HTMLElement | null = null;
+  private popupEl:     HTMLElement | null = null;
+  private dragCleanup: (() => void) | null = null;
 
   private readonly clickHandler = (e: MouseEvent): void => {
     const target = e.target as HTMLElement;
@@ -400,21 +417,32 @@ export class FieldInserter {
       ` title="${a === 'left' ? '왼쪽' : a === 'center' ? '가운데' : '오른쪽'}">${ALIGN_ICONS[a]}</button>`,
     ).join('');
 
-    // date pf-value는 date picker를 위해 raw(YYYY-MM-DD) 값을 표시
     const pfValueInitial = isNumber ? rawValue : isDate ? (span.getAttribute(ATTR.rawValue) ?? '') : elValue;
+    const pfValuePlaceholder = isDate ? (DATE_FORMAT_PLACEHOLDER[dateFormat] ?? '예) 20261231') : label;
     const pfValueHtml = isMultiline
       ? `<textarea id="pf-value" placeholder="${label}" class="pf-textarea">${elValue}</textarea>`
-      : `<input id="pf-value" type="${isNumber ? 'number' : isDate ? 'date' : 'text'}" value="${pfValueInitial}" placeholder="${label}" class="pf-input">`;
+      : `<input id="pf-value" type="${isNumber ? 'number' : 'text'}" value="${pfValueInitial}" placeholder="${pfValuePlaceholder}" class="pf-input">`;
 
     // ── 팝업 DOM ────────────────────────────────────────────────────
+    const POPUP_W = 360;
+    const POPUP_H = 340;
+    const win     = ownerDoc.defaultView;
+    const vw = win ? win.innerWidth  : 1920;
+    const vh = win ? win.innerHeight : 1080;
+    let popupLeft = rect.left;
+    let popupTop  = rect.bottom + 6;
+    if (popupTop  + POPUP_H > vh) popupTop  = rect.top - POPUP_H - 6;
+    if (popupLeft + POPUP_W > vw) popupLeft = rect.right - POPUP_W;
+    popupLeft = Math.max(4, popupLeft);
+    popupTop  = Math.max(4, popupTop);
+
     const popup = ownerDoc.createElement('div');
     popup.className = 'poa-field-popup';
     popup.style.cssText = [
       'position:fixed',
-      `left:${Math.round(rect.left)}px`,
-      `top:${Math.round(rect.bottom + 6)}px`,
+      `left:${Math.round(popupLeft)}px`,
+      `top:${Math.round(popupTop)}px`,
       'width:360px',
-      'visibility:hidden',
       'background:#fff',
       'border:1px solid #E2E8F0',
       'border-radius:12px',
@@ -426,7 +454,7 @@ export class FieldInserter {
     ].join(';');
 
     popup.innerHTML = `
-<div style="padding:10px 12px 10px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid #F1F5F9;gap:8px;">
+<div id="pf-header" style="padding:10px 12px 10px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid #F1F5F9;gap:8px;cursor:move;">
   <div style="display:flex;align-items:center;gap:8px;min-width:0;">
     <span style="display:inline-flex;align-items:center;justify-content:center;width:26px;height:26px;background:linear-gradient(135deg,#3B82F6,#2563EB);border-radius:7px;color:#fff;font-size:11px;font-weight:700;flex-shrink:0;">${TYPE_BADGE[fieldType] ?? 'T'}</span>
     <span style="font-size:13px;font-weight:700;color:#111827;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${label}</span>
@@ -509,27 +537,6 @@ export class FieldInserter {
     ownerDoc.body.appendChild(popup);
     this.popupEl = popup;
 
-    // 뷰포트 경계 보정
-    requestAnimationFrame(() => {
-      if (!this.popupEl) return;
-      const win = ownerDoc.defaultView;
-      if (!win) return;
-      const vw = win.innerWidth;
-      const vh = win.innerHeight;
-      const pr = this.popupEl.getBoundingClientRect();
-
-      let left = rect.left;
-      let top  = rect.bottom + 6;
-      if (top  + pr.height > vh) top  = rect.top - pr.height - 6;
-      if (left + pr.width  > vw) left = rect.right - pr.width;
-      left = Math.max(4, left);
-      top  = Math.max(4, top);
-
-      this.popupEl.style.left       = `${Math.round(left)}px`;
-      this.popupEl.style.top        = `${Math.round(top)}px`;
-      this.popupEl.style.visibility = 'visible';
-    });
-
     // ── 이벤트 바인딩 ──────────────────────────────────────────────
     const q = <T extends HTMLElement>(id: string) => popup.querySelector<T>(`#${id}`)!;
 
@@ -554,7 +561,7 @@ export class FieldInserter {
       } else if (isDate) {
         span.setAttribute(ATTR.rawValue, v);
         const fmt = span.getAttribute(ATTR.dateFormat) ?? 'YYYY-MM-DD';
-        setVal(v ? formatDate(v, fmt) : '');
+        setVal(v ? applyDateFormat(v, fmt) : '');
       } else {
         setVal(v);
       }
@@ -642,7 +649,9 @@ export class FieldInserter {
         const fmt = (ev.target as HTMLSelectElement).value;
         span.setAttribute(ATTR.dateFormat, fmt);
         const raw = span.getAttribute(ATTR.rawValue) ?? '';
-        if (raw) setVal(formatDate(raw, fmt));
+        if (raw) setVal(applyDateFormat(raw, fmt));
+        const pfInput = popup.querySelector<HTMLInputElement>('#pf-value');
+        if (pfInput) pfInput.placeholder = DATE_FORMAT_PLACEHOLDER[fmt] ?? '예) 20261231';
       });
     }
 
@@ -695,6 +704,37 @@ export class FieldInserter {
       }
     };
     setTimeout(() => ownerDoc.addEventListener('mousedown', outsideHandler), 0);
+
+    // ── 팝업 드래그 ────────────────────────────────────────────────
+    const header = popup.querySelector<HTMLElement>('#pf-header')!;
+    header.addEventListener('mousedown', (ev) => {
+      if ((ev.target as HTMLElement).closest('button')) return;
+      ev.preventDefault();
+      const startX    = ev.clientX;
+      const startY    = ev.clientY;
+      const startLeft = parseInt(popup.style.left, 10);
+      const startTop  = parseInt(popup.style.top,  10);
+
+      const onMove = (me: MouseEvent): void => {
+        const dx = me.clientX - startX;
+        const dy = me.clientY - startY;
+        const newLeft = Math.max(4, Math.min(startLeft + dx, (win?.innerWidth  ?? 1920) - POPUP_W - 4));
+        const newTop  = Math.max(4, Math.min(startTop  + dy, (win?.innerHeight ?? 1080) - 60));
+        popup.style.left = `${Math.round(newLeft)}px`;
+        popup.style.top  = `${Math.round(newTop)}px`;
+      };
+      const onUp = (): void => {
+        ownerDoc.removeEventListener('mousemove', onMove);
+        ownerDoc.removeEventListener('mouseup',   onUp);
+        this.dragCleanup = null;
+      };
+      ownerDoc.addEventListener('mousemove', onMove);
+      ownerDoc.addEventListener('mouseup',   onUp);
+      this.dragCleanup = (): void => {
+        ownerDoc.removeEventListener('mousemove', onMove);
+        ownerDoc.removeEventListener('mouseup',   onUp);
+      };
+    });
   }
 
   private moveField(span: HTMLElement, dir: 'left' | 'right' | 'up' | 'down'): void {
@@ -739,6 +779,8 @@ export class FieldInserter {
   }
 
   private closePopup(): void {
+    this.dragCleanup?.();
+    this.dragCleanup = null;
     if (this.popupEl) {
       this.popupEl.remove();
       this.popupEl = null;
@@ -768,7 +810,19 @@ export class FieldInserter {
         rawVal = (fieldEl as HTMLInputElement | null)?.getAttribute('value')?.trim() ?? '';
       }
 
-      const value     = rawVal !== '' ? rawVal : placeholder;
+      const fieldType = span.getAttribute('data-field-type') ?? '';
+      const rawAttr   = span.getAttribute('data-raw-value') ?? '';
+      let value: string;
+      if (rawVal !== '') {
+        if (fieldType === 'date' && rawAttr) {
+          const dateFormat = span.getAttribute('data-date-format') ?? 'YYYY-MM-DD';
+          value = applyDateFormat(rawAttr, dateFormat);
+        } else {
+          value = rawVal;
+        }
+      } else {
+        value = placeholder;
+      }
       const finalText = `${prefix}${value}${suffix}`;
 
       if (width || height) {
