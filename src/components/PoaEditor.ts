@@ -1225,7 +1225,7 @@ slot[name="content"] { display: contents; }
       case 'file:saveas':
         void this.fileManager.saveAsFile(this.getExportHTML()); return;
       case 'file:print':
-        window.print(); return;
+        this.fileManager.printDocument(this.contentEl); return;
 
       // ── 편집 탭 액션 ─────────────────────────────────────────────
       case 'edit:cut': {

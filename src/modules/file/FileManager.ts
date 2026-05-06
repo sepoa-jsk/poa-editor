@@ -171,6 +171,88 @@ export class FileManager {
     return true;
   }
 
+  // ── 인쇄 ──────────────────────────────────────────────────────────────────
+
+  /**
+   * contentEl 내용만 인쇄한다.
+   * 숨김 iframe을 생성해 콘텐츠를 복사한 뒤 iframe.print()를 호출하므로
+   * 툴바·메뉴바·상태바가 인쇄 영역에 포함되지 않는다.
+   */
+  printDocument(contentEl: HTMLElement): void {
+    const iframe = document.createElement('iframe');
+    iframe.style.cssText =
+      'position:fixed;top:0;left:0;width:0;height:0;' +
+      'visibility:hidden;border:none;';
+    document.body.appendChild(iframe);
+
+    const win = iframe.contentWindow;
+    const doc = iframe.contentDocument;
+    if (!win || !doc) { iframe.remove(); return; }
+
+    // 현재 문서의 스타일시트 링크 복사
+    const styleLinks = Array.from(document.querySelectorAll('link[rel="stylesheet"]'))
+      .map((el) => el.outerHTML)
+      .join('\n');
+
+    const printStyle = `
+<style>
+* { box-sizing: border-box; }
+body {
+  margin: 0;
+  padding: 25mm;
+  background: #ffffff;
+  font-family: 돋움체, sans-serif;
+  font-size: 12pt;
+  line-height: 1.5;
+  color: #000000;
+}
+table {
+  border-collapse: collapse;
+  width: 100%;
+}
+td, th {
+  border: 1px solid #000000;
+  padding: 4px 8px;
+}
+hr.x-page-break {
+  page-break-after: always;
+  border: none;
+  margin: 0;
+}
+.poa-field {
+  border: none;
+  background: transparent;
+}
+.poa-field input {
+  border: none;
+  background: transparent;
+  color: inherit;
+  font-size: inherit;
+}
+@page {
+  size: A4 portrait;
+  margin: 0;
+}
+</style>`;
+
+    doc.open();
+    doc.write(`<!DOCTYPE html><html><head>
+<meta charset="utf-8">
+${styleLinks}
+${printStyle}
+</head><body>${contentEl.innerHTML}</body></html>`);
+    doc.close();
+
+    const cleanup = (): void => { iframe.remove(); };
+
+    win.onafterprint = cleanup;
+    // onafterprint가 지원되지 않는 경우 또는 취소 시 폴백
+    setTimeout(() => { if (iframe.parentNode) cleanup(); }, 2000);
+
+    win.focus();
+    win.print();
+  }
+
   // ── 유틸리티 ──────────────────────────────────────────────────────────────
 
   /** HTML 문자열에서 평문 텍스트를 추출한다 (상태바·저장 미리보기용) */
