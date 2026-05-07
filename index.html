@@ -111,6 +111,8 @@
     }
   </script>
   <script type="module">
+    import { getAppMode } from '/src/core/AppMode.ts';
+
     const editor = document.getElementById('editor');
     const output = document.getElementById('output');
 
@@ -161,8 +163,10 @@
       document.execCommand('redo');
     });
 
-    // 초기 콘텐츠 설정
-    setTimeout(() => editor.setHTML(SAMPLE_HTML), 100);
+    // 초기 콘텐츠 설정 (사용자 모드에서는 템플릿 내용을 유지)
+    if (getAppMode() !== 'user') {
+      setTimeout(() => editor.setHTML(SAMPLE_HTML), 100);
+    }
   </script>
 </body>
 </html>
