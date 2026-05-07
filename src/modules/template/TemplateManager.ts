@@ -1,4 +1,5 @@
 import DOMPurify from 'dompurify';
+import { TemplateApiClient, toServerId } from './TemplateApiClient.js';
 
 export interface TemplateNode {
   id:        string;
@@ -60,9 +61,11 @@ export class TemplateManager {
   constructor() {
     this._load();
     if (this.nodes.length === 0) this._seed();
+    // API에서 데이터 동기화 (fire-and-forget, 실패 시 localStorage 유지)
+    void this._syncFromServer();
   }
 
-  // ── 저장/불러오기 ────────────────────────────────────────────────────────
+  // ── 저장/불러오기 ────────────────────────────────────────────────────────────
 
   private _load(): void {
     try {
@@ -128,6 +131,20 @@ export class TemplateManager {
     this._persist();
   }
 
+  /** 서버 API에서 전체 데이터를 로드하여 localStorage에 반영한다 */
+  private async _syncFromServer(): Promise<void> {
+    try {
+      const serverNodes = await TemplateApiClient.getAllNodes();
+      if (serverNodes.length === 0) return;
+      // isTemp 로컬 항목은 유지, 나머지는 서버 데이터로 교체
+      const tempNodes = this.nodes.filter(n => n.isTemp);
+      this.nodes = [...serverNodes, ...tempNodes];
+      this._persist();
+    } catch {
+      console.warn('API 서버 연결 실패. LocalStorage 모드로 동작합니다.');
+    }
+  }
+
   // ── 조회 ────────────────────────────────────────────────────────────────
 
   getAll(): TemplateNode[] { return [...this.nodes]; }
@@ -156,6 +173,19 @@ export class TemplateManager {
     };
     this.nodes.push(node);
     this._persist();
+
+    // 서버 동기화 (성공 시 node.id를 서버 ID로 업데이트)
+    const serverParentId = parentId ? toServerId(parentId) : null;
+    void TemplateApiClient.createFolder({
+      parentId: serverParentId,
+      name: node.name,
+      isPublic: node.isPublic,
+      orderIndex: node.order,
+    }).then(serverNode => {
+      node.id = serverNode.id;
+      this._persist();
+    }).catch(() => {});
+
     return node;
   }
 
@@ -169,6 +199,23 @@ export class TemplateManager {
     };
     this.nodes.push(node);
     this._persist();
+
+    // isTemp 항목은 서버에 저장하지 않음
+    if (!isTemp) {
+      const serverFolderId = parentId ? toServerId(parentId) : null;
+      void TemplateApiClient.createTemplate({
+        folderId: serverFolderId,
+        name: node.name,
+        content: node.content ?? '',
+        isPublic: node.isPublic,
+        isTemp: false,
+        orderIndex: node.order,
+      }).then(serverNode => {
+        node.id = serverNode.id;
+        this._persist();
+      }).catch(() => {});
+    }
+
     return node;
   }
 
@@ -178,13 +225,44 @@ export class TemplateManager {
     node.name = name.trim();
     node.updatedAt = Date.now();
     this._persist();
+
+    const serverId = toServerId(id);
+    if (serverId !== null) {
+      if (node.type === 'folder') {
+        void TemplateApiClient.updateFolder(serverId, {
+          parentId: node.parentId ? (toServerId(node.parentId) ?? null) : null,
+          name: node.name,
+          isPublic: node.isPublic,
+          orderIndex: node.order,
+        }).catch(() => {});
+      } else {
+        void TemplateApiClient.updateTemplate(serverId, {
+          folderId: node.parentId ? (toServerId(node.parentId) ?? null) : null,
+          name: node.name,
+          isPublic: node.isPublic,
+          orderIndex: node.order,
+        }).catch(() => {});
+      }
+    }
+
     return true;
   }
 
   delete(id: string): void {
+    const node = this.nodes.find(n => n.id === id);
+    const type = node?.type;
+    const serverId = toServerId(id);
+
     for (const child of this.getChildren(id)) this.delete(child.id);
     this.nodes = this.nodes.filter(n => n.id !== id);
     this._persist();
+
+    if (serverId !== null) {
+      const call = type === 'folder'
+        ? TemplateApiClient.deleteFolder(serverId)
+        : TemplateApiClient.deleteTemplate(serverId);
+      void call.catch(() => {});
+    }
   }
 
   move(id: string, newParentId: string | null): boolean {
@@ -194,6 +272,27 @@ export class TemplateManager {
     node.order = this.getChildren(newParentId).filter(n => n.id !== id).length;
     node.updatedAt = Date.now();
     this._persist();
+
+    const serverId = toServerId(id);
+    if (serverId !== null) {
+      const serverParent = newParentId ? (toServerId(newParentId) ?? null) : null;
+      if (node.type === 'folder') {
+        void TemplateApiClient.updateFolder(serverId, {
+          parentId: serverParent,
+          name: node.name,
+          isPublic: node.isPublic,
+          orderIndex: node.order,
+        }).catch(() => {});
+      } else {
+        void TemplateApiClient.updateTemplate(serverId, {
+          folderId: serverParent,
+          name: node.name,
+          isPublic: node.isPublic,
+          orderIndex: node.order,
+        }).catch(() => {});
+      }
+    }
+
     return true;
   }
 
