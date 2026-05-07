@@ -10,6 +10,15 @@ export function getTemplateId(): string | null {
   return params.get('template');
 }
 
+function getBaseUrl(): string {
+  const { origin, pathname } = window.location;
+  const cleanPath = pathname
+    .replace(/\/index\.html$/, '/')
+    .replace(/\/[^/]*\.[^/]*$/, '/');
+  const base = origin + cleanPath;
+  return base.endsWith('/') ? base : base + '/';
+}
+
 export function buildUserModeUrl(templateId: string): string {
-  return `${window.location.origin}/?mode=user&template=${encodeURIComponent(templateId)}`;
+  return getBaseUrl() + '?mode=user&template=' + encodeURIComponent(templateId);
 }
