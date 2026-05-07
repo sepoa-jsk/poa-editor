@@ -25,7 +25,7 @@ export class UserModePage {
     const grid = document.createElement('div');
     grid.className = 'user-mode-card-grid';
 
-    const templates = this.mgr.getAll().filter(n => n.type === 'template');
+    const templates = this.mgr.getAll().filter(n => n.type === 'template' && !n.isTemp);
 
     if (templates.length === 0) {
       const empty = document.createElement('p');

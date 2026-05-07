@@ -184,3 +184,52 @@ describe('TemplateManager — getChildren / getFolders', () => {
     expect(folders.every(n => n.type === 'folder')).toBe(true);
   });
 });
+
+describe('TemplateManager — isTemp / 임시 정리', () => {
+  it('addTemplate with isTemp:true 에 isTemp 플래그가 설정된다', () => {
+    const mgr = fresh();
+    const node = mgr.addTemplate('preview_test', '<p/>', null, false, true);
+    expect(node.isTemp).toBe(true);
+  });
+
+  it('isTemp:false(기본값)이면 isTemp 필드가 없다', () => {
+    const mgr = fresh();
+    const node = mgr.addTemplate('정식 템플릿', '<p/>', null);
+    expect(node.isTemp).toBeUndefined();
+  });
+
+  it('getAll()은 isTemp 항목을 포함해 반환한다', () => {
+    const mgr = fresh();
+    mgr.addTemplate('preview_xyz', '<p/>', null, false, true);
+    const temps = mgr.getAll().filter(n => n.isTemp);
+    expect(temps).toHaveLength(1);
+  });
+
+  it('"임시_" 접두어 항목은 재로드 시 자동 삭제된다', () => {
+    const mgr = fresh();
+    mgr.addTemplate('임시_1234567890', '<p/>', null);
+    // 재로드하면 _cleanTemp()가 실행되어 삭제됨
+    const mgr2 = new TemplateManager();
+    const found = mgr2.getAll().find(n => n.name.startsWith('임시_'));
+    expect(found).toBeUndefined();
+  });
+
+  it('24시간 초과 isTemp 항목은 재로드 시 자동 삭제된다', () => {
+    const mgr = fresh();
+    const old = mgr.addTemplate('preview_old', '<p/>', null, false, true);
+    // createdAt을 25시간 전으로 조작
+    const stored = JSON.parse(localStorage.getItem('poa-templates') as string) as unknown[];
+    const item = (stored as Array<{ id: string; createdAt: number }>).find(n => n.id === old.id)!;
+    item.createdAt = Date.now() - 25 * 60 * 60 * 1000;
+    localStorage.setItem('poa-templates', JSON.stringify(stored));
+    const mgr2 = new TemplateManager();
+    expect(mgr2.getById(old.id)).toBeNull();
+  });
+
+  it('24시간 미만 isTemp 항목은 재로드 후에도 유지된다', () => {
+    const mgr = fresh();
+    const node = mgr.addTemplate('preview_recent', '<p/>', null, false, true);
+    const mgr2 = new TemplateManager();
+    expect(mgr2.getById(node.id)).not.toBeNull();
+  });
+});

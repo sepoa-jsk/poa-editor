@@ -7,6 +7,7 @@ export interface TemplateNode {
   parentId:  string | null;
   content?:  string;
   isPublic:  boolean;
+  isTemp?:   boolean;
   createdAt: number;
   updatedAt: number;
   order:     number;
@@ -70,6 +71,20 @@ export class TemplateManager {
     } catch {
       this.nodes = [];
     }
+    this._cleanTemp();
+  }
+
+  /** "임시_" 이름 항목 및 24시간 초과 isTemp 항목 자동 정리 */
+  private _cleanTemp(): void {
+    const cutoff = Date.now() - 24 * 60 * 60 * 1000;
+    const before = this.nodes.length;
+    this.nodes = this.nodes.filter(n => {
+      if (n.type !== 'template') return true;
+      if (n.name.startsWith('임시_')) return false;
+      if (n.isTemp && n.createdAt < cutoff) return false;
+      return true;
+    });
+    if (this.nodes.length !== before) this._persist();
   }
 
   private _persist(): void {
@@ -144,10 +159,11 @@ export class TemplateManager {
     return node;
   }
 
-  addTemplate(name: string, content: string, parentId: string | null, isPublic = false): TemplateNode {
+  addTemplate(name: string, content: string, parentId: string | null, isPublic = false, isTemp = false): TemplateNode {
     const clean = String(DOMPurify.sanitize(content, { USE_PROFILES: { html: true } }));
     const node: TemplateNode = {
       id: genId(), type: 'template', name, parentId, content: clean, isPublic,
+      ...(isTemp ? { isTemp: true } : {}),
       createdAt: Date.now(), updatedAt: Date.now(),
       order: this.getChildren(parentId).length,
     };

@@ -1615,7 +1615,7 @@ p { margin: .4em 0; }
         return;
       case 'misc:user-mode': {
         const tmpMgr = new TemplateManager();
-        const node = tmpMgr.addTemplate(`임시_${Date.now()}`, this.getHTML(), null);
+        const node = tmpMgr.addTemplate(`preview_${Date.now()}`, this.getHTML(), null, false, true);
         window.open(buildUserModeUrl(node.id), '_blank');
         return;
       }
