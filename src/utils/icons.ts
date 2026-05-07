@@ -11,11 +11,14 @@ import {
   Baseline, Highlighter,
   BetweenVerticalStart, MoveHorizontal,
   // 파일
-  FilePlus, FolderOpen, Save, Printer, Settings, Clock,
+  FilePlus, FolderOpen, Save, FileOutput, Printer, Settings, Clock,
   // 편집
-  Scissors, Copy, Clipboard, ClipboardX, SquareDashed, Search,
+  Scissors, Copy, Clipboard, ClipboardX, SquareDashed, Search, ImagePlus,
   // 삽입
-  Image, Images, Link, Link2Off, Bookmark, Calendar, Minus, Omega, Video, MonitorPlay,
+  Image, Images, Film, PlayCircle, Link, Link2Off, Bookmark,
+  PenLine, Smile, MessageCircle, MessageSquare,
+  Calendar, Minus, Omega, MonitorPlay,
+  SeparatorHorizontal, LayoutTemplate, FormInput,
   // 보기
   LayoutDashboard, Code2, Eye, Type, FileText, Maximize2, Ruler, Grid3x3, BoxSelect,
   // 표
@@ -25,7 +28,7 @@ import {
   // 서식
   Paintbrush, Paintbrush2, RemoveFormatting, List, ListOrdered, Superscript, Subscript,
   // 기타
-  Accessibility, ShieldCheck, SquareCheck, Sigma,
+  Accessibility, ShieldCheck, SquareCheck, Sigma, User,
   // 도움말
   Keyboard, BookOpen, Info,
 } from 'lucide-static';
@@ -60,6 +63,7 @@ export const Icons = {
   fileNew:    px16(FilePlus),
   fileOpen:   px16(FolderOpen),
   save:       px16(Save),
+  fileSaveAs: px16(FileOutput),
   print:      px16(Printer),
   settings:   px16(Settings),
   clock:      px16(Clock),
@@ -71,18 +75,27 @@ export const Icons = {
   pastePlain: px16(ClipboardX),
   selectAll:  px16(SquareDashed),
   search:     px16(Search),
+  imageEdit:  px16(ImagePlus),
 
   // 삽입
   image:      px16(Image),
   images:     px16(Images),
+  videoTag:   px16(Film),
+  embedVideo: px16(PlayCircle),
   link:       px16(Link),
   linkOff:    px16(Link2Off),
   bookmark:   px16(Bookmark),
+  signature:  px16(PenLine),
+  emoji:      px16(Smile),
+  tooltip:    px16(MessageCircle),
+  tooltipList: px16(MessageSquare),
   calendar:   px16(Calendar),
   hr:         px16(Minus),
   symbol:     px16(Omega),
-  video:      px16(Video),
   youtube:    px16(MonitorPlay),
+  pageBreak:  px16(SeparatorHorizontal),
+  template:   px16(LayoutTemplate),
+  formField:  px16(FormInput),
 
   // 보기
   viewDesign:   px16(LayoutDashboard),
@@ -123,6 +136,7 @@ export const Icons = {
   privacy:  px16(ShieldCheck),
   form:     px16(SquareCheck),
   calc:     px16(Sigma),
+  userMode: px16(User),
 
   // 도움말
   shortcuts: px16(Keyboard),
@@ -134,26 +148,39 @@ export type IconName = keyof typeof Icons;
 
 /** action 문자열 → Icons 키 매핑 */
 export const ACTION_ICON: Record<string, IconName> = {
-  'file:new':           'fileNew',
-  'file:open':          'fileOpen',
-  'file:save':          'save',
-  'file:saveas':        'save',
-  'file:print':         'print',
-  'settings':           'settings',
-  'edit:cut':           'cut',
-  'edit:copy':          'copy',
-  'edit:paste':         'paste',
-  'edit:paste-plain':   'pastePlain',
-  'edit:select-all':    'selectAll',
-  'find-replace':       'search',
-  'edit:image-edit':    'image',
+  // 파일
+  'file:new':    'fileNew',
+  'file:open':   'fileOpen',
+  'file:save':   'save',
+  'file:saveas': 'fileSaveAs',
+  'file:print':  'print',
+  'settings':    'settings',
+  // 편집
+  'edit:cut':          'cut',
+  'edit:copy':         'copy',
+  'edit:paste':        'paste',
+  'edit:paste-plain':  'pastePlain',
+  'edit:select-all':   'selectAll',
+  'find-replace':      'search',
+  'edit:image-edit':   'imageEdit',
+  // 삽입
   'image':              'image',
   'insert:multi-image': 'images',
+  'insert:video':       'videoTag',
+  'insert:embed':       'embedVideo',
   'insert:link':        'link',
+  'insert:link-remove': 'linkOff',
   'insert:bookmark':    'bookmark',
+  'insert:signature':   'signature',
+  'insert:emoji':       'emoji',
+  'insert:tooltip':     'tooltip',
+  'insert:tooltip-list': 'tooltipList',
   'insert:datetime':    'calendar',
   'insert:hr':          'hr',
   'insert:symbol':      'symbol',
+  'insert:pagebreak':   'pageBreak',
+  'misc:template':      'template',
+  // 보기
   'view:design':        'viewDesign',
   'view:html':          'viewHtml',
   'view:preview':       'viewPreview',
@@ -163,6 +190,7 @@ export const ACTION_ICON: Record<string, IconName> = {
   'view:ruler':         'ruler',
   'view:grid':          'grid',
   'view:hidden-border': 'hiddenBorder',
+  // 표
   'table':              'table',
   'table:table-props':  'tableProps',
   'table:cell-props':   'cellProps',
@@ -175,17 +203,24 @@ export const ACTION_ICON: Record<string, IconName> = {
   'table:row-delete':   'rowDelete',
   'table:col-delete':   'colDelete',
   'table:delete':       'tableDelete',
+  'table:align-left':   'alignLeft',
+  'table:align-center': 'alignCenter',
+  'table:align-right':  'alignRight',
+  // 서식
   'format:painter-copy':  'painterCopy',
   'format:painter-paste': 'painterPaste',
   'format:clear':         'formatClear',
-  'format:ul':  'ul',
-  'format:ol':  'ol',
-  'format:sup': 'sup',
-  'format:sub': 'sub',
-  'misc:a11y':    'a11y',
-  'misc:privacy': 'privacy',
-  'misc:form':    'form',
-  'misc:calc':    'calc',
+  'format:ul':            'ul',
+  'format:ol':            'ol',
+  'format:sup':           'sup',
+  'format:sub':           'sub',
+  // 기타
+  'misc:a11y':      'a11y',
+  'misc:privacy':   'privacy',
+  'misc:form':      'form',
+  'misc:calc':      'calc',
+  'misc:user-mode': 'userMode',
+  // 도움말
   'help:shortcuts': 'shortcuts',
   'help:guide':     'guide',
   'help:about':     'about',

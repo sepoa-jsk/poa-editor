@@ -12,6 +12,8 @@ interface DropdownDef {
   readonly dropdown: true;
   readonly id: string;
   readonly label: string;
+  /** Icons 키 — 드롭다운 토글 버튼 앞에 표시할 아이콘 */
+  readonly iconKey?: string;
   /** [label, action, value?, typeIcon?] */
   readonly items: ReadonlyArray<readonly [string, string, string?, string?]>;
 }
@@ -48,14 +50,13 @@ const TABS: Record<MenuTab, ReadonlyArray<GroupDef>> = {
     [['찾기·바꾸기','find-replace'],['이미지 편집','edit:image-edit'],['전체 선택','edit:select-all']],
   ],
   insert: [
-    [['이미지','image']],
-    // TODO: 추후 활성화 예정
-    // [['비디오 태그','insert:video'],['외부 동영상','insert:embed']],
+    [['이미지','image'],['다중 이미지','insert:multi-image']],
+    [['비디오 태그','insert:video'],['외부 동영상','insert:embed']],
     [['하이퍼링크','insert:link'],['책갈피','insert:bookmark']],
     [['서명','insert:signature'],['이모지','insert:emoji']],
     [['툴팁','insert:tooltip'],['툴팁 관리','insert:tooltip-list']],
     [['날짜·시간','insert:datetime'],['가로줄','insert:hr'],['기호','insert:symbol'],['페이지 구분선','insert:pagebreak'],['템플릿','misc:template']],
-    [{ dropdown: true, id: 'doc-field', label: '양식 필드',
+    [{ dropdown: true, id: 'doc-field', label: '양식 필드', iconKey: 'formField',
        items: buildFieldDropdownItems() }],
   ],
   view: [
@@ -67,7 +68,7 @@ const TABS: Record<MenuTab, ReadonlyArray<GroupDef>> = {
     [['셀 병합','table:merge'],['셀 나누기','table:split-cell']],
     [['위에 행 삽입','table:row-above'],['아래에 행 삽입','table:row-below'],['왼쪽에 열 삽입','table:col-left'],['오른쪽에 열 삽입','table:col-right']],
     [['행 삭제','table:row-delete'],['열 삭제','table:col-delete'],['표 삭제','table:delete']],
-    [['◀ 왼쪽','table:align-left'],['≡ 가운데','table:align-center'],['▶ 오른쪽','table:align-right']],
+    [['표 왼쪽 정렬','table:align-left'],['표 가운데 정렬','table:align-center'],['표 오른쪽 정렬','table:align-right']],
   ],
   format: [
     [['서식 복사','format:painter-copy'],['서식 붙여넣기','format:painter-paste'],['서식 제거','format:clear']],
@@ -263,9 +264,12 @@ export class PoaContextToolbar extends HTMLElement {
             const icon = typeIcon ? `<span class="type-icon">${typeIcon}</span>` : '';
             return `<div class="drop-item" data-action="${action}"${da}>${icon}${label}</div>`;
           }).join('');
+          // 드롭다운 토글 버튼 아이콘 (iconKey가 Icons의 키를 직접 참조)
+          const ddIconSvg = item.iconKey ? (Icons as Record<string, string>)[item.iconKey] ?? '' : '';
+          const ddBtnContent = ddIconSvg ? `${ddIconSvg}<span>${item.label}</span>` : item.label;
           parts.push(
             `<div class="dropdown-wrap" id="dd-${item.id}">` +
-            `<button class="btn dropdown-toggle" data-dropdown-id="${item.id}">${item.label}</button>` +
+            `<button class="btn dropdown-toggle" data-dropdown-id="${item.id}">${ddBtnContent}</button>` +
             `<div class="dropdown-menu" id="menu-${item.id}">${menuItems}</div>` +
             `</div>`,
           );
