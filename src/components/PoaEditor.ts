@@ -146,6 +146,7 @@ export class PoaEditor extends HTMLElement {
   private tooltipManager!:        TooltipManager;
   private fieldInserter!:         FieldInserter;
   private paperSizeManager!:      PaperSizeManager;
+  private scrollContainer:        HTMLElement | null = null;
   /** 현재 선택(파란 outline)된 표 — null이면 미선택 */
   private selectedTable: HTMLTableElement | null = null;
   /** 표 컨텍스트 진입 직전 탭 — 표에서 벗어날 때 복귀에 사용 */
@@ -327,6 +328,7 @@ slot[name="content"] { display: contents; }
     // PaperSizeManager: contentRow를 스크롤 컨테이너/배경 래퍼로 활용
     const scrollContainer = this.viewManager.getScrollContainer();
     if (scrollContainer) {
+      this.scrollContainer = scrollContainer;
       this.paperSizeManager = new PaperSizeManager(this.contentEl, scrollContainer);
       this.paperSizeManager.init();
       // statusBar가 paper-change를 수신하도록 이벤트 전파
@@ -1127,14 +1129,22 @@ slot[name="content"] { display: contents; }
     const observer = new MutationObserver(() => this._activateUserModeFields());
     observer.observe(this.contentEl, { childList: true, subtree: true });
 
+    // A4 용지 바로 아래, 스크롤 영역 내부에 버튼 삽입 (floating 없음)
     const bar = document.createElement('div');
     bar.className = 'user-mode-save-bar';
     const btn = document.createElement('button');
     btn.className = 'user-mode-save-btn';
-    btn.textContent = '저장 / 내보내기';
-    btn.addEventListener('click', () => this._downloadExport(templateName));
+    btn.textContent = '📄 PDF로 저장';
+    btn.addEventListener('click', () => this._pdfExport(templateName));
     bar.appendChild(btn);
-    this.insertAdjacentElement('afterend', bar);
+
+    // scrollContainer(= .poa-view-content-row) 안에서 contentEl 바로 다음에 삽입
+    const container = this.scrollContainer ?? this.contentEl.parentElement;
+    if (container) {
+      this.contentEl.insertAdjacentElement('afterend', bar);
+    } else {
+      this.insertAdjacentElement('afterend', bar);
+    }
   }
 
   private _activateUserModeFields(): void {
@@ -1149,26 +1159,107 @@ slot[name="content"] { display: contents; }
     ).forEach(el => el.removeAttribute('disabled'));
   }
 
-  private _downloadExport(templateName: string): void {
-    const html = this.getExportHTML();
-    const now = new Date();
-    const pad = (n: number) => String(n).padStart(2, '0');
-    const ts = `${now.getFullYear()}${pad(now.getMonth() + 1)}${pad(now.getDate())}_${pad(now.getHours())}${pad(now.getMinutes())}`;
-    const fullHtml =
-      `<!DOCTYPE html><html lang="ko"><head>` +
-      `<meta charset="utf-8"><title>${templateName}</title>` +
-      `<style>
-body{font-family:바탕,serif;font-size:11pt;line-height:1.6;margin:40mm;}
-table{border-collapse:collapse;width:100%;}td,th{border:1px solid #000;padding:4px 8px;}
-h1,h2,h3{margin:.6em 0 .3em;}p{margin:.4em 0;}
-</style></head><body>${html}</body></html>`;
-    const blob = new Blob([fullHtml], { type: 'text/html;charset=utf-8' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `${templateName}_${ts}.html`;
-    a.click();
-    URL.revokeObjectURL(url);
+  private _pdfExport(templateName: string): void {
+    // 1. 안내 토스트
+    const toast = document.createElement('div');
+    toast.textContent = "브라우저 인쇄 창에서 '대상'을 'PDF로 저장'으로 선택하세요.";
+    toast.style.cssText = [
+      'position:fixed', 'bottom:80px', 'left:50%', 'transform:translateX(-50%)',
+      'background:#1F2937', 'color:#fff', 'padding:10px 20px',
+      'border-radius:6px', 'font-size:13px', 'z-index:9999',
+      'white-space:nowrap', 'pointer-events:none',
+    ].join(';');
+    document.body.appendChild(toast);
+    setTimeout(() => toast.remove(), 2000);
+
+    // 2. 인쇄용 복사본 — IDL value를 attribute로 동기화 후 cloneNode
+    this.contentEl.querySelectorAll<HTMLInputElement>('input.poa-field-input').forEach(inp => {
+      if (inp.value) inp.setAttribute('value', inp.value);
+    });
+    const clone = this.contentEl.cloneNode(true) as HTMLElement;
+
+    // textarea 라이브 값 반영
+    const liveTAs  = Array.from(this.contentEl.querySelectorAll<HTMLTextAreaElement>('textarea.poa-field-input'));
+    const cloneTAs = Array.from(clone.querySelectorAll<HTMLTextAreaElement>('textarea.poa-field-input'));
+    liveTAs.forEach((ta, i) => { if (cloneTAs[i]) cloneTAs[i].textContent = ta.value; });
+
+    // .poa-field → 입력값 또는 빈 칸 표시로 교체
+    clone.querySelectorAll<HTMLElement>('.poa-field').forEach(field => {
+      const inp = field.querySelector<HTMLInputElement | HTMLTextAreaElement>('.poa-field-input');
+      const val = inp?.value?.trim() ?? '';
+      const span = document.createElement('span');
+      if (val) {
+        span.textContent = val;
+      } else {
+        span.className = 'pdf-empty-field';
+      }
+      field.replaceWith(span);
+    });
+
+    // 불필요한 UI 요소 제거
+    clone.querySelectorAll('.user-mode-save-bar, [data-poa-temp], .poa-field-popup').forEach(el => el.remove());
+
+    // .poa-page-break → page-break-after 적용
+    clone.querySelectorAll<HTMLElement>('.poa-page-break').forEach(br => {
+      br.style.pageBreakAfter = 'always';
+      br.style.border = 'none';
+    });
+
+    // 3. 인쇄용 HTML 조립
+    const printHtml = `<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<title>${templateName}</title>
+<style>
+@page { size: A4 portrait; margin: 0; }
+body { margin: 0; padding: 0; background: #fff; }
+.poa-editor-content {
+  width: 794px;
+  padding: 96px;
+  font-family: 바탕, serif;
+  font-size: 11pt;
+  line-height: 1.6;
+  box-sizing: border-box;
+}
+table { border-collapse: collapse; width: 100%; }
+td, th { border: 1px solid #000; padding: 4px 8px; }
+h1,h2,h3 { margin: .6em 0 .3em; }
+p { margin: .4em 0; }
+.pdf-empty-field {
+  display: inline-block;
+  min-width: 80px;
+  border-bottom: 1px solid #000;
+}
+.poa-page-break {
+  page-break-after: always;
+  border: none;
+}
+.poa-page-break-label { display: none; }
+.poa-field-popup,
+.poa-toolbar,
+.poa-menubar,
+.user-mode-save-bar,
+.user-mode-badge { display: none !important; }
+</style>
+</head>
+<body>${clone.outerHTML}</body>
+</html>`;
+
+    // 4. 숨김 iframe으로 인쇄
+    const iframe = document.createElement('iframe');
+    iframe.style.cssText = 'position:fixed;top:-9999px;left:-9999px;width:0;height:0';
+    document.body.appendChild(iframe);
+    const iDoc = iframe.contentDocument;
+    if (!iDoc) { iframe.remove(); return; }
+    iDoc.open();
+    iDoc.write(printHtml);
+    iDoc.close();
+    iframe.onload = () => {
+      iframe.contentWindow?.focus();
+      iframe.contentWindow?.print();
+      setTimeout(() => iframe.remove(), 1000);
+    };
   }
 
   // ── Action dispatch from toolbar ────────────────────────────────────────

@@ -139,6 +139,6 @@ describe('PaperSizeManager', () => {
     });
     psm.setMargin({ top: 20 });
     expect(detail).not.toBeNull();
-    expect((detail as Record<string, unknown>)['margin']).toMatchObject({ top: 20 });
+    expect(detail!['margin']).toMatchObject({ top: 20 });
   });
 });
