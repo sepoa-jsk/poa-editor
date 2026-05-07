@@ -39,7 +39,7 @@ import type { PoaImageToolbar } from './ImageToolbar.js';
 import { ViewManager } from '../modules/view/ViewManager.js';
 import type { ViewMode } from '../modules/view/ViewManager.js';
 import { insertPageBreak } from '../modules/view/PageView.js';
-import { getSelectedBlocks, getImageAlign, getTableAlign } from '../utils/dom.js';
+import { getSelectedBlocks, getImageAlign, getTableAlign, syncInputValuesToAttributes } from '../utils/dom.js';
 import { TableWholeResizer } from '../modules/table/TableWholeResizer.js';
 import { TableInlineToolbar } from '../modules/table/TableInlineToolbar.js';
 import { FormatPainter } from '../modules/format/FormatPainter.js';
@@ -1073,7 +1073,8 @@ slot[name="content"] { display: contents; }
   // ── Public API ──────────────────────────────────────────────────────────
 
   getHTML(): string {
-    // 리사이즈 오버레이 등 data-poa-temp 요소를 클론에서 제거한 뒤 직렬화
+    // cloneNode 전에 IDL value를 어트리뷰트로 동기화 (input/textarea 입력값 보존)
+    syncInputValuesToAttributes(this.contentEl);
     const clone = this.contentEl.cloneNode(true) as HTMLDivElement;
     clone.querySelectorAll('[data-poa-temp]').forEach((el) => el.remove());
     return DOMPurify.sanitize(clone.innerHTML);
@@ -1173,15 +1174,8 @@ slot[name="content"] { display: contents; }
     setTimeout(() => toast.remove(), 2000);
 
     // 2. 인쇄용 복사본 — IDL value를 attribute로 동기화 후 cloneNode
-    this.contentEl.querySelectorAll<HTMLInputElement>('input.poa-field-input').forEach(inp => {
-      if (inp.value) inp.setAttribute('value', inp.value);
-    });
+    syncInputValuesToAttributes(this.contentEl);
     const clone = this.contentEl.cloneNode(true) as HTMLElement;
-
-    // textarea 라이브 값 반영
-    const liveTAs  = Array.from(this.contentEl.querySelectorAll<HTMLTextAreaElement>('textarea.poa-field-input'));
-    const cloneTAs = Array.from(clone.querySelectorAll<HTMLTextAreaElement>('textarea.poa-field-input'));
-    liveTAs.forEach((ta, i) => { if (cloneTAs[i]) cloneTAs[i].textContent = ta.value; });
 
     // .poa-field → 입력값 또는 빈 칸 표시로 교체
     clone.querySelectorAll<HTMLElement>('.poa-field').forEach(field => {

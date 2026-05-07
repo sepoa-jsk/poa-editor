@@ -33,6 +33,27 @@ function escapeHtml(text: string): string {
     .replace(/>/g, '&gt;');
 }
 
+/**
+ * root 내 모든 input/textarea/select의 IDL value 프로퍼티를
+ * 콘텐츠 어트리뷰트로 동기화한다.
+ * innerHTML 직렬화 전에 호출하여 입력값이 HTML에 포함되도록 한다.
+ */
+export function syncInputValuesToAttributes(root: HTMLElement): void {
+  root.querySelectorAll<HTMLInputElement>('input').forEach(input => {
+    input.setAttribute('value', input.value);
+  });
+  root.querySelectorAll<HTMLTextAreaElement>('textarea').forEach(textarea => {
+    textarea.textContent = textarea.value;
+  });
+  root.querySelectorAll<HTMLSelectElement>('select').forEach(select => {
+    const selectedIdx = select.selectedIndex;
+    Array.from(select.options).forEach((opt, i) => {
+      if (i === selectedIdx) opt.setAttribute('selected', 'selected');
+      else opt.removeAttribute('selected');
+    });
+  });
+}
+
 /** 노드가 HTMLElement인지 확인하는 타입 가드 */
 export function isHTMLElement(node: Node): node is HTMLElement {
   return node.nodeType === Node.ELEMENT_NODE;

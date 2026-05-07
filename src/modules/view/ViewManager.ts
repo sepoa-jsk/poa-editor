@@ -1,6 +1,7 @@
 import DOMPurify from 'dompurify';
 import { PageView } from './PageView.js';
 import type { BookmarkEntry } from '../insert/BookmarkManager.js';
+import { syncInputValuesToAttributes } from '../../utils/dom.js';
 
 export type ViewMode = 'design' | 'html' | 'preview' | 'text' | 'page';
 
@@ -244,6 +245,7 @@ export class ViewManager {
 
   private initPreviewView(): void {
     if (!this.previewPanel) return;
+    syncInputValuesToAttributes(this.contentEl);
     const html = DOMPurify.sanitize(this.contentEl.innerHTML);
     this.previewPanel.style.cssText =
       'display:block;flex:1;overflow-y:auto;padding:20px;font-size:14px;' +
@@ -267,6 +269,7 @@ export class ViewManager {
 
   private initPageView(): void {
     if (!this.pagePanel) return;
+    syncInputValuesToAttributes(this.contentEl);
     const html      = DOMPurify.sanitize(this.contentEl.innerHTML);
     const bookmarks = this.callbacks.getBookmarks?.() ?? [];
     this.pagePanel.innerHTML  = '';

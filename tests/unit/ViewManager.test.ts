@@ -142,6 +142,28 @@ describe('ViewManager', () => {
     // wrapper가 제거됐는지 확인
     expect(host.querySelector('.poa-view-wrapper')).toBeNull();
   });
+
+  it('미리보기 전환 시 input의 입력값이 보존된다', async () => {
+    contentEl.innerHTML = '<input type="text" class="poa-field-input">';
+    const input = contentEl.querySelector<HTMLInputElement>('input')!;
+    input.value = '홍길동';
+
+    await vm.switchTo('preview');
+
+    const previewPanel = host.querySelector('.poa-preview-panel');
+    expect(previewPanel?.innerHTML).toContain('홍길동');
+  });
+
+  it('미리보기 전환 시 textarea의 입력값이 보존된다', async () => {
+    contentEl.innerHTML = '<textarea class="poa-field-input"></textarea>';
+    const textarea = contentEl.querySelector<HTMLTextAreaElement>('textarea')!;
+    textarea.value = '여러 줄 입력';
+
+    await vm.switchTo('preview');
+
+    const previewPanel = host.querySelector('.poa-preview-panel');
+    expect(previewPanel?.innerHTML).toContain('여러 줄 입력');
+  });
 });
 
 // ── PageView ───────────────────────────────────────────────────────────────
