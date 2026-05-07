@@ -252,4 +252,5 @@ export function registerPasteHandler(root: HTMLElement): void {
     range.insertNode(fragment);
   });
 }
+
 ```
