@@ -121,7 +121,6 @@ export class PoaMenuBar extends HTMLElement {
     const adminBadge = isAdmin() ? '<span class="admin-badge">관리자</span>' : '';
     const userHtml = `
       <div class="user-area" id="user-area">
-        ${Icons.userCircle}
         <span class="user-name-text" id="user-name-text">${getUserName()}</span>
         ${adminBadge}
         <div class="user-dropdown hidden" id="user-dropdown">
@@ -131,6 +130,8 @@ export class PoaMenuBar extends HTMLElement {
         </div>
       </div>`;
     this.shadow.innerHTML = `<style>${CSS}</style><div class="menubar">${tabsHtml}${userHtml}</div>`;
+    // SVG를 template literal 밖에서 DOM API로 삽입 (멀티라인 SVG가 innerHTML 파싱을 깨는 버그 방지)
+    this.shadow.getElementById('user-area')!.insertAdjacentHTML('afterbegin', Icons.userCircle);
 
     this.shadow.querySelector('.menubar')!.addEventListener('mousedown', (e) => {
       e.preventDefault();
