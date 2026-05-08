@@ -198,9 +198,16 @@ export const TemplateApiClient = {
     await request<void>('/templates/temp', { method: 'DELETE' });
   },
 
-  /** 관리자 전용: 임시/테스트 데이터 일괄 삭제 */
+  /** 관리자 전용: 임시/테스트 데이터 일괄 삭제 (1회 재시도) */
   async adminCleanup(): Promise<void> {
-    await request<void>('/admin/cleanup', { method: 'DELETE' });
+    const doCleanup = () => request<void>('/admin/cleanup', { method: 'DELETE' });
+    try {
+      await doCleanup();
+    } catch (e) {
+      console.error('서버 정리 오류 (1차 시도):', e);
+      await new Promise(r => setTimeout(r, 500));
+      await doCleanup();
+    }
   },
 
   /** 폴더 + 템플릿 전체를 TemplateNode 배열로 반환 */
