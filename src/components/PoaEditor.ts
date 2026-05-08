@@ -1620,9 +1620,8 @@ p { margin: .4em 0; }
         this.templateDialog.open();
         return;
       case 'misc:user-mode': {
-        const tmpMgr = new TemplateManager();
-        const node = tmpMgr.addTemplate(`preview_${Date.now()}`, this.getHTML(), null, false, true);
-        window.open(buildUserModeUrl(node.id), '_blank');
+        sessionStorage.setItem('poa-preview-html', this.getHTML());
+        window.open(buildUserModeUrl('__preview__'), '_blank');
         return;
       }
       case 'insert:signature':

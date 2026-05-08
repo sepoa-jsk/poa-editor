@@ -214,22 +214,17 @@ describe('TemplateManager — isTemp / 임시 정리', () => {
     expect(found).toBeUndefined();
   });
 
-  it('24시간 초과 isTemp 항목은 재로드 시 자동 삭제된다', () => {
+  it('isTemp 항목은 재로드 시 즉시 삭제된다', () => {
     const mgr = fresh();
     const old = mgr.addTemplate('preview_old', '<p/>', null, false, true);
-    // createdAt을 25시간 전으로 조작
-    const stored = JSON.parse(localStorage.getItem('poa-templates') as string) as unknown[];
-    const item = (stored as Array<{ id: string; createdAt: number }>).find(n => n.id === old.id)!;
-    item.createdAt = Date.now() - 25 * 60 * 60 * 1000;
-    localStorage.setItem('poa-templates', JSON.stringify(stored));
     const mgr2 = new TemplateManager();
     expect(mgr2.getById(old.id)).toBeNull();
   });
 
-  it('24시간 미만 isTemp 항목은 재로드 후에도 유지된다', () => {
+  it('preview_ 이름 항목은 재로드 시 즉시 삭제된다', () => {
     const mgr = fresh();
-    const node = mgr.addTemplate('preview_recent', '<p/>', null, false, true);
+    const node = mgr.addTemplate('preview_recent', '<p/>', null, false, false);
     const mgr2 = new TemplateManager();
-    expect(mgr2.getById(node.id)).not.toBeNull();
+    expect(mgr2.getById(node.id)).toBeNull();
   });
 });

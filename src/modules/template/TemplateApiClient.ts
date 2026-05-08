@@ -198,6 +198,11 @@ export const TemplateApiClient = {
     await request<void>('/templates/temp', { method: 'DELETE' });
   },
 
+  /** 관리자 전용: 임시/테스트 데이터 일괄 삭제 */
+  async adminCleanup(): Promise<void> {
+    await request<void>('/admin/cleanup', { method: 'DELETE' });
+  },
+
   /** 폴더 + 템플릿 전체를 TemplateNode 배열로 반환 */
   async getAllNodes(): Promise<TemplateNode[]> {
     const [folders, templates] = await Promise.all([

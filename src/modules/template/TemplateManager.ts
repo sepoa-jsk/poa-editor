@@ -105,14 +105,14 @@ export class TemplateManager {
     this._persist();
   }
 
-  /** "임시_" 이름 항목 및 24시간 초과 isTemp 항목 자동 정리 */
+  /** isTemp 항목 및 임시_/preview_ 이름 항목 전부 정리 */
   private _cleanTemp(): void {
-    const cutoff = Date.now() - 24 * 60 * 60 * 1000;
     const before = this.nodes.length;
     this.nodes = this.nodes.filter(n => {
       if (n.type !== 'template') return true;
+      if (n.isTemp) return false;
       if (n.name.startsWith('임시_')) return false;
-      if (n.isTemp && n.createdAt < cutoff) return false;
+      if (n.name.startsWith('preview_')) return false;
       return true;
     });
     if (this.nodes.length !== before) this._persist();
@@ -136,27 +136,33 @@ export class TemplateManager {
   }
 
   private _seed(): void {
-    const pub: TemplateNode = {
-      id: genId(), type: 'folder', name: '공용 템플릿',
-      parentId: null, isPublic: true,
-      createdAt: Date.now(), updatedAt: Date.now(), order: 0,
-    };
-    const my: TemplateNode = {
-      id: genId(), type: 'folder', name: '내 템플릿',
-      parentId: null, isPublic: false,
-      createdAt: Date.now(), updatedAt: Date.now(), order: 1,
-    };
-    this.nodes.push(pub, my);
+    const existingNames = new Set(this.nodes.map(n => n.name));
+
+    let pub = this.nodes.find(n => n.type === 'folder' && n.name === '공용 템플릿' && n.parentId === null);
+    if (!pub) {
+      pub = { id: genId(), type: 'folder', name: '공용 템플릿', parentId: null, isPublic: true, createdAt: Date.now(), updatedAt: Date.now(), order: 0 };
+      this.nodes.push(pub);
+    }
+
+    if (!existingNames.has('내 템플릿')) {
+      this.nodes.push({ id: genId(), type: 'folder', name: '내 템플릿', parentId: null, isPublic: false, createdAt: Date.now(), updatedAt: Date.now(), order: 1 });
+    }
 
     SEED_TEMPLATES.forEach((t, i) => {
+      if (existingNames.has(t.name)) return;
       const clean = String(DOMPurify.sanitize(t.content, { USE_PROFILES: { html: true } }));
       this.nodes.push({
         id: genId(), type: 'template', name: t.name,
-        parentId: pub.id, content: clean, isPublic: true,
+        parentId: pub!.id, content: clean, isPublic: true,
         createdAt: Date.now(), updatedAt: Date.now(), order: i,
       });
     });
     this._persist();
+  }
+
+  /** localStorage를 다시 읽어 노드 목록을 갱신한다 */
+  reload(): void {
+    this._load();
   }
 
   /** 서버 API에서 전체 데이터를 로드하여 localStorage에 반영한다 */

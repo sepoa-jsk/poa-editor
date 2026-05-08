@@ -156,9 +156,26 @@ export class UserModePage {
 
   /**
    * URL의 templateId로 템플릿 내용을 로드한다.
+   * '__preview__': sessionStorage에서 미리보기 HTML 반환 (DB/localStorage 저장 없음).
    * 서버 ID('s-64' 형식)면 API 단건 조회, 실패 시 로컬 스토리지 폴백.
    */
   static async loadTemplateById(templateId: string): Promise<TemplateNode | null> {
+    if (templateId === '__preview__') {
+      const html = sessionStorage.getItem('poa-preview-html');
+      if (!html) return null;
+      return {
+        id: '__preview__',
+        type: 'template',
+        name: '미리보기',
+        parentId: null,
+        content: html,
+        isPublic: false,
+        createdAt: Date.now(),
+        updatedAt: Date.now(),
+        order: 0,
+      };
+    }
+
     const serverId = toServerId(templateId);
     if (serverId !== null) {
       try {

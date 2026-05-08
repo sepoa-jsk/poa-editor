@@ -106,6 +106,7 @@ const STYLE = `
 }
 .left-action-btn:hover { background: #eff6ff; border-color: #bfdbfe; color: #2563eb; }
 .left-action-btn.active { background: #eff6ff; border-color: #2563eb; color: #2563eb; }
+.left-action-btn.danger:hover { background: #fef2f2; border-color: #fecaca; color: #dc2626; }
 
 /* ── 우측 패널 ── */
 .right {
@@ -312,6 +313,16 @@ export class PoaTemplateDialog extends HTMLElement {
     this.shadow.getElementById('btn-replace')!   .addEventListener('click', () => this._apply('replace'));
     this.shadow.getElementById('btn-apply-quick')!.addEventListener('click', () => this._apply('replace'));
 
+    // 관리자 전용: 임시 데이터 정리 버튼
+    if (isAdmin()) {
+      const cleanupBtn = document.createElement('button');
+      cleanupBtn.className = 'left-action-btn danger';
+      cleanupBtn.title = '임시/테스트 데이터 일괄 삭제 (관리자 전용)';
+      cleanupBtn.innerHTML = `${Icons.trash} 정리`;
+      this.shadow.querySelector('.left-btns')!.appendChild(cleanupBtn);
+      cleanupBtn.addEventListener('click', () => void this._adminCleanup());
+    }
+
     // 링크 복사 이벤트
     this.shadow.addEventListener('poa-tmpl-copy-link', () => {
       this._showToast('링크가 복사되었습니다.');
@@ -473,6 +484,17 @@ table{border-collapse:collapse;width:100%;}td,th{border:1px solid #ccc;padding:4
       opt.textContent = (f.isPublic ? '[공용] ' : '[내] ') + f.name;
       sel.appendChild(opt);
     }
+  }
+
+  private async _adminCleanup(): Promise<void> {
+    try {
+      await TemplateApiClient.adminCleanup();
+      this._showToast('서버 임시 데이터 정리 완료');
+    } catch {
+      this._showToast('서버 정리 실패 (로컬만 정리됨)');
+    }
+    this.mgr.reload();
+    this.tree.setManager(this.mgr);
   }
 
   private _showToast(msg: string): void {
