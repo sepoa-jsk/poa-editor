@@ -1106,7 +1106,17 @@ slot[name="content"] { display: contents; }
   }
 
   setHTML(html: string): void {
-    this.contentEl.innerHTML = DOMPurify.sanitize(html);
+    this.contentEl.innerHTML = DOMPurify.sanitize(html, {
+      ADD_TAGS: ['textarea'],
+      ADD_ATTR: [
+        'data-field-id', 'data-placeholder', 'data-label',
+        'data-field-type', 'data-prefix', 'data-suffix',
+        'data-multiline', 'data-number-format', 'data-date-format',
+        'data-font-size', 'data-text-align', 'data-font-family',
+        'data-width', 'data-height', 'data-size-fixed', 'data-raw-value',
+        'value', 'rows', 'contenteditable',
+      ],
+    });
     this.contentEl.querySelectorAll<HTMLElement>('td, th').forEach((cell) => {
       cell.style.verticalAlign = 'middle';
     });

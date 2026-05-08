@@ -4,6 +4,7 @@ import type { TemplateNode } from '../../modules/template/TemplateManager.js';
 import type { PoaTemplateTree } from '../TemplateTree.js';
 import { isAdmin } from '../../core/UserSession.js';
 import { Icons } from '../../utils/icons.js';
+import { TemplateApiClient, toServerId } from '../../modules/template/TemplateApiClient.js';
 
 const STYLE = `
 *, *::before, *::after { box-sizing: border-box; }
@@ -346,49 +347,98 @@ export class PoaTemplateDialog extends HTMLElement {
     this.shadow.getElementById('btn-save-tmpl')!.classList.remove('active');
   }
 
+  // ── content 보장 ─────────────────────────────────────────────────────────
+
+  /** content 가 없으면 서버 단건 API 로 가져와 캐시 후 반환 */
+  private async _ensureContent(): Promise<string> {
+    if (!this.selected) return '';
+    if (this.selected.content) return this.selected.content;
+    const serverId = toServerId(this.selected.id);
+    if (serverId === null) return '';
+    try {
+      const node = await TemplateApiClient.getTemplate(serverId);
+      this.selected = { ...this.selected, content: node.content ?? '' };
+      return this.selected.content ?? '';
+    } catch {
+      return '';
+    }
+  }
+
   // ── 미리보기 ──────────────────────────────────────────────────────────────
 
-  private _refreshPreview(): void {
-    const empty   = this.shadow.getElementById('preview-empty')!;
-    const content = this.shadow.getElementById('preview-content')!;
-    const frame   = this.shadow.getElementById('preview-frame') as HTMLIFrameElement;
+  private async _refreshPreview(): Promise<void> {
+    const emptyEl   = this.shadow.getElementById('preview-empty')!;
+    const contentEl = this.shadow.getElementById('preview-content')!;
+    const frame     = this.shadow.getElementById('preview-frame') as HTMLIFrameElement;
     const appendBtn = this.shadow.getElementById('btn-append')  as HTMLButtonElement;
     const replBtn   = this.shadow.getElementById('btn-replace') as HTMLButtonElement;
 
     if (!this.selected || this.selected.type !== 'template') {
-      empty.classList.remove('hidden');
-      content.classList.add('hidden');
+      emptyEl.classList.remove('hidden');
+      contentEl.classList.add('hidden');
       appendBtn.disabled = true;
       replBtn.disabled   = true;
       return;
     }
 
+    // 이름·날짜를 먼저 표시하고 content 를 비동기 로드
     (this.shadow.getElementById('info-name')!).textContent = this.selected.name;
     (this.shadow.getElementById('info-date')!).textContent =
       new Date(this.selected.updatedAt).toLocaleDateString('ko-KR', {
         year: 'numeric', month: '2-digit', day: '2-digit',
       });
-
-    const clean = String(DOMPurify.sanitize(this.selected.content ?? '', { USE_PROFILES: { html: true } }));
-    frame.srcdoc =
-      `<!doctype html><html><head><style>
-       body{font-family:'맑은 고딕','Malgun Gothic',sans-serif;font-size:14px;
-            padding:12px;margin:0;color:#222;line-height:1.6;}
-       h1,h2,h3{margin:.5em 0;}p{margin:.4em 0;}
-       ul,ol{margin:.4em 0;padding-left:1.5em;}hr{border:none;border-top:1px solid #e5e7eb;}
-       </style></head><body>${clean}</body></html>`;
-
-    empty.classList.add('hidden');
-    content.classList.remove('hidden');
+    emptyEl.classList.add('hidden');
+    contentEl.classList.remove('hidden');
     appendBtn.disabled = false;
     replBtn.disabled   = false;
+
+    const rawContent = await this._ensureContent();
+    const clean = String(DOMPurify.sanitize(rawContent, {
+      ADD_TAGS: ['textarea'],
+      ADD_ATTR: [
+        'data-field-id', 'data-placeholder', 'data-label',
+        'data-field-type', 'data-prefix', 'data-suffix',
+        'data-multiline', 'data-number-format', 'data-date-format',
+        'data-width', 'data-height', 'data-size-fixed', 'data-raw-value',
+        'contenteditable', 'rows',
+      ],
+      FORCE_BODY: true,
+    }));
+
+    frame.srcdoc = `<!DOCTYPE html>
+<html><head><meta charset="UTF-8">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR&display=swap" rel="stylesheet">
+<style>
+body{font-family:'Noto Sans KR',sans-serif;font-size:11pt;line-height:1.6;padding:16px;margin:0;color:#222;}
+h1,h2,h3{margin:.5em 0;}p{margin:.4em 0;}
+ul,ol{margin:.4em 0;padding-left:1.5em;}hr{border:none;border-top:1px solid #e5e7eb;}
+table{border-collapse:collapse;width:100%;}td,th{border:1px solid #ccc;padding:4px 8px;}
+.poa-field input,.poa-field textarea{
+  border:1px solid #93C5FD;border-radius:4px;background:#EFF6FF;color:#1E40AF;
+  font-size:inherit;font-family:inherit;padding:2px 4px;pointer-events:none;}
+.poa-field-drag-handle,.poa-field-resize-handle{display:none;}
+</style>
+</head><body>${clean}</body></html>`;
   }
 
   // ── 적용 ──────────────────────────────────────────────────────────────────
 
-  private _apply(mode: 'append' | 'replace'): void {
-    if (!this.selected?.content) return;
-    const html = String(DOMPurify.sanitize(this.selected.content, { USE_PROFILES: { html: true } }));
+  private async _apply(mode: 'append' | 'replace'): Promise<void> {
+    if (!this.selected) return;
+    const content = await this._ensureContent();
+    if (!content) return;
+    const html = String(DOMPurify.sanitize(content, {
+      ADD_TAGS: ['textarea'],
+      ADD_ATTR: [
+        'data-field-id', 'data-placeholder', 'data-label',
+        'data-field-type', 'data-prefix', 'data-suffix',
+        'data-multiline', 'data-number-format', 'data-date-format',
+        'data-font-size', 'data-text-align', 'data-font-family',
+        'data-width', 'data-height', 'data-size-fixed', 'data-raw-value',
+        'value', 'rows',
+      ],
+      FORCE_BODY: true,
+    }));
     this.dispatchEvent(new CustomEvent('poa-tmpl-insert', {
       bubbles: true, composed: true,
       detail: { html, mode },
