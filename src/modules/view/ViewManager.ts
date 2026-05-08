@@ -229,7 +229,7 @@ export class ViewManager {
 
   private initTextView(): void {
     if (!this.textPanel) return;
-    const text = this.contentEl.innerText ?? this.contentEl.textContent ?? '';
+    const text = this._extractFormattedText(this.contentEl);
     this.textPanel.innerHTML = '';
     this.textPanel.style.cssText =
       'display:block;flex:1;overflow-y:auto;background:#F3F4F6;padding:32px;box-sizing:border-box;';
@@ -241,6 +241,48 @@ export class ViewManager {
       'box-shadow:0 1px 4px rgba(0,0,0,.08);';
     paper.textContent = text;
     this.textPanel.appendChild(paper);
+  }
+
+  private _extractFormattedText(root: Element): string {
+    const olCounters = new WeakMap<Element, number>();
+
+    const walk = (node: Node): string => {
+      if (node.nodeType === Node.TEXT_NODE) {
+        return node.textContent ?? '';
+      }
+      if (node.nodeType !== Node.ELEMENT_NODE) return '';
+
+      const el  = node as Element;
+      const tag = el.tagName.toLowerCase();
+
+      if (tag === 'br') return '\n';
+
+      if (tag === 'li') {
+        const parent = el.parentElement;
+        const isOl   = parent?.tagName.toLowerCase() === 'ol';
+        let prefix: string;
+        if (isOl && parent) {
+          const idx = (olCounters.get(parent) ?? 0) + 1;
+          olCounters.set(parent, idx);
+          prefix = `${idx}. `;
+        } else {
+          prefix = '• ';
+        }
+        const inner = Array.from(el.childNodes).map(walk).join('');
+        return prefix + inner.trimStart() + '\n';
+      }
+
+      const blockTags = new Set(['p','div','h1','h2','h3','h4','h5','h6','blockquote','pre','address','figure','figcaption','article','section','header','footer','main','nav','aside','ul','ol','dl','dt','dd','table','tr','td','th']);
+      const inner = Array.from(el.childNodes).map(walk).join('');
+
+      if (blockTags.has(tag)) {
+        return '\n' + inner + '\n';
+      }
+      return inner;
+    };
+
+    const raw  = walk(root);
+    return raw.replace(/\n{3,}/g, '\n\n').trim();
   }
 
   private initPageView(): void {
@@ -399,25 +441,31 @@ export class ViewManager {
 
   private _renderHtmlView(): void {
     if (!this.htmlPanel) return;
-    const isDark   = this._htmlTheme === 'dark';
-    const content  = this._htmlRawContent;
-    const bg       = isDark ? '#1E1E1E' : '#FAFAFA';
-    const lnColor  = isDark ? '#858585' : '#999999';
-    const lnBorder = isDark ? '#333333' : '#DDDDDD';
-    const caretClr = isDark ? '#AEAFAD' : '#000000';
+    const isDark    = this._htmlTheme === 'dark';
+    const content   = this._htmlRawContent;
+    const FONT      = "Consolas,Monaco,'Courier New',monospace";
+    const bg        = isDark ? '#1E1E1E' : '#FFFFFF';
+    const toolbarBg = isDark ? '#2D2D2D' : '#F0F0F0';
+    const lnColor   = isDark ? '#858585' : '#999999';
+    const lnBg      = isDark ? '#1E1E1E' : '#F5F5F5';
+    const lnBorder  = isDark ? '#333333' : '#DDDDDD';
+    const codeFg    = isDark ? '#D4D4D4' : '#000000';
 
     this.htmlPanel.innerHTML = '';
     this.htmlPanel.style.cssText =
-      `display:flex;flex:1;flex-direction:column;overflow:hidden;` +
-      `box-sizing:border-box;background:${bg};position:relative;`;
+      `display:flex;flex-direction:column;flex:1;overflow:hidden;` +
+      `box-sizing:border-box;background:${bg};`;
 
-    // 테마 토글 버튼
+    // ── 상단 툴바 (절대 위치 없이 flex 항목으로) ─────────────────────────────
+    const toolbar = document.createElement('div');
+    toolbar.style.cssText =
+      `height:36px;flex-shrink:0;background:${toolbarBg};` +
+      `border-bottom:1px solid ${isDark ? '#444' : '#DDD'};` +
+      `display:flex;align-items:center;padding:0 12px;justify-content:flex-end;`;
     const toggleBtn = document.createElement('button');
     toggleBtn.style.cssText =
-      `position:absolute;top:8px;right:12px;z-index:10;` +
-      `padding:3px 10px;border:1px solid ${isDark ? '#555' : '#ccc'};border-radius:4px;` +
-      `background:${isDark ? '#2D2D2D' : '#EFEFEF'};color:${isDark ? '#cccccc' : '#555555'};` +
-      `font-size:11px;cursor:pointer;font-family:inherit;line-height:1.4;`;
+      `background:${isDark ? '#444' : '#E0E0E0'};color:${isDark ? '#CCC' : '#333'};` +
+      `border:none;border-radius:4px;padding:4px 10px;font-size:12px;cursor:pointer;font-family:inherit;`;
     toggleBtn.textContent = isDark ? '☀️ 라이트' : '🌙 다크';
     toggleBtn.addEventListener('click', () => {
       this._htmlRawContent = this.cmGetContent?.() ?? this._htmlRawContent;
@@ -425,62 +473,46 @@ export class ViewManager {
       try { localStorage.setItem('poa-html-theme', this._htmlTheme); } catch { /* ignore */ }
       this._renderHtmlView();
     });
-    this.htmlPanel.appendChild(toggleBtn);
+    toolbar.appendChild(toggleBtn);
+    this.htmlPanel.appendChild(toolbar);
 
-    // 코드 래퍼 (가로 스크롤 포함)
-    const codeWrap = document.createElement('div');
-    codeWrap.style.cssText = 'display:flex;flex:1;overflow:auto;min-height:0;';
-    this.htmlPanel.appendChild(codeWrap);
+    // ── 코드 영역 (줄번호 + contenteditable 코드) ────────────────────────────
+    // overflow:auto를 이 컨테이너에 두면 줄번호+코드가 함께 스크롤됨
+    const codeArea = document.createElement('div');
+    codeArea.style.cssText = 'flex:1;display:flex;overflow:auto;min-height:0;align-items:flex-start;';
+    this.htmlPanel.appendChild(codeArea);
 
     const lines = content.split('\n');
-    const FONT  = "Consolas,Monaco,'Courier New',monospace";
 
-    // 줄번호 영역
+    // 줄번호 영역 — 코드 영역 높이에 맞춰 align-self:stretch
     const lineNumEl = document.createElement('div');
     lineNumEl.style.cssText =
-      `min-width:48px;padding:16px 12px 16px 0;text-align:right;flex-shrink:0;` +
-      `color:${lnColor};background:${bg};` +
+      `min-width:48px;padding:12px 8px;text-align:right;flex-shrink:0;align-self:stretch;` +
+      `color:${lnColor};background:${lnBg};` +
       `border-right:1px solid ${lnBorder};user-select:none;` +
-      `font-family:${FONT};font-size:12px;line-height:1.6;box-sizing:border-box;`;
-    lineNumEl.innerHTML = lines.map((_, i) => `<div>${i + 1}</div>`).join('');
-    codeWrap.appendChild(lineNumEl);
-
-    // 에디터 래퍼 (textarea + highlight overlay 겹침)
-    const editorWrap = document.createElement('div');
-    editorWrap.style.cssText = 'flex:1;position:relative;min-width:0;';
-    codeWrap.appendChild(editorWrap);
-
-    // 공통 코드 스타일 (textarea/display 동일 적용)
-    const CODE_STYLE =
-      `padding:16px;white-space:pre-wrap;word-break:break-all;` +
       `font-family:${FONT};font-size:13px;line-height:1.6;box-sizing:border-box;`;
+    lineNumEl.innerHTML = lines.map((_, i) => `<div>${i + 1}</div>`).join('');
+    codeArea.appendChild(lineNumEl);
 
-    // 구문 강조 display 레이어 (pointer-events:none)
-    const display = document.createElement('div');
-    display.style.cssText =
-      `position:absolute;inset:0;${CODE_STYLE}` +
-      `pointer-events:none;overflow:hidden;` +
-      `color:${isDark ? '#D4D4D4' : '#000000'};`;
-    display.innerHTML = this._highlightHtml(content, isDark);
-    editorWrap.appendChild(display);
+    // contenteditable 코드 영역 — position:static 으로 높이가 내용에 따라 결정됨
+    const codeEl = document.createElement('div');
+    codeEl.contentEditable = 'true';
+    codeEl.setAttribute('spellcheck', 'false');
+    codeEl.style.cssText =
+      `flex:1;padding:12px 16px;` +
+      `color:${codeFg};` +
+      `font-family:${FONT};font-size:13px;line-height:1.6;` +
+      `white-space:pre-wrap;word-break:break-all;outline:none;` +
+      `min-height:100%;box-sizing:border-box;`;
+    codeEl.innerHTML = this._highlightHtml(content, isDark);
+    codeArea.appendChild(codeEl);
 
-    // 편집 가능한 textarea (텍스트 투명, 커서만 표시)
-    const ta = document.createElement('textarea');
-    ta.value = content;
-    ta.setAttribute('spellcheck', 'false');
-    ta.style.cssText =
-      `position:absolute;inset:0;${CODE_STYLE}` +
-      `color:transparent;caret-color:${caretClr};` +
-      `background:transparent;border:none;outline:none;resize:none;overflow:auto;`;
-    ta.addEventListener('input', () => {
-      const v = ta.value;
-      const updatedLines = v.split('\n');
-      lineNumEl.innerHTML = updatedLines.map((_, i) => `<div>${i + 1}</div>`).join('');
-      display.innerHTML = this._highlightHtml(v, isDark);
+    codeEl.addEventListener('input', () => {
+      const count = (codeEl.innerText.match(/\n/g)?.length ?? 0) + 1;
+      lineNumEl.innerHTML = Array.from({ length: count }, (_, i) => `<div>${i + 1}</div>`).join('');
     });
-    editorWrap.appendChild(ta);
 
-    this.cmGetContent = () => ta.value;
+    this.cmGetContent = () => codeEl.innerText;
     this.cmDestroy    = (): void => {};
   }
 
