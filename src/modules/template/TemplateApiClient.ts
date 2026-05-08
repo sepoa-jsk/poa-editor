@@ -120,7 +120,7 @@ async function request<T>(path: string, init?: RequestInit): Promise<T> {
     ...init,
     headers: {
       'Content-Type': 'application/json',
-      'X-User-Id': getUserId(),
+      'Poa-User-Id': getUserId(),
       ...((init?.headers as Record<string, string>) ?? {}),
     },
   });

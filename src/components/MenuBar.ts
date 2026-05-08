@@ -165,10 +165,11 @@ export class PoaMenuBar extends HTMLElement {
 
     bar.appendChild(userArea);
 
-    bar.addEventListener('mousedown', (e) => {
-      e.preventDefault();
-      const tab = (e.target as HTMLElement).closest<HTMLElement>('[data-tab]')?.dataset.tab as MenuTab | undefined;
-      if (tab) eventBus.emit(BusEvent.MENUBAR_CHANGE, { tab });
+    this.shadow.querySelectorAll<HTMLButtonElement>('.tab').forEach(btn => {
+      btn.addEventListener('mousedown', (e) => {
+        e.preventDefault();
+        eventBus.emit(BusEvent.MENUBAR_CHANGE, { tab: btn.dataset.tab as MenuTab });
+      });
     });
 
     this._bindUserArea();

@@ -3,7 +3,11 @@ const USER_NAME_KEY = 'poa-user-name';
 const ROLE_KEY      = 'poa-role';
 
 function generateId(): string {
-  return crypto.randomUUID().replace(/-/g, '').slice(0, 16);
+  if (typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function') {
+    return crypto.randomUUID().replace(/-/g, '').slice(0, 16);
+  }
+  // HTTP(비보안) 컨텍스트 fallback
+  return Array.from({ length: 16 }, () => Math.floor(Math.random() * 16).toString(16)).join('');
 }
 
 export function getUserId(): string {

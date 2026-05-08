@@ -77,7 +77,7 @@ const TABS: Record<MenuTab, ReadonlyArray<GroupDef>> = {
   ],
   misc: [
     [['웹 접근성 체크','misc:a11y'],['개인정보 체크','misc:privacy']],
-    [['폼 컨트롤','misc:form'],['계산식','misc:calc'],['템플릿','misc:template']],
+    [['폼 컨트롤','misc:form'],['계산식','misc:calc']],
     [['사용자 모드로 보기','misc:user-mode']],
   ],
   help: [
