@@ -173,6 +173,8 @@ export const Icons = {
   user14:         px14(User),
   chevronRight12: px12(ChevronRight),
   chevronDown12:  px12(ChevronDown),
+  users12:        px12(Users),
+  user12:         px12(User),
   // 양식 필드 타입 아이콘 (14px)
   fieldText:   px14(Type),
   fieldNumber: px14(Hash),

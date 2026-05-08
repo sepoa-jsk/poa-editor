@@ -8,7 +8,11 @@ import { TemplateApiClient, toServerId } from '../../modules/template/TemplateAp
 
 const STYLE = `
 *, *::before, *::after { box-sizing: border-box; }
-:host { display: none; position: fixed; inset: 0; z-index: 9999; align-items: center; justify-content: center; }
+:host {
+  display: none; position: fixed; inset: 0; z-index: 9999;
+  align-items: center; justify-content: center;
+  font-family: 'Noto Sans KR', 'Roboto', sans-serif;
+}
 :host([open]) { display: flex; background: rgba(0,0,0,.45); }
 
 .dlg {
@@ -55,6 +59,9 @@ const STYLE = `
 .search-input::placeholder { color: #cbd5e1; }
 
 .tree-wrap { flex: 1; overflow-y: auto; padding: 0 8px 4px; }
+.tree-wrap::-webkit-scrollbar { width: 4px; }
+.tree-wrap::-webkit-scrollbar-track { background: #f1f5f9; border-radius: 2px; }
+.tree-wrap::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 2px; }
 
 /* ── 인라인 저장 폼 ── */
 .save-form {
@@ -100,13 +107,16 @@ const STYLE = `
 }
 .left-action-btn {
   flex: 1; padding: 6px 8px; border: 1px solid #e2e8f0; border-radius: 7px;
-  background: #fff; cursor: pointer; font-size: 12px; color: #475569;
+  background: #fff; cursor: pointer; font-size: 13px; color: #475569;
   display: flex; align-items: center; justify-content: center; gap: 5px;
   font-weight: 500; transition: all .12s; font-family: inherit;
 }
 .left-action-btn:hover { background: #eff6ff; border-color: #bfdbfe; color: #2563eb; }
 .left-action-btn.active { background: #eff6ff; border-color: #2563eb; color: #2563eb; }
-.left-action-btn.danger:hover { background: #fef2f2; border-color: #fecaca; color: #dc2626; }
+.left-action-btn.danger {
+  background: transparent; border-color: #fca5a5; color: #ef4444;
+}
+.left-action-btn.danger:hover { background: #fef2f2; border-color: #fca5a5; color: #dc2626; }
 
 /* ── 우측 패널 ── */
 .right {
@@ -487,14 +497,18 @@ table{border-collapse:collapse;width:100%;}td,th{border:1px solid #ccc;padding:4
   }
 
   private async _adminCleanup(): Promise<void> {
+    const ok = await TemplateApiClient.adminCleanup().then(() => true).catch(() => false);
+    // 서버 정리 후 localStorage 초기화 → 서버 최신 데이터로 재동기화
     try {
-      await TemplateApiClient.adminCleanup();
-      this._showToast('서버 임시 데이터 정리 완료');
-    } catch {
-      this._showToast('서버 정리 실패 (로컬만 정리됨)');
-    }
+      const serverNodes = await TemplateApiClient.getAllNodes();
+      try { localStorage.removeItem('poa-templates'); } catch { /* ignore */ }
+      if (serverNodes.length > 0) {
+        try { localStorage.setItem('poa-templates', JSON.stringify(serverNodes)); } catch { /* ignore */ }
+      }
+    } catch { /* API 불가 — localStorage 유지 */ }
     this.mgr.reload();
     this.tree.setManager(this.mgr);
+    this._showToast(ok ? '서버 데이터 정리 완료' : '서버 정리 실패 (로컬 재동기화됨)');
   }
 
   private _showToast(msg: string): void {

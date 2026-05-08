@@ -170,7 +170,8 @@ export class TemplateManager {
     try {
       const serverNodes = await TemplateApiClient.getAllNodes();
       if (serverNodes.length === 0) return;
-      // isTemp 로컬 항목은 유지, 나머지는 서버 데이터로 교체
+      // API 사용 가능 → 로컬 seed/캐시 제거 후 서버 데이터로 완전 교체
+      try { localStorage.removeItem(STORAGE_KEY); } catch { /* ignore */ }
       const tempNodes = this.nodes.filter(n => n.isTemp);
       this.nodes = [...serverNodes, ...tempNodes];
       this._persist();
