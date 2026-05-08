@@ -27,6 +27,7 @@ export class ViewManager {
   private contentRow: HTMLDivElement | null = null;
   private rulerH: HTMLDivElement | null = null;
   private rulerV: HTMLDivElement | null = null;
+  private rulerCorner: HTMLDivElement | null = null;
   private gridOverlay: HTMLDivElement | null = null;
   private htmlPanel: HTMLDivElement | null = null;
   private previewPanel: HTMLDivElement | null = null;
@@ -53,18 +54,21 @@ export class ViewManager {
       wrapper.setAttribute('slot', slotAttr);
       this.contentEl.removeAttribute('slot');
     }
+    // Grid: 눈금자 없을 때는 content 셀 하나. 눈금자 표시 시 applyRuler()에서 2×2로 전환.
     wrapper.style.cssText =
-      'display:flex;flex-direction:column;flex:1;overflow:hidden;position:relative;min-height:0;';
+      'display:grid;grid-template-areas:"content";grid-template-columns:1fr;grid-template-rows:1fr;' +
+      'flex:1;overflow:hidden;position:relative;min-height:0;';
 
     parent.insertBefore(wrapper, this.contentEl);
 
-    // Content row: ruler-v + all panels side-by-side
+    // 스크롤 컨테이너 — grid-area: content. PaperSizeManager가 내부 스타일을 덮어씀.
     const contentRow = document.createElement('div');
     contentRow.className = 'poa-view-content-row';
-    contentRow.style.cssText = 'display:flex;flex:1;overflow:hidden;min-height:0;';
+    contentRow.style.cssText =
+      'grid-area:content;display:flex;flex-direction:column;overflow:hidden;min-height:0;';
     wrapper.appendChild(contentRow);
 
-    // Move contentEl into contentRow
+    // contentEl을 스크롤 컨테이너 안으로 이동
     contentRow.appendChild(this.contentEl);
     this.contentEl.style.flex = '1';
     this.contentEl.style.minHeight = '0';
@@ -106,6 +110,7 @@ export class ViewManager {
     this.contentRow   = null;
     this.rulerH       = null;
     this.rulerV       = null;
+    this.rulerCorner  = null;
     this.gridOverlay  = null;
     this.htmlPanel    = null;
     this.previewPanel = null;
@@ -280,23 +285,43 @@ export class ViewManager {
   }
 
   private applyRuler(): void {
-    if (!this.wrapper || !this.contentRow) return;
+    if (!this.wrapper) return;
 
     if (this.rulerVisible) {
+      // 눈금자 및 코너 박스 생성 (최초 1회)
+      if (!this.rulerCorner) {
+        this.rulerCorner = document.createElement('div');
+        this.rulerCorner.className = 'poa-ruler-corner';
+        this.rulerCorner.style.cssText =
+          'grid-area:corner;background:#E5E7EB;width:20px;height:20px;flex-shrink:0;';
+        this.wrapper.appendChild(this.rulerCorner);
+      }
       if (!this.rulerH) {
         this.rulerH = this.buildHRuler();
-        this.wrapper.insertBefore(this.rulerH, this.contentRow);
+        this.wrapper.appendChild(this.rulerH);
       }
-      this.rulerH.style.display = 'block';
-
       if (!this.rulerV) {
         this.rulerV = this.buildVRuler();
-        this.contentRow.insertBefore(this.rulerV, this.contentRow.firstChild);
+        this.wrapper.appendChild(this.rulerV);
       }
-      this.rulerV.style.display = 'block';
+
+      this.rulerCorner.style.display = '';
+      this.rulerH.style.display      = '';
+      this.rulerV.style.display      = '';
+
+      // wrapper를 2×2 grid로 전환
+      this.wrapper.style.gridTemplateAreas   = '"corner ruler-h" "ruler-v content"';
+      this.wrapper.style.gridTemplateColumns = '20px 1fr';
+      this.wrapper.style.gridTemplateRows    = '20px 1fr';
     } else {
-      if (this.rulerH) this.rulerH.style.display = 'none';
-      if (this.rulerV) this.rulerV.style.display = 'none';
+      if (this.rulerCorner) this.rulerCorner.style.display = 'none';
+      if (this.rulerH)      this.rulerH.style.display      = 'none';
+      if (this.rulerV)      this.rulerV.style.display      = 'none';
+
+      // wrapper를 content 전체 사용으로 복귀
+      this.wrapper.style.gridTemplateAreas   = '"content"';
+      this.wrapper.style.gridTemplateColumns = '1fr';
+      this.wrapper.style.gridTemplateRows    = '1fr';
     }
   }
 
@@ -325,7 +350,7 @@ export class ViewManager {
     const div = document.createElement('div');
     div.className = 'poa-ruler-h';
     div.style.cssText =
-      'height:20px;flex-shrink:0;background:#f0f0f0;border-bottom:1px solid #ddd;overflow:hidden;';
+      'grid-area:ruler-h;height:20px;background:#F3F4F6;border-bottom:1px solid #E5E7EB;overflow:hidden;';
     const canvas = document.createElement('canvas');
     canvas.height = 20;
     div.appendChild(canvas);
@@ -339,7 +364,7 @@ export class ViewManager {
     const div = document.createElement('div');
     div.className = 'poa-ruler-v';
     div.style.cssText =
-      'width:20px;flex-shrink:0;background:#f0f0f0;border-right:1px solid #ddd;overflow:hidden;';
+      'grid-area:ruler-v;width:20px;background:#F3F4F6;border-right:1px solid #E5E7EB;overflow:hidden;';
     const canvas = document.createElement('canvas');
     canvas.width = 20;
     div.appendChild(canvas);
@@ -350,7 +375,7 @@ export class ViewManager {
   }
 
   private drawHRuler(canvas: HTMLCanvasElement): void {
-    const w = (this.wrapper?.clientWidth ?? 0) || 800;
+    const w = (this.rulerH?.clientWidth ?? this.wrapper?.clientWidth ?? 0) || 800;
     canvas.width = w;
     const ctx = canvas.getContext('2d');
     if (!ctx) return;
@@ -374,7 +399,7 @@ export class ViewManager {
   }
 
   private drawVRuler(canvas: HTMLCanvasElement): void {
-    const h = (this.wrapper?.clientHeight ?? 0) || 600;
+    const h = (this.rulerV?.clientHeight ?? this.wrapper?.clientHeight ?? 0) || 600;
     canvas.height = h;
     const ctx = canvas.getContext('2d');
     if (!ctx) return;
