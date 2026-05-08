@@ -33,6 +33,7 @@ import {
   Keyboard, BookOpen, Info,
   // 템플릿 트리 / 사용자 식별
   Folder, File, Users, UserCircle, ChevronRight, ChevronDown, Plus, Pencil,
+  Hash,
 } from 'lucide-static';
 
 /** SVG width/height 24 → N으로 정규화 */
@@ -172,6 +173,10 @@ export const Icons = {
   user14:         px14(User),
   chevronRight12: px12(ChevronRight),
   chevronDown12:  px12(ChevronDown),
+  // 양식 필드 타입 아이콘 (14px)
+  fieldText:   px14(Type),
+  fieldNumber: px14(Hash),
+  fieldDate:   px14(Calendar),
   // 48px — 미리보기 빈 상태
   layoutTemplate48: pxN(LayoutTemplate, 48),
 } as const;

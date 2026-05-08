@@ -3,6 +3,8 @@ import { Icons } from '../utils/icons.js';
 
 const FONT_FAMILIES: Array<{ label: string; value: string }> = [
   { label: '기본',             value: 'inherit' },
+  // 웹 폰트
+  { label: 'Noto Sans KR',    value: 'Noto Sans KR, Roboto, sans-serif' },
   // 한글 폰트
   { label: '맑은 고딕',       value: '맑은 고딕, sans-serif' },
   { label: '나눔고딕',        value: '나눔고딕, sans-serif' },

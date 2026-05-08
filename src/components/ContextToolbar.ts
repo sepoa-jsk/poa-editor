@@ -20,7 +20,11 @@ interface DropdownDef {
 /** null = 구분선 */
 type GroupDef = ReadonlyArray<BDef | DropdownDef | null>;
 
-const TYPE_ICONS: Record<string, string> = { text: 'T', number: '#', date: '📅' };
+const TYPE_ICONS: Record<string, string> = {
+  text:   Icons.fieldText,
+  number: Icons.fieldNumber,
+  date:   Icons.fieldDate,
+};
 
 /** 카테고리별로 그룹핑한 양식 필드 드롭다운 아이템 생성 */
 function buildFieldDropdownItems(): ReadonlyArray<readonly [string, string, string?, string?]> {
@@ -175,9 +179,8 @@ const CSS = `
 }
 .type-icon {
   display: inline-flex; align-items: center; justify-content: center;
-  width: 16px; height: 16px;
-  font-size: 10px; font-weight: 700; color: #6B7280;
-  background: #F3F4F6; border-radius: 2px; flex-shrink: 0;
+  width: 14px; height: 14px;
+  color: #6B7280; flex-shrink: 0;
 }
 #menu-doc-field { width: 220px; }
 

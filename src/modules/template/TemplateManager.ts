@@ -77,6 +77,32 @@ export class TemplateManager {
       this.nodes = [];
     }
     this._cleanTemp();
+    this._cleanDuplicates();
+  }
+
+  /** 같은 (type, parentId, name) 조합의 중복 노드 제거 — 가장 오래된 항목 유지, 자식 재귀 재연결 */
+  private _cleanDuplicates(): void {
+    const seen = new Map<string, string>(); // key → first id
+    const remap = new Map<string, string>(); // duplicate id → first id
+
+    for (const n of [...this.nodes].sort((a, b) => a.createdAt - b.createdAt)) {
+      const key = `${n.type}|${n.parentId ?? ''}|${n.name}`;
+      const existing = seen.get(key);
+      if (!existing) {
+        seen.set(key, n.id);
+      } else {
+        remap.set(n.id, existing);
+      }
+    }
+    if (remap.size === 0) return;
+
+    this.nodes = this.nodes
+      .filter(n => !remap.has(n.id))
+      .map(n => {
+        if (n.parentId && remap.has(n.parentId)) return { ...n, parentId: remap.get(n.parentId)! };
+        return n;
+      });
+    this._persist();
   }
 
   /** "임시_" 이름 항목 및 24시간 초과 isTemp 항목 자동 정리 */

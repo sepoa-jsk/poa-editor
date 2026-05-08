@@ -233,7 +233,7 @@ slot[name="content"] { display: contents; }
       'position: relative',
       'color: var(--poa-editor-color, #222)', 'background: var(--poa-editor-bg, #fff)',
       'font-size: 14px',
-      "font-family: var(--poa-editor-font, '맑은 고딕', 'Malgun Gothic', sans-serif)",
+      "font-family: var(--poa-editor-font, 'Noto Sans KR', Roboto, sans-serif)",
     ].join('; ');
     if (!this.contentEl.parentElement) this.appendChild(this.contentEl);
 
@@ -1213,7 +1213,7 @@ body { margin: 0; padding: 0; background: #fff; }
 .poa-editor-content {
   width: 794px;
   padding: 96px;
-  font-family: 바탕, serif;
+  font-family: 'Noto Sans KR', Roboto, sans-serif;
   font-size: 11pt;
   line-height: 1.6;
   box-sizing: border-box;
@@ -1887,7 +1887,7 @@ p { margin: .4em 0; }
       canUndo,
       canRedo,
       fontSize:     this.getInlineStyle(anchor, 'font-size') || '12pt',
-      fontFamily:   this.getInlineStyle(anchor, 'font-family') || 'inherit',
+      fontFamily:   this.getInlineStyle(anchor, 'font-family') || "'Noto Sans KR', Roboto, sans-serif",
       lineHeight:   this.getInlineStyle(anchor, 'line-height') || '1.5',
       letterSpacing: this.getInlineStyle(anchor, 'letter-spacing') || '0px',
       foreColor:    this.rgbToHex(this.getComputedStyle(anchor, 'color')) || '#000000',
@@ -2080,6 +2080,10 @@ p { margin: .4em 0; }
       '.poa-editor-content .poa-input-selected {',
       '  outline: 2px solid #2563EB !important;',
       '  outline-offset: 1px;',
+      '}',
+      /* 양식 필드 input 폰트 */
+      ".poa-field input.poa-field-input, .poa-field textarea.poa-field-input {",
+      "  font-family: 'Noto Sans KR', Roboto, sans-serif !important;",
       '}',
     ].join('\n');
     document.head.appendChild(style);
