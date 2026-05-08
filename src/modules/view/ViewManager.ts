@@ -37,6 +37,8 @@ export class ViewManager {
 
   private cmGetContent: (() => string) | null = null;
   private cmDestroy: (() => void) | null = null;
+  private _htmlTheme: 'dark' | 'light' = 'dark';
+  private _htmlRawContent = '';
 
   constructor(
     private readonly contentEl: HTMLDivElement,
@@ -144,6 +146,7 @@ export class ViewManager {
     }
 
     this.mode = mode;
+    if (this.wrapper) this.wrapper.dataset.viewMode = mode;
 
     this.contentEl.style.display   = mode === 'design' ? '' : 'none';
     if (this.htmlPanel)    this.htmlPanel.style.display    = mode === 'html'    ? 'flex' : 'none';
@@ -152,7 +155,7 @@ export class ViewManager {
     if (this.pagePanel)    this.pagePanel.style.display    = mode === 'page'    ? 'flex' : 'none';
 
     switch (mode) {
-      case 'html':    await this.initHtmlView(); break;
+      case 'html':    this.initHtmlView();      break;
       case 'preview': this.initPreviewView();   break;
       case 'text':    this.initTextView();      break;
       case 'page':    this.initPageView();      break;
@@ -197,48 +200,14 @@ export class ViewManager {
     return el;
   }
 
-  private async initHtmlView(): Promise<void> {
+  private initHtmlView(): void {
     if (!this.htmlPanel) return;
-    const html = this.prettyHtml(this.contentEl.innerHTML);
-
     try {
-      const [{ EditorView, basicSetup }, { html: htmlLang }] = await Promise.all([
-        import('codemirror'),
-        import('@codemirror/lang-html'),
-      ]);
-
-      this.htmlPanel.innerHTML = '';
-      this.htmlPanel.style.cssText =
-        'display:flex;flex:1;overflow:hidden;box-sizing:border-box;';
-
-      const cmHost = document.createElement('div');
-      cmHost.style.cssText = 'flex:1;overflow:auto;';
-      this.htmlPanel.appendChild(cmHost);
-
-      const view = new EditorView({
-        doc: html,
-        extensions: [basicSetup, htmlLang()],
-        parent: cmHost,
-      });
-
-      this.cmGetContent = () => view.state.doc.toString();
-      this.cmDestroy    = () => view.destroy();
-    } catch {
-      // CodeMirror 로드 실패 → textarea fallback
-      this.htmlPanel.innerHTML = '';
-      this.htmlPanel.style.cssText =
-        'display:flex;flex:1;overflow:hidden;box-sizing:border-box;';
-      const ta = document.createElement('textarea');
-      ta.value = html;
-      ta.id    = 'poa-html-fallback-ta';
-      ta.style.cssText =
-        'flex:1;font-family:monospace;font-size:13px;border:none;outline:none;' +
-        'padding:12px;resize:none;box-sizing:border-box;';
-      this.htmlPanel.appendChild(ta);
-
-      this.cmGetContent = () => ta.value;
-      this.cmDestroy    = (): void => { /* textarea는 destroy 불필요 */ };
-    }
+      const saved = localStorage.getItem('poa-html-theme');
+      if (saved === 'light' || saved === 'dark') this._htmlTheme = saved;
+    } catch { /* ignore */ }
+    this._htmlRawContent = this.prettyHtml(this.contentEl.innerHTML);
+    this._renderHtmlView();
   }
 
   private syncFromHtml(): void {
@@ -254,7 +223,7 @@ export class ViewManager {
     const html = DOMPurify.sanitize(this.contentEl.innerHTML);
     this.previewPanel.style.cssText =
       'display:block;flex:1;overflow-y:auto;padding:20px;font-size:14px;' +
-      'line-height:1.6;box-sizing:border-box;';
+      'line-height:1.6;box-sizing:border-box;background:#FFFFFF;';
     this.previewPanel.innerHTML = html;
   }
 
@@ -263,13 +232,15 @@ export class ViewManager {
     const text = this.contentEl.innerText ?? this.contentEl.textContent ?? '';
     this.textPanel.innerHTML = '';
     this.textPanel.style.cssText =
-      'display:block;flex:1;overflow-y:auto;box-sizing:border-box;';
-    const pre = document.createElement('pre');
-    pre.style.cssText =
-      'padding:20px;white-space:pre-wrap;font-size:14px;line-height:1.6;' +
-      'margin:0;font-family:inherit;';
-    pre.textContent = text;
-    this.textPanel.appendChild(pre);
+      'display:block;flex:1;overflow-y:auto;background:#F3F4F6;padding:32px;box-sizing:border-box;';
+    const paper = document.createElement('div');
+    paper.style.cssText =
+      'background:#FFFFFF;max-width:860px;margin:0 auto;padding:48px 64px;' +
+      "font-family:'Noto Sans KR','맑은 고딕',sans-serif;font-size:11pt;color:#1F2937;" +
+      'line-height:1.8;white-space:pre-wrap;word-break:break-word;box-sizing:border-box;' +
+      'box-shadow:0 1px 4px rgba(0,0,0,.08);';
+    paper.textContent = text;
+    this.textPanel.appendChild(paper);
   }
 
   private initPageView(): void {
@@ -424,6 +395,168 @@ export class ViewManager {
         ctx.restore();
       }
     }
+  }
+
+  private _renderHtmlView(): void {
+    if (!this.htmlPanel) return;
+    const isDark   = this._htmlTheme === 'dark';
+    const content  = this._htmlRawContent;
+    const bg       = isDark ? '#1E1E1E' : '#FAFAFA';
+    const lnColor  = isDark ? '#858585' : '#999999';
+    const lnBorder = isDark ? '#333333' : '#DDDDDD';
+    const caretClr = isDark ? '#AEAFAD' : '#000000';
+
+    this.htmlPanel.innerHTML = '';
+    this.htmlPanel.style.cssText =
+      `display:flex;flex:1;flex-direction:column;overflow:hidden;` +
+      `box-sizing:border-box;background:${bg};position:relative;`;
+
+    // 테마 토글 버튼
+    const toggleBtn = document.createElement('button');
+    toggleBtn.style.cssText =
+      `position:absolute;top:8px;right:12px;z-index:10;` +
+      `padding:3px 10px;border:1px solid ${isDark ? '#555' : '#ccc'};border-radius:4px;` +
+      `background:${isDark ? '#2D2D2D' : '#EFEFEF'};color:${isDark ? '#cccccc' : '#555555'};` +
+      `font-size:11px;cursor:pointer;font-family:inherit;line-height:1.4;`;
+    toggleBtn.textContent = isDark ? '☀️ 라이트' : '🌙 다크';
+    toggleBtn.addEventListener('click', () => {
+      this._htmlRawContent = this.cmGetContent?.() ?? this._htmlRawContent;
+      this._htmlTheme = isDark ? 'light' : 'dark';
+      try { localStorage.setItem('poa-html-theme', this._htmlTheme); } catch { /* ignore */ }
+      this._renderHtmlView();
+    });
+    this.htmlPanel.appendChild(toggleBtn);
+
+    // 코드 래퍼 (가로 스크롤 포함)
+    const codeWrap = document.createElement('div');
+    codeWrap.style.cssText = 'display:flex;flex:1;overflow:auto;min-height:0;';
+    this.htmlPanel.appendChild(codeWrap);
+
+    const lines = content.split('\n');
+    const FONT  = "Consolas,Monaco,'Courier New',monospace";
+
+    // 줄번호 영역
+    const lineNumEl = document.createElement('div');
+    lineNumEl.style.cssText =
+      `min-width:48px;padding:16px 12px 16px 0;text-align:right;flex-shrink:0;` +
+      `color:${lnColor};background:${bg};` +
+      `border-right:1px solid ${lnBorder};user-select:none;` +
+      `font-family:${FONT};font-size:12px;line-height:1.6;box-sizing:border-box;`;
+    lineNumEl.innerHTML = lines.map((_, i) => `<div>${i + 1}</div>`).join('');
+    codeWrap.appendChild(lineNumEl);
+
+    // 에디터 래퍼 (textarea + highlight overlay 겹침)
+    const editorWrap = document.createElement('div');
+    editorWrap.style.cssText = 'flex:1;position:relative;min-width:0;';
+    codeWrap.appendChild(editorWrap);
+
+    // 공통 코드 스타일 (textarea/display 동일 적용)
+    const CODE_STYLE =
+      `padding:16px;white-space:pre-wrap;word-break:break-all;` +
+      `font-family:${FONT};font-size:13px;line-height:1.6;box-sizing:border-box;`;
+
+    // 구문 강조 display 레이어 (pointer-events:none)
+    const display = document.createElement('div');
+    display.style.cssText =
+      `position:absolute;inset:0;${CODE_STYLE}` +
+      `pointer-events:none;overflow:hidden;` +
+      `color:${isDark ? '#D4D4D4' : '#000000'};`;
+    display.innerHTML = this._highlightHtml(content, isDark);
+    editorWrap.appendChild(display);
+
+    // 편집 가능한 textarea (텍스트 투명, 커서만 표시)
+    const ta = document.createElement('textarea');
+    ta.value = content;
+    ta.setAttribute('spellcheck', 'false');
+    ta.style.cssText =
+      `position:absolute;inset:0;${CODE_STYLE}` +
+      `color:transparent;caret-color:${caretClr};` +
+      `background:transparent;border:none;outline:none;resize:none;overflow:auto;`;
+    ta.addEventListener('input', () => {
+      const v = ta.value;
+      const updatedLines = v.split('\n');
+      lineNumEl.innerHTML = updatedLines.map((_, i) => `<div>${i + 1}</div>`).join('');
+      display.innerHTML = this._highlightHtml(v, isDark);
+    });
+    editorWrap.appendChild(ta);
+
+    this.cmGetContent = () => ta.value;
+    this.cmDestroy    = (): void => {};
+  }
+
+  private _highlightHtml(code: string, isDark: boolean): string {
+    const C = isDark
+      ? { tag: '#569CD6', attr: '#9CDCFE', val: '#CE9178', cmt: '#6A9955' }
+      : { tag: '#0000FF', attr: '#FF0000', val: '#0000FF', cmt: '#008000' };
+
+    const esc = (s: string): string =>
+      s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+    const sp = (c: string, s: string): string =>
+      `<span style="color:${c}">${s}</span>`;
+
+    let result = '';
+    let i = 0;
+
+    while (i < code.length) {
+      // 주석
+      if (code.startsWith('<!--', i)) {
+        const end = code.indexOf('-->', i + 4);
+        const to  = end !== -1 ? end + 3 : code.length;
+        result += sp(C.cmt, esc(code.slice(i, to)));
+        i = to;
+        continue;
+      }
+      // DOCTYPE / 처리 지시문
+      if (code.startsWith('<!' , i) || code.startsWith('<?', i)) {
+        const end = code.indexOf('>', i);
+        const to  = end !== -1 ? end + 1 : code.length;
+        result += sp(C.cmt, esc(code.slice(i, to)));
+        i = to;
+        continue;
+      }
+      // 태그
+      if (code[i] === '<') {
+        let j = i + 1;
+        let inQ: string | null = null;
+        while (j < code.length) {
+          const ch = code[j];
+          if (inQ) { if (ch === inQ) inQ = null; }
+          else if (ch === '"' || ch === "'") { inQ = ch; }
+          else if (ch === '>') break;
+          j++;
+        }
+        if (j >= code.length) { result += esc(code.slice(i)); i = code.length; continue; }
+
+        const inner   = code.slice(i + 1, j);
+        const isClose = inner.startsWith('/');
+        const body    = isClose ? inner.slice(1) : inner;
+        const m       = body.match(/^([\w:-]+)([\s\S]*)$/);
+        if (m) {
+          const [, tagName, attrPart] = m;
+          const isSelf = attrPart.trimEnd().endsWith('/');
+          const attrStr = isSelf ? attrPart.slice(0, attrPart.lastIndexOf('/')) : attrPart;
+          const hAttrs  = attrStr.replace(
+            /([\w:-]+)(\s*=\s*)((?:"[^"]*"|'[^']*'|[^\s>"'=`]+))/g,
+            (_: string, a: string, eq: string, v: string) =>
+              sp(C.attr, esc(a)) + esc(eq) + sp(C.val, esc(v)),
+          );
+          result +=
+            esc('<') + (isClose ? esc('/') : '') +
+            sp(C.tag, esc(tagName)) + hAttrs +
+            (isSelf ? esc('/') : '') + esc('>');
+        } else {
+          result += esc(code.slice(i, j + 1));
+        }
+        i = j + 1;
+        continue;
+      }
+      // 텍스트 노드
+      const next = code.indexOf('<', i);
+      const to   = next !== -1 ? next : code.length;
+      result += esc(code.slice(i, to));
+      i = to;
+    }
+    return result;
   }
 
   private prettyHtml(html: string): string {
