@@ -90,16 +90,14 @@
   <script type="module" src="/src/index.ts"></script>
   <script type="module">
     import { getAppMode, getTemplateId } from '/src/core/AppMode.ts';
-    import { TemplateManager } from '/src/modules/template/TemplateManager.ts';
     import { UserModePage } from '/src/pages/UserModePage.ts';
 
     const mode = getAppMode();
     if (mode === 'user') {
       const templateId = getTemplateId();
       if (templateId) {
-        // 템플릿 있음: 기존 에디터 UI 유지, 편집 제한만 적용
-        const mgr = new TemplateManager();
-        const node = mgr.getById(templateId);
+        // 템플릿 있음: 서버에서 단건 조회 (로컬 폴백 포함), 편집 제한 적용
+        const node = await UserModePage.loadTemplateById(templateId);
         const editor = document.getElementById('editor');
         if (node?.content) editor.setHTML(node.content);
         editor.enterUserMode(node?.name ?? '문서');
