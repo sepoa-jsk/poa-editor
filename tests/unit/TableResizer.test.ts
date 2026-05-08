@@ -77,7 +77,7 @@ describe('TableResizer', () => {
     contentEl = document.createElement('div');
     document.body.appendChild(contentEl);
     modified = vi.fn();
-    resizer  = new TableResizer(modified);
+    resizer  = new TableResizer(modified as () => void);
     resizer.attach(contentEl);
   });
 
