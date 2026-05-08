@@ -115,25 +115,57 @@ export class PoaMenuBar extends HTMLElement {
   }
 
   connectedCallback(): void {
+    // shadow.innerHTML에는 탭 버튼만 포함 — SVG 등 복잡한 HTML은 DOM API로 별도 구성
     const tabsHtml = TABS.map((t) =>
       `<button class="tab${t.id === this._activeTab ? ' active' : ''}" data-tab="${t.id}">${t.label}</button>`,
     ).join('');
-    const adminBadge = isAdmin() ? '<span class="admin-badge">관리자</span>' : '';
-    const userHtml = `
-      <div class="user-area" id="user-area">
-        <span class="user-name-text" id="user-name-text">${getUserName()}</span>
-        ${adminBadge}
-        <div class="user-dropdown hidden" id="user-dropdown">
-          <div class="user-dropdown-label">사용자 이름</div>
-          <input type="text" id="user-name-input" placeholder="사용자 이름">
-          <button class="user-dropdown-btn" id="user-name-confirm">확인</button>
-        </div>
-      </div>`;
-    this.shadow.innerHTML = `<style>${CSS}</style><div class="menubar">${tabsHtml}${userHtml}</div>`;
-    // SVG를 template literal 밖에서 DOM API로 삽입 (멀티라인 SVG가 innerHTML 파싱을 깨는 버그 방지)
-    this.shadow.getElementById('user-area')!.insertAdjacentHTML('afterbegin', Icons.userCircle);
+    this.shadow.innerHTML = `<style>${CSS}</style><div class="menubar">${tabsHtml}</div>`;
 
-    this.shadow.querySelector('.menubar')!.addEventListener('mousedown', (e) => {
+    // 사용자 영역을 DOM API로 구성 (template literal 안 SVG 파싱 이슈 완전 방지)
+    const bar = this.shadow.querySelector('.menubar')!;
+    const userArea = document.createElement('div');
+    userArea.className = 'user-area';
+    userArea.id = 'user-area';
+
+    // 아이콘 SVG (div.innerHTML로 단독 삽입 시 안전하게 파싱)
+    const iconWrap = document.createElement('span');
+    iconWrap.style.cssText = 'display:contents';
+    iconWrap.innerHTML = Icons.userCircle;
+    userArea.appendChild(iconWrap);
+
+    const nameSpan = document.createElement('span');
+    nameSpan.className = 'user-name-text';
+    nameSpan.id = 'user-name-text';
+    nameSpan.textContent = getUserName();
+    userArea.appendChild(nameSpan);
+
+    if (isAdmin()) {
+      const badge = document.createElement('span');
+      badge.className = 'admin-badge';
+      badge.textContent = '관리자';
+      userArea.appendChild(badge);
+    }
+
+    const dropdown = document.createElement('div');
+    dropdown.className = 'user-dropdown hidden';
+    dropdown.id = 'user-dropdown';
+    const ddLabel = document.createElement('div');
+    ddLabel.className = 'user-dropdown-label';
+    ddLabel.textContent = '사용자 이름';
+    const ddInput = document.createElement('input');
+    ddInput.type = 'text';
+    ddInput.id = 'user-name-input';
+    ddInput.placeholder = '사용자 이름';
+    const ddBtn = document.createElement('button');
+    ddBtn.className = 'user-dropdown-btn';
+    ddBtn.id = 'user-name-confirm';
+    ddBtn.textContent = '확인';
+    dropdown.append(ddLabel, ddInput, ddBtn);
+    userArea.appendChild(dropdown);
+
+    bar.appendChild(userArea);
+
+    bar.addEventListener('mousedown', (e) => {
       e.preventDefault();
       const tab = (e.target as HTMLElement).closest<HTMLElement>('[data-tab]')?.dataset.tab as MenuTab | undefined;
       if (tab) eventBus.emit(BusEvent.MENUBAR_CHANGE, { tab });
