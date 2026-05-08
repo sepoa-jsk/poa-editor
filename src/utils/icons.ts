@@ -31,14 +31,20 @@ import {
   Accessibility, ShieldCheck, SquareCheck, Sigma, User,
   // 도움말
   Keyboard, BookOpen, Info,
+  // 템플릿 트리 / 사용자 식별
+  Folder, File, Users, UserCircle, ChevronRight, ChevronDown, Plus, Pencil,
 } from 'lucide-static';
 
-/** SVG width/height 24 → 16으로 정규화 */
-function px16(svg: string): string {
+/** SVG width/height 24 → N으로 정규화 */
+export function pxN(svg: string, n: number): string {
   return svg
-    .replace(/width="24"/, 'width="16"')
-    .replace(/height="24"/, 'height="16"');
+    .replace(/width="24"/, `width="${n}"`)
+    .replace(/height="24"/, `height="${n}"`);
 }
+
+function px16(svg: string): string { return pxN(svg, 16); }
+function px14(svg: string): string { return pxN(svg, 14); }
+function px12(svg: string): string { return pxN(svg, 12); }
 
 export const Icons = {
   // 서식 툴바
@@ -142,6 +148,32 @@ export const Icons = {
   shortcuts: px16(Keyboard),
   guide:     px16(BookOpen),
   about:     px16(Info),
+
+  // 템플릿 트리 / 사용자 식별 (16px)
+  folder:         px16(Folder),
+  folderOpen:     px16(FolderOpen),
+  file:           px16(File),
+  fileText16:     px16(FileText),
+  users16:        px16(Users),
+  user16:         px16(User),
+  userCircle:     px16(UserCircle),
+  plus:           px16(Plus),
+  pencil:         px16(Pencil),
+  trash:          px16(Trash2),
+  link16:         px16(Link),
+  chevronRight:   px16(ChevronRight),
+  chevronDown:    px16(ChevronDown),
+  // 14px 변형
+  folder14:       px14(Folder),
+  folderOpen14:   px14(FolderOpen),
+  file14:         px14(File),
+  fileText14:     px14(FileText),
+  users14:        px14(Users),
+  user14:         px14(User),
+  chevronRight12: px12(ChevronRight),
+  chevronDown12:  px12(ChevronDown),
+  // 48px — 미리보기 빈 상태
+  layoutTemplate48: pxN(LayoutTemplate, 48),
 } as const;
 
 export type IconName = keyof typeof Icons;

@@ -1,46 +1,69 @@
 import type { TemplateManager, TemplateNode } from '../modules/template/TemplateManager.js';
 import { buildUserModeUrl } from '../core/AppMode.js';
+import { isAdmin } from '../core/UserSession.js';
+import { Icons } from '../utils/icons.js';
 
 const STYLE = `
 *, *::before, *::after { box-sizing: border-box; }
-:host { display: block; height: 100%; overflow-y: auto; }
-.tree  { padding: 6px 0; }
+:host { display: block; height: 100%; }
+
+.section-hdr {
+  display: flex; align-items: center; gap: 6px;
+  height: 28px; padding: 0 8px; margin-top: 4px;
+  font-size: 11px; font-weight: 700; color: #9ca3af;
+  letter-spacing: .05em; text-transform: uppercase;
+  user-select: none;
+}
+.section-hdr svg { flex-shrink: 0; opacity: .7; }
+
 .node-row {
   display: flex; align-items: center; gap: 4px;
-  height: 32px; padding: 0 8px;
-  cursor: pointer; font-size: 13px; color: #374151;
-  border-radius: 4px; user-select: none;
-  white-space: nowrap; overflow: hidden;
+  padding: 0 8px; cursor: pointer;
+  border-radius: 6px; user-select: none;
+  white-space: nowrap; overflow: hidden; position: relative;
 }
-.node-row:hover   { background: #f3f4f6; }
-.node-row.selected { background: #eff6ff; color: #2563eb; }
-.arrow       { width: 14px; font-size: 9px; flex-shrink: 0; color: #9ca3af; }
-.arrow-spacer { width: 14px; flex-shrink: 0; }
-.icon  { flex-shrink: 0; font-size: 14px; }
+.node-row.folder-row  { height: 34px; font-size: 13px; font-weight: 600; color: #374151; }
+.node-row.tmpl-row    { height: 32px; font-size: 13px; color: #4b5563; }
+.node-row:hover       { background: #f1f5f9; }
+.node-row.selected    {
+  background: #eff6ff; color: #2563eb;
+  border-left: 2px solid #2563eb; padding-left: 6px;
+}
+.node-row.selected svg { color: #2563eb; }
+
+.chevron { width: 12px; flex-shrink: 0; display: flex; align-items: center; color: #9ca3af; }
+.chevron-spacer { width: 12px; flex-shrink: 0; }
+.node-icon { flex-shrink: 0; display: flex; align-items: center; color: #6b7280; }
+.node-icon.open { color: #2563eb; }
 .label { flex: 1; overflow: hidden; text-overflow: ellipsis; }
+
 .inline-input {
   flex: 1; min-width: 0; border: 1.5px solid #2563eb; border-radius: 4px;
   padding: 1px 6px; font-size: 13px; outline: none; background: #fff;
+  font-family: inherit;
 }
-.add-btn {
-  display: block; width: calc(100% - 16px); margin: 6px 8px 2px;
-  padding: 5px 10px; border: 1.5px dashed #d1d5db; border-radius: 6px;
-  background: none; cursor: pointer; font-size: 12px; color: #6b7280; text-align: left;
-}
-.add-btn:hover { background: #f9fafb; border-color: #9ca3af; }
+
 .ctx-menu {
   position: fixed; background: #fff; border: 1px solid #e5e7eb;
-  border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,.15);
-  padding: 4px; z-index: 10001; min-width: 120px;
+  border-radius: 10px; box-shadow: 0 4px 16px rgba(0,0,0,.14);
+  padding: 4px; z-index: 10001; min-width: 140px;
 }
-.ctx-menu button {
-  display: block; width: 100%; text-align: left;
-  padding: 7px 12px; border: none; background: none;
-  cursor: pointer; font-size: 13px; color: #374151; border-radius: 4px;
+.ctx-item {
+  display: flex; align-items: center; gap: 8px; width: 100%;
+  text-align: left; padding: 7px 12px; border: none; background: none;
+  cursor: pointer; font-size: 13px; color: #374151; border-radius: 6px;
+  font-family: inherit;
 }
-.ctx-menu button:hover  { background: #f3f4f6; }
-.ctx-menu button.danger { color: #ef4444; }
-.ctx-menu button.danger:hover { background: #fee2e2; }
+.ctx-item:hover  { background: #f3f4f6; }
+.ctx-item.danger { color: #ef4444; }
+.ctx-item.danger:hover { background: #fee2e2; }
+.ctx-item.disabled { opacity: .4; cursor: not-allowed; pointer-events: none; }
+.ctx-sep { height: 1px; background: #f3f4f6; margin: 3px 0; }
+
+.empty-section {
+  padding: 4px 16px 6px;
+  font-size: 12px; color: #d1d5db; font-style: italic;
+}
 `;
 
 export class PoaTemplateTree extends HTMLElement {
@@ -50,10 +73,11 @@ export class PoaTemplateTree extends HTMLElement {
   private selectedId: string | null = null;
   private editingId:  string | null = null;
   private ctxMenu:    HTMLElement | null = null;
+  private filterQuery = '';
 
   connectedCallback(): void {
     this.shadow = this.attachShadow({ mode: 'open' });
-    this.shadow.innerHTML = `<style>${STYLE}</style><div class="tree" id="tree"></div>`;
+    this.shadow.innerHTML = `<style>${STYLE}</style><div id="tree"></div>`;
   }
 
   setManager(mgr: TemplateManager): void {
@@ -62,54 +86,113 @@ export class PoaTemplateTree extends HTMLElement {
     this.render();
   }
 
+  setFilter(query: string): void {
+    this.filterQuery = query.trim().toLowerCase();
+    this.render();
+  }
+
   render(): void {
     if (!this.mgr) return;
     const tree = this.shadow.getElementById('tree')!;
     tree.innerHTML = '';
-    this.mgr.getRoots().forEach(n => tree.appendChild(this._renderNode(n, 0)));
 
-    const btn = document.createElement('button');
-    btn.className = 'add-btn';
-    btn.textContent = '📁 폴더 추가';
-    btn.addEventListener('click', () => this.addFolder(null));
-    tree.appendChild(btn);
+    const allNodes = this.mgr.getAll();
+    const q = this.filterQuery;
+
+    const matches = (node: TemplateNode): boolean =>
+      !q || node.name.toLowerCase().includes(q);
+
+    const publicRoots  = allNodes.filter(n => n.parentId === null && n.isPublic);
+    const privateRoots = allNodes.filter(n => n.parentId === null && !n.isPublic);
+
+    tree.appendChild(this._renderSection('공용 템플릿', 'public', publicRoots, q));
+    tree.appendChild(this._renderSection('내 템플릿',   'private', privateRoots, q));
+
+    void matches; // used inside _renderSection
   }
 
   getSelected(): TemplateNode | null {
     return this.selectedId ? this.mgr.getById(this.selectedId) : null;
   }
 
-  /** 외부(TemplateDialog)에서 호출 가능한 폴더 추가 */
-  addFolder(parentId: string | null): void {
+  addFolder(parentId: string | null, isPublic = false): void {
     if (parentId) this.expanded.add(parentId);
-    const node = this.mgr.addFolder('새 폴더', parentId);
+    const node = this.mgr.addFolder('새 폴더', parentId, isPublic);
     this.editingId = node.id;
     this.render();
   }
 
-  // ── 트리 렌더링 (재귀) ──────────────────────────────────────────────────
+  // ── 섹션 렌더링 ───────────────────────────────────────────────────────────
 
-  private _renderNode(node: TemplateNode, depth: number): HTMLElement {
+  private _renderSection(
+    label: string,
+    kind: 'public' | 'private',
+    roots: TemplateNode[],
+    q: string,
+  ): HTMLElement {
     const wrap = document.createElement('div');
-    const row  = document.createElement('div');
-    row.className  = `node-row${this.selectedId === node.id ? ' selected' : ''}`;
-    row.style.paddingLeft = `${8 + depth * 16}px`;
 
-    const arrowEl = document.createElement('span');
-    if (node.type === 'folder') {
-      arrowEl.className   = 'arrow';
-      arrowEl.textContent = this.expanded.has(node.id) ? '▼' : '▶';
+    const hdr = document.createElement('div');
+    hdr.className = 'section-hdr';
+    const icon = kind === 'public' ? Icons.users14 : Icons.user14;
+    hdr.innerHTML = `${icon}<span>${label}</span>`;
+    wrap.appendChild(hdr);
+
+    const visibleRoots = q
+      ? roots.filter(n => this._subtreeMatches(n, q))
+      : roots;
+
+    if (visibleRoots.length === 0) {
+      const empty = document.createElement('div');
+      empty.className = 'empty-section';
+      empty.textContent = q ? '검색 결과 없음' : '항목 없음';
+      wrap.appendChild(empty);
     } else {
-      arrowEl.className = 'arrow-spacer';
+      visibleRoots.forEach(n => wrap.appendChild(this._renderNode(n, 0, q)));
     }
 
-    const iconEl = document.createElement('span');
-    iconEl.className   = 'icon';
-    iconEl.textContent = node.type === 'folder' ? '📁' : '📄';
+    return wrap;
+  }
 
-    row.appendChild(arrowEl);
+  /** 노드 또는 그 하위에 검색어 일치 항목이 있는지 확인 */
+  private _subtreeMatches(node: TemplateNode, q: string): boolean {
+    if (node.name.toLowerCase().includes(q)) return true;
+    return this.mgr.getChildren(node.id).some(c => this._subtreeMatches(c, q));
+  }
+
+  // ── 노드 렌더링 (재귀) ──────────────────────────────────────────────────
+
+  private _renderNode(node: TemplateNode, depth: number, q: string): HTMLElement {
+    const wrap = document.createElement('div');
+    const row  = document.createElement('div');
+    const isFolder = node.type === 'folder';
+    const isOpen   = this.expanded.has(node.id);
+
+    row.className = `node-row ${isFolder ? 'folder-row' : 'tmpl-row'}${this.selectedId === node.id ? ' selected' : ''}`;
+    row.style.paddingLeft = `${(depth * 20) + 8}px`;
+    if (this.selectedId === node.id) row.style.paddingLeft = `${(depth * 20) + 6}px`;
+
+    // 화살표
+    const chevron = document.createElement('span');
+    if (isFolder) {
+      chevron.className = 'chevron';
+      chevron.innerHTML = isOpen ? Icons.chevronDown12 : Icons.chevronRight12;
+    } else {
+      chevron.className = 'chevron-spacer';
+    }
+    row.appendChild(chevron);
+
+    // 아이콘
+    const iconEl = document.createElement('span');
+    iconEl.className = `node-icon${isFolder && isOpen ? ' open' : ''}`;
+    if (isFolder) {
+      iconEl.innerHTML = isOpen ? Icons.folderOpen14 : Icons.folder14;
+    } else {
+      iconEl.innerHTML = node.isPublic ? Icons.fileText14 : Icons.file14;
+    }
     row.appendChild(iconEl);
 
+    // 라벨 또는 인라인 편집
     if (this.editingId === node.id) {
       const inp = document.createElement('input');
       inp.type = 'text'; inp.className = 'inline-input'; inp.value = node.name;
@@ -139,8 +222,12 @@ export class PoaTemplateTree extends HTMLElement {
 
     wrap.appendChild(row);
 
-    if (node.type === 'folder' && this.expanded.has(node.id)) {
-      this.mgr.getChildren(node.id).forEach(c => wrap.appendChild(this._renderNode(c, depth + 1)));
+    if (isFolder && isOpen) {
+      const children = this.mgr.getChildren(node.id);
+      const visibleChildren = q
+        ? children.filter(c => this._subtreeMatches(c, q))
+        : children;
+      visibleChildren.forEach(c => wrap.appendChild(this._renderNode(c, depth + 1, q)));
     }
     return wrap;
   }
@@ -168,18 +255,46 @@ export class PoaTemplateTree extends HTMLElement {
 
   private _showCtx(node: TemplateNode, x: number, y: number): void {
     this._hideCtx();
+    const admin = isAdmin();
+    const canEdit = node.isPublic ? admin : true;
+
     const m = document.createElement('div');
     m.className = 'ctx-menu';
     m.style.left = `${x}px`; m.style.top = `${y}px`;
 
     const renameBtn = document.createElement('button');
-    renameBtn.textContent = '이름 변경';
+    renameBtn.className = `ctx-item${canEdit ? '' : ' disabled'}`;
+    renameBtn.innerHTML = `${Icons.pencil} 이름 변경`;
     renameBtn.addEventListener('click', () => {
       this._hideCtx(); this.editingId = node.id; this.render();
     });
+    m.appendChild(renameBtn);
+
+    if (node.type === 'template') {
+      const sep = document.createElement('div');
+      sep.className = 'ctx-sep';
+      m.appendChild(sep);
+
+      const linkBtn = document.createElement('button');
+      linkBtn.className = 'ctx-item';
+      linkBtn.innerHTML = `${Icons.link16} 사용자 링크 복사`;
+      linkBtn.addEventListener('click', () => {
+        this._hideCtx();
+        const url = buildUserModeUrl(node.id);
+        navigator.clipboard.writeText(url)
+          .then(() => this._emit('poa-tmpl-copy-link', { id: node.id, url }))
+          .catch(() => this._emit('poa-tmpl-copy-link', { id: node.id, url }));
+      });
+      m.appendChild(linkBtn);
+    }
+
+    const sep2 = document.createElement('div');
+    sep2.className = 'ctx-sep';
+    m.appendChild(sep2);
 
     const delBtn = document.createElement('button');
-    delBtn.textContent = '삭제'; delBtn.className = 'danger';
+    delBtn.className = `ctx-item danger${canEdit ? '' : ' disabled'}`;
+    delBtn.innerHTML = `${Icons.trash} 삭제`;
     delBtn.addEventListener('click', () => {
       this._hideCtx();
       this.mgr.delete(node.id);
@@ -188,25 +303,8 @@ export class PoaTemplateTree extends HTMLElement {
       this.render();
       this._emit('poa-tmpl-delete', { id: node.id });
     });
-
-    m.appendChild(renameBtn);
-
-    if (node.type === 'template') {
-      const linkBtn = document.createElement('button');
-      linkBtn.textContent = '사용자 링크 복사';
-      linkBtn.addEventListener('click', () => {
-        this._hideCtx();
-        const url = buildUserModeUrl(node.id);
-        navigator.clipboard.writeText(url).then(() => {
-          this._emit('poa-tmpl-copy-link', { id: node.id, url });
-        }).catch(() => {
-          this._emit('poa-tmpl-copy-link', { id: node.id, url });
-        });
-      });
-      m.appendChild(linkBtn);
-    }
-
     m.appendChild(delBtn);
+
     this.shadow.appendChild(m);
     this.ctxMenu = m;
     setTimeout(() => document.addEventListener('click', () => this._hideCtx(), { once: true }), 0);

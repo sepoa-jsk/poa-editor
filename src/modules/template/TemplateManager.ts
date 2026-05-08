@@ -1,5 +1,6 @@
 import DOMPurify from 'dompurify';
 import { TemplateApiClient, toServerId } from './TemplateApiClient.js';
+import { getUserId } from '../../core/UserSession.js';
 
 export interface TemplateNode {
   id:        string;
@@ -9,6 +10,7 @@ export interface TemplateNode {
   content?:  string;
   isPublic:  boolean;
   isTemp?:   boolean;
+  createdBy?: string | null;
   createdAt: number;
   updatedAt: number;
   order:     number;
@@ -168,6 +170,7 @@ export class TemplateManager {
   addFolder(name: string, parentId: string | null, isPublic = false): TemplateNode {
     const node: TemplateNode = {
       id: genId(), type: 'folder', name, parentId, isPublic,
+      createdBy: isPublic ? null : getUserId(),
       createdAt: Date.now(), updatedAt: Date.now(),
       order: this.getChildren(parentId).length,
     };
@@ -194,6 +197,7 @@ export class TemplateManager {
     const node: TemplateNode = {
       id: genId(), type: 'template', name, parentId, content: clean, isPublic,
       ...(isTemp ? { isTemp: true } : {}),
+      createdBy: isPublic ? null : getUserId(),
       createdAt: Date.now(), updatedAt: Date.now(),
       order: this.getChildren(parentId).length,
     };

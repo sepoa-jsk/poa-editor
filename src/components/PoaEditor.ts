@@ -1,4 +1,5 @@
 import DOMPurify from 'dompurify';
+import { initRoleFromUrl } from '../core/UserSession.js';
 import { EditorCore } from '../core/EditorCore.js';
 import { PoaToolbar } from './Toolbar.js';
 import type { PoaMenuBar } from './MenuBar.js';
@@ -178,6 +179,7 @@ export class PoaEditor extends HTMLElement {
   }
 
   connectedCallback(): void {
+    initRoleFromUrl();
     // contentEl은 shadow DOM이 아닌 light DOM에 배치한다.
     // shadow DOM 안의 contenteditable에서 발생하는 Chrome Selection API 리타깃 버그 우회:
     // document.getSelection().getRangeAt(0)가 shadow 내 선택을 BODY로 리타깃해 항상 collapsed

@@ -1,4 +1,5 @@
 import type { TemplateNode } from './TemplateManager.js';
+import { getUserId } from '../../core/UserSession.js';
 
 const BASE_URL = (import.meta as unknown as { env: Record<string, string> }).env?.VITE_API_URL
   ?? 'http://localhost:8080/api/v1';
@@ -17,6 +18,7 @@ interface ServerFolder {
   name: string;
   isPublic: boolean;
   orderIndex: number;
+  createdBy: string | null;
   createdAt: string;
   updatedAt: string;
 }
@@ -29,6 +31,7 @@ interface ServerTemplate {
   isPublic: boolean;
   isTemp: boolean;
   orderIndex: number;
+  createdBy: string | null;
   createdAt: string;
   updatedAt: string;
 }
@@ -87,6 +90,7 @@ function folderToNode(f: ServerFolder): TemplateNode {
     name:      f.name,
     parentId:  f.parentId !== null ? toClientId(f.parentId) : null,
     isPublic:  f.isPublic,
+    createdBy: f.createdBy ?? null,
     createdAt: new Date(f.createdAt).getTime(),
     updatedAt: new Date(f.updatedAt).getTime(),
     order:     f.orderIndex,
@@ -102,6 +106,7 @@ function templateToNode(t: ServerTemplate): TemplateNode {
     content:   t.content ?? '',
     isPublic:  t.isPublic,
     ...(t.isTemp ? { isTemp: true as const } : {}),
+    createdBy: t.createdBy ?? null,
     createdAt: new Date(t.createdAt).getTime(),
     updatedAt: new Date(t.updatedAt).getTime(),
     order:     t.orderIndex,
@@ -112,8 +117,12 @@ function templateToNode(t: ServerTemplate): TemplateNode {
 
 async function request<T>(path: string, init?: RequestInit): Promise<T> {
   const res = await fetch(`${BASE_URL}${path}`, {
-    headers: { 'Content-Type': 'application/json' },
     ...init,
+    headers: {
+      'Content-Type': 'application/json',
+      'X-User-Id': getUserId(),
+      ...((init?.headers as Record<string, string>) ?? {}),
+    },
   });
   if (res.status === 204) return undefined as unknown as T;
   const body = await res.json() as ApiResp<T>;
