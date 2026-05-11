@@ -69,7 +69,11 @@ export class TableNavigator {
 
   private readonly keydownHandler = (e: KeyboardEvent): void => {
     if (e.key !== 'Tab') return;
-    const cell = this.findCell(e.target as Node);
+    // e.target은 contenteditable div이므로 Selection의 startContainer로 셀을 찾는다.
+    const ownerDoc = (e.target as HTMLElement).ownerDocument;
+    const sel = ownerDoc?.getSelection();
+    const anchor = sel && sel.rangeCount > 0 ? sel.getRangeAt(0).startContainer : (e.target as Node);
+    const cell = this.findCell(anchor);
     if (!cell) return;
     e.preventDefault();
     e.shiftKey ? this.navigatePrev(cell) : this.navigateNext(cell);

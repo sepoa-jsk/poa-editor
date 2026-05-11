@@ -938,7 +938,12 @@ slot[name="content"] { display: contents; }
         return;
       }
       this.formatPainter.handleKeydown(e);
-      if (e.key === 'Tab') this.listManager.handleTab(e);
+      if (e.key === 'Tab') {
+        const tabSel = this.contentEl.ownerDocument.getSelection();
+        const tabAnchor = tabSel && tabSel.rangeCount > 0 ? tabSel.getRangeAt(0).startContainer : null;
+        const inTableCell = !!tabAnchor?.parentElement?.closest('td, th');
+        if (!inTableCell) this.listManager.handleTab(e);
+      }
     });
 
     document.addEventListener('selectionchange', this.selectionHandler);
