@@ -78,6 +78,9 @@ export type { DocumentField } from './modules/insert/DocumentFields.js';
 export { PoaEmojiDialog }          from './components/dialogs/EmojiDialog.js';
 export { PoaTooltipDialog }        from './components/dialogs/TooltipDialog.js';
 export { PoaInputPropertyDialog }  from './components/dialogs/InputPropertyDialog.js';
+export { PoaSettingsDialog, loadSettings } from './components/dialogs/SettingsDialog.js';
+export type { PoaSettings } from './components/dialogs/SettingsDialog.js';
+export { PoaFileManagerDialog } from './components/dialogs/FileManagerDialog.js';
 
 // ── Web Components 등록 ───────────────────────────────────────────────────────
 
@@ -87,6 +90,7 @@ import { PoaToolbar } from './components/Toolbar.js';
 import { PoaEditor } from './components/PoaEditor.js';
 import { PoaStatusBar } from './components/StatusBar.js';
 import { PoaSettingsDialog } from './components/dialogs/SettingsDialog.js';
+import { PoaFileManagerDialog } from './components/dialogs/FileManagerDialog.js';
 import { PoaFindReplaceDialog } from './components/dialogs/FindReplaceDialog.js';
 import { PoaImageEditDialog } from './components/dialogs/ImageEditDialog.js';
 import { PoaImageDialog } from './components/dialogs/ImageDialog.js';
@@ -114,6 +118,7 @@ if (!customElements.get('poa-context-toolbar'))      customElements.define('poa-
 if (!customElements.get('poa-toolbar'))              customElements.define('poa-toolbar',              PoaToolbar);
 if (!customElements.get('poa-status-bar'))           customElements.define('poa-status-bar',           PoaStatusBar);
 if (!customElements.get('poa-settings-dialog'))      customElements.define('poa-settings-dialog',      PoaSettingsDialog);
+if (!customElements.get('poa-file-manager-dialog'))  customElements.define('poa-file-manager-dialog',  PoaFileManagerDialog);
 if (!customElements.get('poa-find-replace-dialog'))  customElements.define('poa-find-replace-dialog',  PoaFindReplaceDialog);
 if (!customElements.get('poa-image-edit-dialog'))    customElements.define('poa-image-edit-dialog',    PoaImageEditDialog);
 if (!customElements.get('poa-image-dialog'))         customElements.define('poa-image-dialog',         PoaImageDialog);

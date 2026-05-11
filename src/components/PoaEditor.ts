@@ -18,6 +18,9 @@ import type { PoaFindReplaceDialog } from './dialogs/FindReplaceDialog.js';
 import type { PoaImageEditDialog } from './dialogs/ImageEditDialog.js';
 import type { PoaImageDialog } from './dialogs/ImageDialog.js';
 import type { PoaSettingsDialog } from './dialogs/SettingsDialog.js';
+import { loadSettings } from './dialogs/SettingsDialog.js';
+import type { PoaSettings } from './dialogs/SettingsDialog.js';
+import type { PoaFileManagerDialog } from './dialogs/FileManagerDialog.js';
 import type { PoaTableDialog } from './dialogs/TableDialog.js';
 import type { PoaCellSplitDialog } from './dialogs/CellSplitDialog.js';
 import { TableBuilder } from '../modules/table/TableBuilder.js';
@@ -70,7 +73,6 @@ import { FieldInserter }               from '../modules/insert/FieldInserter.js'
 import { FIELD_MAP }                   from '../modules/insert/DocumentFields.js';
 import { PaperSizeManager }            from '../modules/view/PaperSizeManager.js';
 import { buildUserModeUrl }            from '../core/AppMode.js';
-import { TemplateManager }             from '../modules/template/TemplateManager.js';
 
 const INDENT_STEP_EM = 2;
 const BLOCK_TAGS = new Set(['p', 'div', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'li', 'blockquote', 'pre']);
@@ -106,6 +108,7 @@ export class PoaEditor extends HTMLElement {
   private imageDialog!: PoaImageEditDialog;
   private imageInsertDialog!: PoaImageDialog;
   private settingsDialog!: PoaSettingsDialog;
+  private fileManagerDialog!: PoaFileManagerDialog;
   private tableDialog!: PoaTableDialog;
   private cellSplitDialog!: PoaCellSplitDialog;
   private cellMerger!: CellMerger;
@@ -202,6 +205,7 @@ slot[name="content"] { display: contents; }
 <poa-image-edit-dialog></poa-image-edit-dialog>
 <poa-image-dialog></poa-image-dialog>
 <poa-settings-dialog></poa-settings-dialog>
+<poa-file-manager-dialog></poa-file-manager-dialog>
 <poa-table-dialog></poa-table-dialog>
 <poa-cell-split-dialog></poa-cell-split-dialog>
 <poa-link-dialog></poa-link-dialog>
@@ -246,6 +250,7 @@ slot[name="content"] { display: contents; }
     this.imageDialog       = this.shadow.querySelector('poa-image-edit-dialog')   as PoaImageEditDialog;
     this.imageInsertDialog = this.shadow.querySelector('poa-image-dialog')        as PoaImageDialog;
     this.settingsDialog    = this.shadow.querySelector('poa-settings-dialog')     as PoaSettingsDialog;
+    this.fileManagerDialog = this.shadow.querySelector('poa-file-manager-dialog') as PoaFileManagerDialog;
     this.tableDialog       = this.shadow.querySelector('poa-table-dialog')        as PoaTableDialog;
     this.cellSplitDialog   = this.shadow.querySelector('poa-cell-split-dialog')  as PoaCellSplitDialog;
     this.linkDialog        = this.shadow.querySelector('poa-link-dialog')        as PoaLinkDialog;
@@ -363,9 +368,10 @@ slot[name="content"] { display: contents; }
 
     this.fileManager = new FileManager();
     this.autoSave    = new AutoSave();
-    this.settingsDialog.setAutoSave(this.autoSave);
-    this.settingsDialog.setFileManager(this.fileManager);
+    this.fileManagerDialog.setAutoSave(this.autoSave);
+    this.fileManagerDialog.setFileManager(this.fileManager);
     this.autoSave.start(() => this.contentEl.innerHTML);
+    this._applySettings(loadSettings());
 
     // ── 표 모듈 초기화 ─────────────────────────────────────────────
     this.cellMerger = new CellMerger();
@@ -1036,6 +1042,9 @@ slot[name="content"] { display: contents; }
       this.setHTML(html);
       void this.core.captureHistory('autoSaveRestore');
     });
+    this.shadow.addEventListener('poa-settings-changed', (e) => {
+      this._applySettings((e as CustomEvent).detail as PoaSettings);
+    });
 
     // 사용자가 직접 메뉴 탭을 클릭할 때 previousMenuTab 갱신 (표 탭 제외)
     eventBus.on<{ tab: MenuTab }>(BusEvent.MENUBAR_CHANGE, ({ tab }) => {
@@ -1070,6 +1079,20 @@ slot[name="content"] { display: contents; }
     this.formControlEditor.detach();
     this.fieldInserter.detach();
     this.core.unmount();
+  }
+
+  // ── 환경설정 적용 ────────────────────────────────────────────────────────
+
+  private _applySettings(s: PoaSettings): void {
+    this.contentEl.style.fontFamily = s.fontFamily;
+    this.contentEl.style.fontSize   = `${s.fontSize}pt`;
+    this.contentEl.style.lineHeight = String(s.lineHeight);
+    this.contentEl.spellcheck       = s.spellCheck;
+    if (s.autoSaveEnabled) {
+      this.autoSave.start(() => this.contentEl.innerHTML);
+    } else {
+      this.autoSave.stop();
+    }
   }
 
   // ── Public API ──────────────────────────────────────────────────────────
@@ -1389,7 +1412,10 @@ p { margin: .4em 0; }
         this.tableDialog.open();
         return;
       case 'settings':
-        void this.settingsDialog.show();
+        this.settingsDialog.show();
+        return;
+      case 'file:history':
+        void this.fileManagerDialog.show();
         return;
 
       // ── 파일 탭 액션 ─────────────────────────────────────────────

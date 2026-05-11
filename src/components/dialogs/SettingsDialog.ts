@@ -1,5 +1,47 @@
-import type { AutoSave, AutoSaveEntry } from '../../modules/file/AutoSave';
-import type { FileManager } from '../../modules/file/FileManager';
+export interface PoaSettings {
+  fontFamily: string;
+  fontSize: number;
+  lineHeight: number;
+  autoSaveEnabled: boolean;
+  autoSaveInterval: number;
+  spellCheck: boolean;
+  changeWarning: boolean;
+}
+
+const SETTINGS_KEY = 'poa-settings';
+
+const DEFAULTS: PoaSettings = {
+  fontFamily: '맑은 고딕',
+  fontSize: 11,
+  lineHeight: 1.5,
+  autoSaveEnabled: true,
+  autoSaveInterval: 5,
+  spellCheck: false,
+  changeWarning: true,
+};
+
+export function loadSettings(): PoaSettings {
+  try {
+    const raw = localStorage.getItem(SETTINGS_KEY);
+    if (!raw) return { ...DEFAULTS };
+    return { ...DEFAULTS, ...(JSON.parse(raw) as Partial<PoaSettings>) };
+  } catch {
+    return { ...DEFAULTS };
+  }
+}
+
+function saveSettings(s: PoaSettings): void {
+  try { localStorage.setItem(SETTINGS_KEY, JSON.stringify(s)); } catch { /* ignore */ }
+}
+
+const FONT_FAMILIES = [
+  '맑은 고딕', '나눔고딕', '나눔명조', '굴림', '돋움', '바탕', '궁서',
+  'Arial', 'Georgia', 'Times New Roman', 'Verdana',
+];
+
+const FONT_SIZES  = [8, 9, 10, 11, 12, 14, 16, 18, 20, 24, 28, 32];
+const LINE_HEIGHTS = [1.0, 1.2, 1.4, 1.5, 1.6, 1.8, 2.0, 2.5];
+const SAVE_INTERVALS = [1, 2, 3, 5, 10, 15, 30];
 
 const CSS = `
 :host { display: none; }
@@ -13,73 +55,87 @@ const CSS = `
 .dialog {
   background: #fff; border-radius: 8px;
   box-shadow: 0 8px 32px rgba(0,0,0,.25);
-  width: 480px; max-width: 95vw; max-height: 80vh;
+  width: 420px; max-width: 95vw; max-height: 85vh;
   display: flex; flex-direction: column;
+  font-family: 'Noto Sans KR', 'Roboto', sans-serif;
   overflow: hidden;
 }
 .header {
   display: flex; align-items: center; justify-content: space-between;
-  padding: 14px 20px; border-bottom: 1px solid #eee;
-  font-size: 15px; font-weight: 600; color: #333;
+  padding: 14px 20px; border-bottom: 1px solid #e8eaed;
+  font-size: 15px; font-weight: 600; color: #1e293b;
+  flex-shrink: 0;
 }
 .close-btn {
   border: none; background: transparent; font-size: 20px;
-  cursor: pointer; color: #888; line-height: 1; padding: 0 4px;
+  cursor: pointer; color: #94a3b8; line-height: 1; padding: 0 4px;
 }
-.close-btn:hover { color: #333; }
-.body { flex: 1; overflow-y: auto; }
-.section { padding: 16px 20px; }
-.section + .section { border-top: 1px solid #f0f0f0; }
+.close-btn:hover { color: #334155; }
+.body { flex: 1; overflow-y: auto; padding: 4px 0 8px; }
+.section { padding: 12px 20px; }
+.section + .section { border-top: 1px solid #f1f5f9; }
 .section-title {
-  font-size: 12px; font-weight: 600; color: #888;
-  text-transform: uppercase; letter-spacing: .05em;
-  margin: 0 0 10px;
+  font-size: 11px; font-weight: 600; color: #64748b;
+  text-transform: uppercase; letter-spacing: .08em;
+  margin: 0 0 12px;
 }
-.file-btns { display: flex; gap: 8px; flex-wrap: wrap; }
-.file-btns button {
-  padding: 6px 14px; border: 1px solid #ccc; border-radius: 4px;
-  background: #fff; cursor: pointer; font-size: 13px;
+.row {
+  display: flex; align-items: center;
+  justify-content: space-between;
+  min-height: 32px; margin-bottom: 8px;
 }
-.file-btns button:hover { background: #f5f5f5; }
-.history-list { list-style: none; margin: 0; padding: 0; }
-.history-item {
-  display: flex; align-items: center; justify-content: space-between;
-  padding: 8px 0; border-bottom: 1px solid #f5f5f5;
+.row:last-child { margin-bottom: 0; }
+.row-label {
+  font-size: 13px; color: #334155;
 }
-.history-item:last-child { border-bottom: none; }
-.history-time { font-size: 12px; color: #666; }
-.restore-btn {
-  padding: 3px 10px; border: 1px solid #1976d2; border-radius: 3px;
-  background: transparent; color: #1976d2; cursor: pointer; font-size: 12px;
+.row-ctrl { display: flex; align-items: center; gap: 8px; }
+select {
+  padding: 4px 8px; border: 1px solid #cbd5e1; border-radius: 4px;
+  font-size: 13px; color: #334155; background: #fff; cursor: pointer;
+  outline: none;
 }
-.restore-btn:hover { background: #e3f2fd; }
-.empty-msg { color: #aaa; font-size: 13px; text-align: center; padding: 20px 0; }
-.clear-btn {
-  margin-top: 10px; padding: 5px 12px;
-  border: 1px solid #ccc; border-radius: 3px;
-  background: #fff; cursor: pointer; font-size: 12px; color: #666;
+select:focus { border-color: #3b82f6; }
+.toggle {
+  position: relative; display: inline-block;
+  width: 36px; height: 20px; cursor: pointer;
 }
-.clear-btn:hover { background: #fafafa; }
+.toggle input { opacity: 0; width: 0; height: 0; }
+.slider {
+  position: absolute; inset: 0;
+  background: #cbd5e1; border-radius: 20px;
+  transition: background .2s;
+}
+.slider::before {
+  content: ''; position: absolute;
+  width: 14px; height: 14px; border-radius: 50%;
+  background: #fff; top: 3px; left: 3px;
+  transition: transform .2s;
+  box-shadow: 0 1px 3px rgba(0,0,0,.2);
+}
+input:checked + .slider { background: #3b82f6; }
+input:checked + .slider::before { transform: translateX(16px); }
+.footer {
+  display: flex; justify-content: flex-end; gap: 8px;
+  padding: 12px 20px; border-top: 1px solid #e8eaed;
+  flex-shrink: 0;
+}
+.btn {
+  padding: 7px 18px; border-radius: 5px; font-size: 13px;
+  cursor: pointer; border: 1px solid #cbd5e1; background: #fff; color: #334155;
+}
+.btn:hover { background: #f8fafc; }
+.btn.primary {
+  background: #3b82f6; border-color: #2563eb; color: #fff;
+}
+.btn.primary:hover { background: #2563eb; }
 `;
 
-function fmtDate(ts: number): string {
-  return new Date(ts).toLocaleString('ko-KR', {
-    month: '2-digit', day: '2-digit',
-    hour: '2-digit', minute: '2-digit', second: '2-digit',
-  });
+function option(value: string, label: string, selected: boolean): string {
+  return `<option value="${value}"${selected ? ' selected' : ''}>${label}</option>`;
 }
 
-/**
- * <poa-settings-dialog> — 자동저장 이력 조회 및 파일 관리 다이얼로그.
- *
- * 사용법:
- *   dialog.setAutoSave(autoSave);
- *   dialog.setFileManager(fm);
- *   await dialog.show();
- */
 export class PoaSettingsDialog extends HTMLElement {
   private shadow: ShadowRoot;
-  private autoSave: AutoSave | null = null;
 
   constructor() {
     super();
@@ -89,26 +145,70 @@ export class PoaSettingsDialog extends HTMLElement {
   connectedCallback(): void {
     this.shadow.innerHTML = `<style>${CSS}</style>
 <div class="backdrop" id="backdrop">
-  <div class="dialog" role="dialog" aria-modal="true" aria-label="설정">
+  <div class="dialog" role="dialog" aria-modal="true" aria-label="환경설정">
     <div class="header">
-      <span>파일 관리 · 자동저장 이력</span>
+      <span>환경설정</span>
       <button class="close-btn" id="btn-close" title="닫기">×</button>
     </div>
     <div class="body">
       <div class="section">
-        <p class="section-title">파일</p>
-        <div class="file-btns">
-          <button id="btn-new">새 문서</button>
-          <button id="btn-open">열기</button>
-          <button id="btn-save">저장</button>
-          <button id="btn-saveas">다른 이름으로 저장</button>
+        <p class="section-title">편집기 글꼴</p>
+        <div class="row">
+          <span class="row-label">글꼴</span>
+          <div class="row-ctrl">
+            <select id="sel-font-family">${FONT_FAMILIES.map(f => option(f, f, false)).join('')}</select>
+          </div>
+        </div>
+        <div class="row">
+          <span class="row-label">글자 크기</span>
+          <div class="row-ctrl">
+            <select id="sel-font-size">${FONT_SIZES.map(n => option(String(n), `${n}pt`, false)).join('')}</select>
+          </div>
+        </div>
+        <div class="row">
+          <span class="row-label">줄 간격</span>
+          <div class="row-ctrl">
+            <select id="sel-line-height">${LINE_HEIGHTS.map(n => option(String(n), String(n), false)).join('')}</select>
+          </div>
         </div>
       </div>
       <div class="section">
-        <p class="section-title">자동저장 이력</p>
-        <ul class="history-list" id="history-list"></ul>
-        <button class="clear-btn" id="btn-clear">이력 전체 삭제</button>
+        <p class="section-title">자동저장</p>
+        <div class="row">
+          <span class="row-label">자동저장 사용</span>
+          <label class="toggle">
+            <input type="checkbox" id="chk-autosave">
+            <span class="slider"></span>
+          </label>
+        </div>
+        <div class="row" id="row-interval">
+          <span class="row-label">저장 주기</span>
+          <div class="row-ctrl">
+            <select id="sel-interval">${SAVE_INTERVALS.map(n => option(String(n), `${n}분`, false)).join('')}</select>
+          </div>
+        </div>
       </div>
+      <div class="section">
+        <p class="section-title">편집 옵션</p>
+        <div class="row">
+          <span class="row-label">맞춤법 검사</span>
+          <label class="toggle">
+            <input type="checkbox" id="chk-spellcheck">
+            <span class="slider"></span>
+          </label>
+        </div>
+        <div class="row">
+          <span class="row-label">닫기 전 변경 경고</span>
+          <label class="toggle">
+            <input type="checkbox" id="chk-change-warning">
+            <span class="slider"></span>
+          </label>
+        </div>
+      </div>
+    </div>
+    <div class="footer">
+      <button class="btn" id="btn-cancel">취소</button>
+      <button class="btn primary" id="btn-save">저장</button>
     </div>
   </div>
 </div>`;
@@ -116,80 +216,87 @@ export class PoaSettingsDialog extends HTMLElement {
     this.bindEvents();
   }
 
-  setAutoSave(autoSave: AutoSave): void { this.autoSave = autoSave; }
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  setFileManager(_fm: FileManager): void { }
-
-  async show(): Promise<void> {
-    await this.loadHistory();
+  show(): void {
+    this.populateForm(loadSettings());
     this.setAttribute('open', '');
-    this.shadow.getElementById('btn-close')?.focus();
+    this.shadow.getElementById('btn-save')?.focus();
   }
 
   close(): void {
     this.removeAttribute('open');
   }
 
-  private bindEvents(): void {
-    const s = this.shadow;
-    s.getElementById('backdrop')?.addEventListener('click', (e) => {
-      if (e.target === s.getElementById('backdrop')) this.close();
-    });
-    s.getElementById('btn-close')?.addEventListener('click', () => this.close());
-
-    const dispatch = (type: string): void => {
-      this.dispatchEvent(new CustomEvent(`poa-file-${type}`, { bubbles: true, composed: true }));
-      this.close();
+  private populateForm(s: PoaSettings): void {
+    const sh = this.shadow;
+    const setSelect = (id: string, val: string): void => {
+      const el = sh.getElementById(id) as HTMLSelectElement | null;
+      if (el) el.value = val;
     };
+    const setCheck = (id: string, val: boolean): void => {
+      const el = sh.getElementById(id) as HTMLInputElement | null;
+      if (el) el.checked = val;
+    };
+    setSelect('sel-font-family', s.fontFamily);
+    setSelect('sel-font-size', String(s.fontSize));
+    setSelect('sel-line-height', String(s.lineHeight));
+    setCheck('chk-autosave', s.autoSaveEnabled);
+    setSelect('sel-interval', String(s.autoSaveInterval));
+    setCheck('chk-spellcheck', s.spellCheck);
+    setCheck('chk-change-warning', s.changeWarning);
+    this.toggleIntervalRow(s.autoSaveEnabled);
+  }
 
-    s.getElementById('btn-new')?.addEventListener('click',   () => dispatch('new'));
-    s.getElementById('btn-open')?.addEventListener('click',  () => dispatch('open'));
-    s.getElementById('btn-save')?.addEventListener('click',  () => dispatch('save'));
-    s.getElementById('btn-saveas')?.addEventListener('click',() => dispatch('saveas'));
+  private readForm(): PoaSettings {
+    const sh = this.shadow;
+    const getSelect = (id: string): string =>
+      (sh.getElementById(id) as HTMLSelectElement | null)?.value ?? '';
+    const getCheck = (id: string): boolean =>
+      (sh.getElementById(id) as HTMLInputElement | null)?.checked ?? false;
+    return {
+      fontFamily: getSelect('sel-font-family') || DEFAULTS.fontFamily,
+      fontSize: Number(getSelect('sel-font-size')) || DEFAULTS.fontSize,
+      lineHeight: Number(getSelect('sel-line-height')) || DEFAULTS.lineHeight,
+      autoSaveEnabled: getCheck('chk-autosave'),
+      autoSaveInterval: Number(getSelect('sel-interval')) || DEFAULTS.autoSaveInterval,
+      spellCheck: getCheck('chk-spellcheck'),
+      changeWarning: getCheck('chk-change-warning'),
+    };
+  }
 
-    s.getElementById('btn-clear')?.addEventListener('click', async () => {
-      await this.autoSave?.clearAll();
-      await this.loadHistory();
+  private toggleIntervalRow(enabled: boolean): void {
+    const row = this.shadow.getElementById('row-interval') as HTMLElement | null;
+    if (row) row.style.opacity = enabled ? '1' : '0.4';
+  }
+
+  private bindEvents(): void {
+    const sh = this.shadow;
+    sh.getElementById('backdrop')?.addEventListener('click', (e) => {
+      if (e.target === sh.getElementById('backdrop')) this.close();
     });
-  }
-
-  private async loadHistory(): Promise<void> {
-    const list = this.shadow.getElementById('history-list');
-    if (!list) return;
-    list.innerHTML = '';
-
-    if (!this.autoSave) {
-      list.innerHTML = '<li class="empty-msg">자동저장 미설정</li>';
-      return;
-    }
-
-    const entries = await this.autoSave.listSnapshots();
-    if (entries.length === 0) {
-      list.innerHTML = '<li class="empty-msg">저장된 이력이 없습니다</li>';
-      return;
-    }
-
-    for (const entry of entries) {
-      const li = document.createElement('li');
-      li.className = 'history-item';
-      li.innerHTML = `
-        <span class="history-time">${fmtDate(entry.savedAt)}</span>
-        <button class="restore-btn" data-id="${String(entry.id)}">복원</button>`;
-      li.querySelector<HTMLButtonElement>('.restore-btn')!.addEventListener('click', () => {
-        this.handleRestore(entry);
+    sh.getElementById('btn-close')?.addEventListener('click',  () => this.close());
+    sh.getElementById('btn-cancel')?.addEventListener('click', () => this.close());
+    sh.getElementById('btn-save')?.addEventListener('click',   () => this.handleSave());
+    (sh.getElementById('chk-autosave') as HTMLInputElement | null)
+      ?.addEventListener('change', (e) => {
+        this.toggleIntervalRow((e.target as HTMLInputElement).checked);
       });
-      list.appendChild(li);
-    }
   }
 
-  private handleRestore(entry: AutoSaveEntry): void {
-    this.dispatchEvent(
-      new CustomEvent('poa-autosave-restore', {
-        bubbles: true,
-        composed: true,
-        detail: { html: entry.html },
-      }),
-    );
+  private handleSave(): void {
+    const s = this.readForm();
+    saveSettings(s);
+    this.dispatchEvent(new CustomEvent('poa-settings-changed', {
+      bubbles: true,
+      composed: true,
+      detail: s,
+    }));
     this.close();
   }
 }
+
+// legacy stubs so PoaEditor.ts still compiles during transition
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+Object.assign(PoaSettingsDialog.prototype, {
+  setAutoSave(_: unknown): void { /* noop — use PoaFileManagerDialog */ },
+  setFileManager(_: unknown): void { /* noop — use PoaFileManagerDialog */ },
+});
