@@ -198,6 +198,129 @@ export function insertPageBreak(contentEl: HTMLElement): void {
   contentEl.dispatchEvent(new Event('input', { bubbles: true }));
 }
 
+/**
+ * 디자인 모드에서 contentEl 위에 A4 페이지 경계선을 오버레이로 표시한다.
+ * 오버레이는 data-poa-temp 마커로 getHTML() 직렬화에서 제외된다.
+ */
+export class PageGuide {
+  private contentEl:    HTMLElement | null    = null;
+  private overlay:      HTMLDivElement | null = null;
+  private pageHeightPx  = 1123; // A4 기본값
+  private lastPageCount = 0;
+  private renderTimer:  ReturnType<typeof setTimeout> | null = null;
+
+  private readonly mutationObserver = new MutationObserver((mutations) => {
+    for (const m of mutations) {
+      const target = m.target as Node;
+      if (target !== this.overlay && !this.overlay?.contains(target)) {
+        this.scheduleRender();
+        return;
+      }
+    }
+  });
+
+  private readonly resizeObserver = new ResizeObserver(() => {
+    this.scheduleRender();
+  });
+
+  attach(contentEl: HTMLElement): void {
+    this.detach();
+    this.contentEl = contentEl;
+    if (getComputedStyle(contentEl).position === 'static') {
+      contentEl.style.position = 'relative';
+    }
+    const overlay = contentEl.ownerDocument.createElement('div');
+    overlay.dataset['poaTemp'] = 'true';
+    overlay.style.cssText =
+      'position:absolute;top:0;left:0;right:0;height:0;overflow:visible;' +
+      'pointer-events:none;z-index:5;';
+    contentEl.appendChild(overlay);
+    this.overlay = overlay;
+
+    this.mutationObserver.observe(contentEl, {
+      childList: true, subtree: true, characterData: true, attributes: false,
+    });
+    this.resizeObserver.observe(contentEl);
+    this.render();
+  }
+
+  detach(): void {
+    this.mutationObserver.disconnect();
+    this.resizeObserver.disconnect();
+    this.overlay?.remove();
+    this.overlay = null;
+    this.contentEl = null;
+    if (this.renderTimer !== null) {
+      clearTimeout(this.renderTimer);
+      this.renderTimer = null;
+    }
+  }
+
+  setPageSize(pageHeightPx: number): void {
+    if (this.pageHeightPx === pageHeightPx) return;
+    this.pageHeightPx = pageHeightPx;
+    this.render();
+  }
+
+  getPageCount(): number {
+    if (!this.contentEl || this.pageHeightPx <= 0) return 1;
+    return Math.max(1, Math.ceil(this.contentEl.scrollHeight / this.pageHeightPx));
+  }
+
+  getCurrentPage(anchorNode: Node): number {
+    if (!this.contentEl || this.pageHeightPx <= 0) return 1;
+    try {
+      const ownerDoc = this.contentEl.ownerDocument;
+      const range = ownerDoc.createRange();
+      range.setStart(anchorNode, 0);
+      range.collapse(true);
+      const rect = range.getBoundingClientRect();
+      const containerRect = this.contentEl.getBoundingClientRect();
+      // CSS transform:scale이 적용됐을 때 스케일 역산
+      const scale = this.contentEl.offsetWidth > 0
+        ? containerRect.width / this.contentEl.offsetWidth
+        : 1;
+      const unscaledOffsetY = (rect.top - containerRect.top) / scale;
+      return Math.max(1, Math.floor(unscaledOffsetY / this.pageHeightPx) + 1);
+    } catch {
+      return 1;
+    }
+  }
+
+  private scheduleRender(): void {
+    if (this.renderTimer !== null) clearTimeout(this.renderTimer);
+    this.renderTimer = setTimeout(() => {
+      this.renderTimer = null;
+      this.render();
+    }, 50);
+  }
+
+  private render(): void {
+    if (!this.overlay || !this.contentEl) return;
+    this.overlay.innerHTML = '';
+    const totalPages = this.getPageCount();
+    for (let i = 1; i < totalPages; i++) {
+      const band = this.contentEl.ownerDocument.createElement('div');
+      band.style.cssText =
+        `position:absolute;top:${this.pageHeightPx * i}px;left:0;right:0;` +
+        'height:2px;background:#3b82f6;';
+      const label = this.contentEl.ownerDocument.createElement('span');
+      label.textContent = `${i + 1} 페이지`;
+      label.style.cssText =
+        'position:absolute;right:6px;top:-16px;font-size:10px;' +
+        'color:#3b82f6;background:rgba(255,255,255,0.85);' +
+        'padding:1px 5px;border-radius:2px;font-family:sans-serif;' +
+        'user-select:none;-webkit-user-select:none;white-space:nowrap;';
+      band.appendChild(label);
+      this.overlay.appendChild(band);
+    }
+    if (totalPages !== this.lastPageCount) {
+      this.lastPageCount = totalPages;
+      eventBus.emit(BusEvent.PAGE_UPDATED, { total: totalPages });
+    }
+  }
+}
+
 function findBlockAncestor(node: Node, root: HTMLElement): HTMLElement | null {
   const BLOCK = new Set(['P', 'DIV', 'H1', 'H2', 'H3', 'H4', 'H5', 'H6',
     'BLOCKQUOTE', 'LI', 'TD', 'TH', 'PRE']);

@@ -103,6 +103,7 @@ export class PoaStatusBar extends HTMLElement {
 <div class="bar">
   <span id="char-count">0자</span>
   <span id="word-count">0단어</span>
+  <span id="page-info">1/1 페이지</span>
   <div class="sep"></div>
   <select id="paper-select" class="poa-paper-select" title="용지 크기">
     ${paperOptions}
@@ -220,6 +221,11 @@ export class PoaStatusBar extends HTMLElement {
 
     charEl.textContent = `${charCount}자`;
     wordEl.textContent = `${wordCount}단어`;
+  }
+
+  updatePage(current: number, total: number): void {
+    const el = this.shadow.getElementById('page-info');
+    if (el) el.textContent = `${current}/${total} 페이지`;
   }
 
   /** PaperSizeManager 가 발행하는 paper-change 이벤트를 수신해 UI 동기화 */

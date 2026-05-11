@@ -18,7 +18,7 @@ export { BookmarkManager } from './modules/insert/BookmarkManager.js';
 export { ImageResizer } from './modules/insert/ImageResizer.js';
 export { ViewManager } from './modules/view/ViewManager.js';
 export type { ViewMode, ViewManagerCallbacks } from './modules/view/ViewManager.js';
-export { PageView } from './modules/view/PageView.js';
+export { PageView, PageGuide } from './modules/view/PageView.js';
 export type { PageMargin } from './modules/view/PageView.js';
 export { TableBuilder } from './modules/table/TableBuilder.js';
 export { CellMerger, buildGridMap } from './modules/table/CellMerger.js';

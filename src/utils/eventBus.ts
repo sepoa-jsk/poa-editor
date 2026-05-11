@@ -34,4 +34,6 @@ export const BusEvent = {
   VIEW_CHANGE: 'view:change',
   /** 환경설정 변경 — payload: PoaSettings */
   SETTINGS_CHANGED: 'settings:changed',
+  /** 페이지 수 변경 — payload: { total: number } */
+  PAGE_UPDATED: 'page:updated',
 } as const;

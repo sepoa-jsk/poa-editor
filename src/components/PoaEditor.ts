@@ -42,7 +42,7 @@ import { ImageResizer } from '../modules/insert/ImageResizer.js';
 import type { PoaImageToolbar } from './ImageToolbar.js';
 import { ViewManager } from '../modules/view/ViewManager.js';
 import type { ViewMode } from '../modules/view/ViewManager.js';
-import { insertPageBreak } from '../modules/view/PageView.js';
+import { insertPageBreak, PageGuide } from '../modules/view/PageView.js';
 import { getSelectedBlocks, getImageAlign, getTableAlign, syncInputValuesToAttributes } from '../utils/dom.js';
 import { TableWholeResizer } from '../modules/table/TableWholeResizer.js';
 import { TableInlineToolbar } from '../modules/table/TableInlineToolbar.js';
@@ -150,6 +150,7 @@ export class PoaEditor extends HTMLElement {
   private tooltipManager!:        TooltipManager;
   private fieldInserter!:         FieldInserter;
   private paperSizeManager!:      PaperSizeManager;
+  private pageGuide:              PageGuide | undefined;
   private scrollContainer:        HTMLElement | null = null;
   /** 현재 선택(파란 outline)된 표 — null이면 미선택 */
   private selectedTable: HTMLTableElement | null = null;
@@ -338,9 +339,16 @@ slot[name="content"] { display: contents; }
       this.scrollContainer = scrollContainer;
       this.paperSizeManager = new PaperSizeManager(this.contentEl, scrollContainer);
       this.paperSizeManager.init();
+
+      this.pageGuide = new PageGuide();
+      this.pageGuide.setPageSize(this.paperSizeManager.getSize().heightPx);
+      this.pageGuide.attach(this.contentEl);
+
       // statusBar가 paper-change를 수신하도록 이벤트 전파
       scrollContainer.addEventListener('paper-change', (e) => {
         this.statusBar.syncPaper(e as CustomEvent);
+        const { size } = (e as CustomEvent).detail as { size: { heightPx: number } };
+        this.pageGuide?.setPageSize(size.heightPx);
       });
     }
 
@@ -1073,6 +1081,7 @@ slot[name="content"] { display: contents; }
     this.tableResizer.detach();
     this.tableHandle.detach();
     this.imageResizer.detach();
+    this.pageGuide?.detach();
     this.viewManager.detach();
     this.tableWholeResizer.detach();
     this.tableInlineToolbar.hide();
@@ -1916,6 +1925,11 @@ p { margin: .4em 0; }
     this.savedRange = range;
 
     const anchor = range.startContainer;
+    if (this.pageGuide) {
+      const totalPages  = this.pageGuide.getPageCount();
+      const currentPage = this.pageGuide.getCurrentPage(anchor);
+      this.statusBar.updatePage(currentPage, totalPages);
+    }
     const state: ToolbarState = {
       bold:         this.hasAncestorTag(anchor, 'strong'),
       italic:       this.hasAncestorTag(anchor, 'em'),
