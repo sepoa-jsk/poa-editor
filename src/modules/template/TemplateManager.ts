@@ -17,53 +17,26 @@ export interface TemplateNode {
 }
 
 const STORAGE_KEY = 'poa-templates';
+const CLEANUP_FLAG = 'poa-cleanup-v2';
 
 function genId(): string {
   return `${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 7)}`;
 }
 
-const SEED_TEMPLATES: { name: string; content: string }[] = [
-  {
-    name: '공지사항 기본 양식',
-    content:
-      '<h2>공지사항</h2>' +
-      '<p><strong>제목:</strong>&nbsp;</p>' +
-      '<p><strong>내용:</strong>&nbsp;</p>' +
-      '<p><strong>담당자:</strong>&nbsp;</p>' +
-      '<p><strong>날짜:</strong>&nbsp;</p>',
-  },
-  {
-    name: '회의록 양식',
-    content:
-      '<h2>회의록</h2>' +
-      '<p><strong>일시:</strong>&nbsp;</p>' +
-      '<p><strong>장소:</strong>&nbsp;</p>' +
-      '<p><strong>참석자:</strong>&nbsp;</p>' +
-      '<hr>' +
-      '<h3>안건</h3><ol><li></li></ol>' +
-      '<h3>결정사항</h3><ol><li></li></ol>' +
-      '<h3>다음 회의</h3><p>&nbsp;</p>',
-  },
-  {
-    name: '주간 보고서 양식',
-    content:
-      '<h2>주간 보고서</h2>' +
-      '<p><strong>기간:</strong>&nbsp;</p>' +
-      '<p><strong>작성자:</strong>&nbsp;</p>' +
-      '<hr>' +
-      '<h3>이번 주 완료 업무</h3><ul><li></li></ul>' +
-      '<h3>다음 주 계획</h3><ul><li></li></ul>' +
-      '<h3>이슈 및 건의사항</h3><p>&nbsp;</p>',
-  },
-];
+function isTempNode(n: TemplateNode): boolean {
+  if (n.isTemp) return true;
+  if (n.name.startsWith('임시_')) return true;
+  if (n.name.startsWith('preview_')) return true;
+  if (n.name.startsWith('__')) return true;
+  return false;
+}
 
 export class TemplateManager {
   private nodes: TemplateNode[] = [];
 
   constructor() {
+    TemplateManager.cleanupOnce();
     this._load();
-    if (this.nodes.length === 0) this._seed();
-    // API에서 데이터 동기화 (fire-and-forget, 실패 시 localStorage 유지)
     void this._syncFromServer();
   }
 
@@ -105,16 +78,10 @@ export class TemplateManager {
     this._persist();
   }
 
-  /** isTemp 항목 및 임시_/preview_ 이름 항목 전부 정리 */
+  /** isTemp 항목 및 임시_/preview_/__ 이름 항목 전부 정리 */
   private _cleanTemp(): void {
     const before = this.nodes.length;
-    this.nodes = this.nodes.filter(n => {
-      if (n.type !== 'template') return true;
-      if (n.isTemp) return false;
-      if (n.name.startsWith('임시_')) return false;
-      if (n.name.startsWith('preview_')) return false;
-      return true;
-    });
+    this.nodes = this.nodes.filter(n => !isTempNode(n));
     if (this.nodes.length !== before) this._persist();
   }
 
@@ -135,31 +102,6 @@ export class TemplateManager {
     if (oldest) this.nodes = this.nodes.filter(n => n.id !== oldest.id);
   }
 
-  private _seed(): void {
-    const existingNames = new Set(this.nodes.map(n => n.name));
-
-    let pub = this.nodes.find(n => n.type === 'folder' && n.name === '공용 템플릿' && n.parentId === null);
-    if (!pub) {
-      pub = { id: genId(), type: 'folder', name: '공용 템플릿', parentId: null, isPublic: true, createdAt: Date.now(), updatedAt: Date.now(), order: 0 };
-      this.nodes.push(pub);
-    }
-
-    if (!existingNames.has('내 템플릿')) {
-      this.nodes.push({ id: genId(), type: 'folder', name: '내 템플릿', parentId: null, isPublic: false, createdAt: Date.now(), updatedAt: Date.now(), order: 1 });
-    }
-
-    SEED_TEMPLATES.forEach((t, i) => {
-      if (existingNames.has(t.name)) return;
-      const clean = String(DOMPurify.sanitize(t.content, { USE_PROFILES: { html: true } }));
-      this.nodes.push({
-        id: genId(), type: 'template', name: t.name,
-        parentId: pub!.id, content: clean, isPublic: true,
-        createdAt: Date.now(), updatedAt: Date.now(), order: i,
-      });
-    });
-    this._persist();
-  }
-
   /** localStorage를 다시 읽어 노드 목록을 갱신한다 */
   reload(): void {
     this._load();
@@ -169,15 +111,32 @@ export class TemplateManager {
   private async _syncFromServer(): Promise<void> {
     try {
       const serverNodes = await TemplateApiClient.getAllNodes();
-      if (serverNodes.length === 0) return;
-      // API 사용 가능 → 로컬 seed/캐시 제거 후 서버 데이터로 완전 교체
+      // API 응답 성공 시 → 로컬 캐시/시드 완전 교체 (서버가 단일 진실 원천)
       try { localStorage.removeItem(STORAGE_KEY); } catch { /* ignore */ }
-      const tempNodes = this.nodes.filter(n => n.isTemp);
-      this.nodes = [...serverNodes, ...tempNodes];
+      this.nodes = serverNodes.filter(n => !isTempNode(n));
       this._persist();
     } catch {
       console.warn('API 서버 연결 실패. LocalStorage 모드로 동작합니다.');
     }
+  }
+
+  /**
+   * 최초 1회: localStorage의 임시/프리뷰 항목을 일괄 제거한다.
+   * `poa-cleanup-v2` 플래그로 중복 실행을 방지한다.
+   */
+  static cleanupOnce(): void {
+    try {
+      if (localStorage.getItem(CLEANUP_FLAG)) return;
+      const raw = localStorage.getItem(STORAGE_KEY);
+      if (raw) {
+        const nodes = JSON.parse(raw) as TemplateNode[];
+        const cleaned = nodes.filter(n => !isTempNode(n));
+        if (cleaned.length !== nodes.length) {
+          localStorage.setItem(STORAGE_KEY, JSON.stringify(cleaned));
+        }
+      }
+      localStorage.setItem(CLEANUP_FLAG, '1');
+    } catch { /* localStorage 불가 환경 */ }
   }
 
   // ── 조회 ────────────────────────────────────────────────────────────────

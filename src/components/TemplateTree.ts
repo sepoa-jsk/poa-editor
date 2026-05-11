@@ -3,6 +3,14 @@ import { buildUserModeUrl } from '../core/AppMode.js';
 import { isAdmin } from '../core/UserSession.js';
 import { Icons } from '../utils/icons.js';
 
+function isVisible(n: TemplateNode): boolean {
+  if (n.isTemp) return false;
+  if (n.name.startsWith('임시_')) return false;
+  if (n.name.startsWith('preview_')) return false;
+  if (n.name.startsWith('__')) return false;
+  return true;
+}
+
 const STYLE = `
 *, *::before, *::after { box-sizing: border-box; }
 :host { display: block; height: 100%; }
@@ -95,7 +103,7 @@ export class PoaTemplateTree extends HTMLElement {
     const tree = this.shadow.getElementById('tree')!;
     tree.innerHTML = '';
 
-    const allNodes = this.mgr.getAll();
+    const allNodes = this.mgr.getAll().filter(isVisible);
     const q = this.filterQuery;
 
     const matches = (node: TemplateNode): boolean =>
@@ -163,7 +171,7 @@ export class PoaTemplateTree extends HTMLElement {
   /** 노드 또는 그 하위에 검색어 일치 항목이 있는지 확인 */
   private _subtreeMatches(node: TemplateNode, q: string): boolean {
     if (node.name.toLowerCase().includes(q)) return true;
-    return this.mgr.getChildren(node.id).some(c => this._subtreeMatches(c, q));
+    return this.mgr.getChildren(node.id).filter(isVisible).some(c => this._subtreeMatches(c, q));
   }
 
   // ── 노드 렌더링 (재귀) ──────────────────────────────────────────────────
@@ -228,7 +236,7 @@ export class PoaTemplateTree extends HTMLElement {
     wrap.appendChild(row);
 
     if (isFolder && isOpen) {
-      const children = this.mgr.getChildren(node.id);
+      const children = this.mgr.getChildren(node.id).filter(isVisible);
       const visibleChildren = q
         ? children.filter(c => this._subtreeMatches(c, q))
         : children;

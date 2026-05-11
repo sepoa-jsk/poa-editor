@@ -20,32 +20,11 @@ function fresh(): TemplateManager {
   return new TemplateManager();
 }
 
-describe('TemplateManager — seed', () => {
-  it('seeding creates 2 root folders', () => {
+describe('TemplateManager — 초기 상태', () => {
+  it('빈 localStorage에서 생성 시 노드가 없다', () => {
     const mgr = fresh();
-    const roots = mgr.getRoots();
-    expect(roots).toHaveLength(2);
-    expect(roots[0].type).toBe('folder');
-    expect(roots[1].type).toBe('folder');
-  });
-
-  it('public folder contains 3 seed templates', () => {
-    const mgr = fresh();
-    const pub = mgr.getRoots().find(n => n.isPublic)!;
-    const children = mgr.getChildren(pub.id);
-    expect(children).toHaveLength(3);
-    expect(children.every(n => n.type === 'template')).toBe(true);
-  });
-
-  it('my folder is not public', () => {
-    const mgr = fresh();
-    const my = mgr.getRoots().find(n => !n.isPublic)!;
-    expect(my.isPublic).toBe(false);
-  });
-
-  it('persists to localStorage on seed', () => {
-    fresh();
-    expect(localStorage.getItem('poa-templates')).not.toBeNull();
+    expect(mgr.getRoots()).toHaveLength(0);
+    expect(mgr.getAll()).toHaveLength(0);
   });
 });
 
@@ -59,9 +38,9 @@ describe('TemplateManager — addFolder', () => {
 
   it('adds a nested folder', () => {
     const mgr = fresh();
-    const pub = mgr.getRoots().find(n => n.isPublic)!;
-    const sub = mgr.addFolder('하위 폴더', pub.id);
-    expect(sub.parentId).toBe(pub.id);
+    const parent = mgr.addFolder('부모 폴더', null, true);
+    const sub = mgr.addFolder('하위 폴더', parent.id);
+    expect(sub.parentId).toBe(parent.id);
     expect(sub.type).toBe('folder');
   });
 
@@ -78,9 +57,9 @@ describe('TemplateManager — addFolder', () => {
 describe('TemplateManager — addTemplate', () => {
   it('adds template to a folder', () => {
     const mgr = fresh();
-    const my = mgr.getRoots().find(n => !n.isPublic)!;
-    const t = mgr.addTemplate('내 템플릿', '<p>내용</p>', my.id);
-    expect(mgr.getChildren(my.id)).toContainEqual(expect.objectContaining({ id: t.id }));
+    const folder = mgr.addFolder('내 폴더', null, false);
+    const t = mgr.addTemplate('내 템플릿', '<p>내용</p>', folder.id);
+    expect(mgr.getChildren(folder.id)).toContainEqual(expect.objectContaining({ id: t.id }));
   });
 
   it('template has content and correct type', () => {

@@ -1,6 +1,14 @@
 import DOMPurify from 'dompurify';
 import { TemplateManager } from '../../modules/template/TemplateManager.js';
 import type { TemplateNode } from '../../modules/template/TemplateManager.js';
+
+function isTempNode(n: TemplateNode): boolean {
+  if (n.isTemp) return true;
+  if (n.name.startsWith('임시_')) return true;
+  if (n.name.startsWith('preview_')) return true;
+  if (n.name.startsWith('__')) return true;
+  return false;
+}
 import type { PoaTemplateTree } from '../TemplateTree.js';
 import { isAdmin } from '../../core/UserSession.js';
 import { Icons } from '../../utils/icons.js';
@@ -488,7 +496,7 @@ table{border-collapse:collapse;width:100%;}td,th{border:1px solid #ccc;padding:4
   private _fillFolderSelect(): void {
     const sel = this.shadow.getElementById('sf-folder') as HTMLSelectElement;
     sel.innerHTML = '<option value="">폴더 없음</option>';
-    for (const f of this.mgr.getFolders()) {
+    for (const f of this.mgr.getFolders().filter(n => !isTempNode(n))) {
       const opt = document.createElement('option');
       opt.value = f.id;
       opt.textContent = (f.isPublic ? '[공용] ' : '[내] ') + f.name;
