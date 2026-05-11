@@ -125,7 +125,7 @@ export class PaperSizeManager {
     this.wrapperEl.style.background      = '#e5e5e5';
     this.wrapperEl.style.padding         = '20px';
     this.wrapperEl.style.overflowY       = 'auto';
-    this.wrapperEl.style.overflowX       = 'auto';
+    this.wrapperEl.style.overflowX       = 'hidden';
     this.wrapperEl.style.display         = 'flex';
     this.wrapperEl.style.flexDirection   = 'column';
     this.wrapperEl.style.alignItems      = 'center';

@@ -4,6 +4,8 @@ import type { BookmarkEntry } from '../insert/BookmarkManager.js';
 /** A4 210mm × 297mm at 96 dpi */
 const PAGE_W_PX  = 794;
 const PAGE_H_PX  = 1123;
+/** 페이지 사이 간격 (px) */
+const PAGE_GAP   = 24;
 
 export interface PageMargin {
   top: number;
@@ -232,8 +234,8 @@ export class PageGuide {
     const overlay = contentEl.ownerDocument.createElement('div');
     overlay.dataset['poaTemp'] = 'true';
     overlay.style.cssText =
-      'position:absolute;top:0;left:0;right:0;height:0;overflow:visible;' +
-      'pointer-events:none;z-index:5;';
+      'position:absolute;top:0;left:0;right:0;' +
+      'pointer-events:none;z-index:10;';
     contentEl.appendChild(overlay);
     this.overlay = overlay;
 
@@ -298,22 +300,50 @@ export class PageGuide {
   private render(): void {
     if (!this.overlay || !this.contentEl) return;
     this.overlay.innerHTML = '';
+
     const totalPages = this.getPageCount();
+    // contentEl 최소 높이를 페이지 배수로 유지해 마지막 페이지가 잘리지 않게 한다.
+    const newMinH = `${totalPages * this.pageHeightPx}px`;
+    if (this.contentEl.style.minHeight !== newMinH) {
+      this.contentEl.style.minHeight = newMinH;
+    }
+
+    const d = this.contentEl.ownerDocument;
     for (let i = 1; i < totalPages; i++) {
-      const band = this.contentEl.ownerDocument.createElement('div');
-      band.style.cssText =
-        `position:absolute;top:${this.pageHeightPx * i}px;left:0;right:0;` +
-        'height:2px;background:#3b82f6;';
-      const label = this.contentEl.ownerDocument.createElement('span');
+      const y = this.pageHeightPx * i;
+
+      // 위쪽 페이지 하단 그림자
+      const shBot = d.createElement('div');
+      shBot.style.cssText =
+        `position:absolute;top:${y - 6}px;left:0;right:0;height:6px;` +
+        'background:linear-gradient(to bottom,transparent,rgba(0,0,0,0.08));z-index:9;';
+      this.overlay.appendChild(shBot);
+
+      // 페이지 구분 바 — left/right:-9999px 로 scrollContainer 전체 폭을 덮는다
+      // (PaperSizeManager 가 wrapperEl.overflowX='hidden' 으로 설정해 스크롤 바 없음)
+      const sep = d.createElement('div');
+      sep.style.cssText =
+        `position:absolute;top:${y}px;left:-9999px;right:-9999px;` +
+        `height:${PAGE_GAP}px;background:#E5E7EB;z-index:10;` +
+        'display:flex;align-items:center;justify-content:center;';
+
+      const label = d.createElement('span');
       label.textContent = `${i + 1} 페이지`;
       label.style.cssText =
-        'position:absolute;right:6px;top:-16px;font-size:10px;' +
-        'color:#3b82f6;background:rgba(255,255,255,0.85);' +
-        'padding:1px 5px;border-radius:2px;font-family:sans-serif;' +
+        'font-size:11px;color:#9CA3AF;' +
+        "font-family:'Noto Sans KR',sans-serif;" +
         'user-select:none;-webkit-user-select:none;white-space:nowrap;';
-      band.appendChild(label);
-      this.overlay.appendChild(band);
+      sep.appendChild(label);
+      this.overlay.appendChild(sep);
+
+      // 아래쪽 페이지 상단 그림자
+      const shTop = d.createElement('div');
+      shTop.style.cssText =
+        `position:absolute;top:${y + PAGE_GAP}px;left:0;right:0;height:6px;` +
+        'background:linear-gradient(to top,transparent,rgba(0,0,0,0.08));z-index:9;';
+      this.overlay.appendChild(shTop);
     }
+
     if (totalPages !== this.lastPageCount) {
       this.lastPageCount = totalPages;
       eventBus.emit(BusEvent.PAGE_UPDATED, { total: totalPages });
