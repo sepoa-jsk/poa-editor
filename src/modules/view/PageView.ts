@@ -201,24 +201,22 @@ export function insertPageBreak(contentEl: HTMLElement): void {
 }
 
 /**
- * 디자인 모드에서 contentEl 위에 A4 페이지 경계선을 오버레이로 표시한다.
- * 오버레이는 data-poa-temp 마커로 getHTML() 직렬화에서 제외된다.
+ * 디자인 모드에서 A4 페이지 경계를 CSS background-image 로 표시한다.
+ *
+ * - repeating-linear-gradient + background-attachment:local 방식 사용
+ *   → DOM 오버레이 없이 항상 올바르게 렌더링
+ * - PaperSizeManager.applyToEditor() 는 background-color 만 사용하므로
+ *   background-image 는 덮어쓰이지 않음
+ * - MutationObserver + ResizeObserver 로 페이지 수 변경 시 상태바 업데이트
  */
 export class PageGuide {
-  private contentEl:    HTMLElement | null    = null;
-  private overlay:      HTMLDivElement | null = null;
-  private pageHeightPx  = 1123; // A4 기본값
+  private contentEl:    HTMLElement | null = null;
+  private pageHeightPx = 1123; // A4 기본값
   private lastPageCount = 0;
   private renderTimer:  ReturnType<typeof setTimeout> | null = null;
 
-  private readonly mutationObserver = new MutationObserver((mutations) => {
-    for (const m of mutations) {
-      const target = m.target as Node;
-      if (target !== this.overlay && !this.overlay?.contains(target)) {
-        this.scheduleRender();
-        return;
-      }
-    }
+  private readonly mutationObserver = new MutationObserver(() => {
+    this.scheduleRender();
   });
 
   private readonly resizeObserver = new ResizeObserver(() => {
@@ -228,19 +226,9 @@ export class PageGuide {
   attach(contentEl: HTMLElement): void {
     this.detach();
     this.contentEl = contentEl;
-    if (getComputedStyle(contentEl).position === 'static') {
-      contentEl.style.position = 'relative';
-    }
-    const overlay = contentEl.ownerDocument.createElement('div');
-    overlay.dataset['poaTemp'] = 'true';
-    overlay.style.cssText =
-      'position:absolute;top:0;left:0;right:0;' +
-      'pointer-events:none;z-index:10;';
-    contentEl.appendChild(overlay);
-    this.overlay = overlay;
-
+    this.applyBackground();
     this.mutationObserver.observe(contentEl, {
-      childList: true, subtree: true, characterData: true, attributes: false,
+      childList: true, subtree: true, characterData: true,
     });
     this.resizeObserver.observe(contentEl);
     this.render();
@@ -249,8 +237,7 @@ export class PageGuide {
   detach(): void {
     this.mutationObserver.disconnect();
     this.resizeObserver.disconnect();
-    this.overlay?.remove();
-    this.overlay = null;
+    this.removeBackground();
     this.contentEl = null;
     if (this.renderTimer !== null) {
       clearTimeout(this.renderTimer);
@@ -261,6 +248,7 @@ export class PageGuide {
   setPageSize(pageHeightPx: number): void {
     if (this.pageHeightPx === pageHeightPx) return;
     this.pageHeightPx = pageHeightPx;
+    this.applyBackground();
     this.render();
   }
 
@@ -278,7 +266,6 @@ export class PageGuide {
       range.collapse(true);
       const rect = range.getBoundingClientRect();
       const containerRect = this.contentEl.getBoundingClientRect();
-      // CSS transform:scale이 적용됐을 때 스케일 역산
       const scale = this.contentEl.offsetWidth > 0
         ? containerRect.width / this.contentEl.offsetWidth
         : 1;
@@ -289,59 +276,51 @@ export class PageGuide {
     }
   }
 
+  // ── CSS background 적용/제거 ────────────────────────────────────────────────
+
+  private applyBackground(): void {
+    if (!this.contentEl) return;
+    const h   = this.pageHeightPx;
+    const gap = PAGE_GAP; // 24px 회색 밴드
+    // background-attachment:local → contentEl 이 scroll container 가 아니더라도
+    // 부모 스크롤 시 contentEl 과 함께 이동(= scroll 과 동일 동작). 항상 올바르게 표시됨.
+    this.contentEl.style.backgroundImage =
+      `repeating-linear-gradient(` +
+      `to bottom,` +
+      `transparent 0px,` +
+      `transparent ${h - gap}px,` +
+      `#E5E7EB ${h - gap}px,` +
+      `#E5E7EB ${h}px` +
+      `)`;
+    this.contentEl.style.backgroundSize       = `100% ${h}px`;
+    this.contentEl.style.backgroundAttachment = 'local';
+  }
+
+  private removeBackground(): void {
+    if (!this.contentEl) return;
+    this.contentEl.style.backgroundImage      = '';
+    this.contentEl.style.backgroundSize       = '';
+    this.contentEl.style.backgroundAttachment = '';
+  }
+
+  // ── 페이지 수 업데이트 ──────────────────────────────────────────────────────
+
   private scheduleRender(): void {
     if (this.renderTimer !== null) clearTimeout(this.renderTimer);
     this.renderTimer = setTimeout(() => {
       this.renderTimer = null;
       this.render();
-    }, 50);
+    }, 100);
   }
 
   private render(): void {
-    if (!this.overlay || !this.contentEl) return;
-    this.overlay.innerHTML = '';
-
+    if (!this.contentEl) return;
     const totalPages = this.getPageCount();
+
     // contentEl 최소 높이를 페이지 배수로 유지해 마지막 페이지가 잘리지 않게 한다.
     const newMinH = `${totalPages * this.pageHeightPx}px`;
     if (this.contentEl.style.minHeight !== newMinH) {
       this.contentEl.style.minHeight = newMinH;
-    }
-
-    const d = this.contentEl.ownerDocument;
-    for (let i = 1; i < totalPages; i++) {
-      const y = this.pageHeightPx * i;
-
-      // 위쪽 페이지 하단 그림자
-      const shBot = d.createElement('div');
-      shBot.style.cssText =
-        `position:absolute;top:${y - 6}px;left:0;right:0;height:6px;` +
-        'background:linear-gradient(to bottom,transparent,rgba(0,0,0,0.08));z-index:9;';
-      this.overlay.appendChild(shBot);
-
-      // 페이지 구분 바 — left/right:-9999px 로 scrollContainer 전체 폭을 덮는다
-      // (PaperSizeManager 가 wrapperEl.overflowX='hidden' 으로 설정해 스크롤 바 없음)
-      const sep = d.createElement('div');
-      sep.style.cssText =
-        `position:absolute;top:${y}px;left:-9999px;right:-9999px;` +
-        `height:${PAGE_GAP}px;background:#E5E7EB;z-index:10;` +
-        'display:flex;align-items:center;justify-content:center;';
-
-      const label = d.createElement('span');
-      label.textContent = `${i + 1} 페이지`;
-      label.style.cssText =
-        'font-size:11px;color:#9CA3AF;' +
-        "font-family:'Noto Sans KR',sans-serif;" +
-        'user-select:none;-webkit-user-select:none;white-space:nowrap;';
-      sep.appendChild(label);
-      this.overlay.appendChild(sep);
-
-      // 아래쪽 페이지 상단 그림자
-      const shTop = d.createElement('div');
-      shTop.style.cssText =
-        `position:absolute;top:${y + PAGE_GAP}px;left:0;right:0;height:6px;` +
-        'background:linear-gradient(to top,transparent,rgba(0,0,0,0.08));z-index:9;';
-      this.overlay.appendChild(shTop);
     }
 
     if (totalPages !== this.lastPageCount) {

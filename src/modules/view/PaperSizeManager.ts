@@ -120,12 +120,12 @@ export class PaperSizeManager {
     this.editableArea.style.transform       = `scale(${scale})`;
     this.editableArea.style.transformOrigin = 'top center';
     this.editableArea.style.margin          = '0 auto';
-    this.editableArea.style.background      = 'var(--poa-editor-bg, #fff)';
+    this.editableArea.style.backgroundColor = 'var(--poa-editor-bg, #fff)';
 
     this.wrapperEl.style.background      = '#e5e5e5';
     this.wrapperEl.style.padding         = '20px';
     this.wrapperEl.style.overflowY       = 'auto';
-    this.wrapperEl.style.overflowX       = 'hidden';
+    this.wrapperEl.style.overflowX       = 'auto';
     this.wrapperEl.style.display         = 'flex';
     this.wrapperEl.style.flexDirection   = 'column';
     this.wrapperEl.style.alignItems      = 'center';
