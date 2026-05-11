@@ -1093,6 +1093,8 @@ slot[name="content"] { display: contents; }
     } else {
       this.autoSave.stop();
     }
+    this.toolbar.setDefaults(s.fontFamily, s.fontSize, s.lineHeight);
+    eventBus.emit(BusEvent.SETTINGS_CHANGED, s);
   }
 
   // ── Public API ──────────────────────────────────────────────────────────
@@ -1425,6 +1427,7 @@ p { margin: .4em 0; }
           if (!ok) return;
         }
         this.fileManager.newDocument(); this.setHTML('');
+        this._applySettings(loadSettings());
         void this.core.captureHistory('fileNew'); return;
       case 'file:open':
         void this.fileManager.openFile().then((file) => {

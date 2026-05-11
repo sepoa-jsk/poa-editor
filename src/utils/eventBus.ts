@@ -32,4 +32,6 @@ export const BusEvent = {
   MENUBAR_CHANGE: 'menubar:change',
   /** 뷰 모드 변경 — payload: { mode: ViewMode } */
   VIEW_CHANGE: 'view:change',
+  /** 환경설정 변경 — payload: PoaSettings */
+  SETTINGS_CHANGED: 'settings:changed',
 } as const;

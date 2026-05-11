@@ -341,6 +341,24 @@ export class PoaToolbar extends HTMLElement {
     }
   }
 
+  /** 환경설정 기본값을 툴바 드롭다운에 반영한다. */
+  setDefaults(fontFamily: string, fontSize: number, lineHeight: number): void {
+    const s = this.shadow;
+    const selFamily = s.getElementById('sel-family') as HTMLSelectElement | null;
+    if (selFamily) {
+      const opts = Array.from(selFamily.options);
+      const match = opts.find((o) =>
+        o.value === fontFamily ||
+        o.value.split(',')[0].trim().replace(/['"]/g, '') === fontFamily,
+      );
+      if (match) selFamily.value = match.value;
+    }
+    const selSize = s.getElementById('sel-size') as HTMLSelectElement | null;
+    if (selSize) selSize.value = `${fontSize}pt`;
+    const selLh = s.getElementById('sel-lh') as HTMLSelectElement | null;
+    if (selLh) selLh.value = String(lineHeight);
+  }
+
   setHistoryState(canUndo: boolean, canRedo: boolean): void {
     const s = this.shadow;
     const u = s.getElementById('btn-undo') as HTMLButtonElement | null;
