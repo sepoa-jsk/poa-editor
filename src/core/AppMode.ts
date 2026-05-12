@@ -30,3 +30,11 @@ function getBaseUrl(): string {
 export function buildUserModeUrl(templateId: string): string {
   return getBaseUrl() + '?mode=user&template=' + encodeURIComponent(templateId);
 }
+
+export function getEditorSize(): { width: string; height: string } {
+  const params = new URLSearchParams(window.location.search);
+  return {
+    width:  params.get('width')  ?? '100%',
+    height: params.get('height') ?? '100%',
+  };
+}

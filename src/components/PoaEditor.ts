@@ -79,6 +79,7 @@ import { getActiveFieldMap }           from '../modules/insert/DocumentFields.js
 import { PaperSizeManager }            from '../modules/view/PaperSizeManager.js';
 import { buildUserModeUrl, getAppMode } from '../core/AppMode.js';
 import { TemplateApiClient }           from '../modules/template/TemplateApiClient.js';
+import { EmbedBridge }                 from '../embed/EmbedBridge.js';
 
 const INDENT_STEP_EM = 2;
 const BLOCK_TAGS = new Set(['p', 'div', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'li', 'blockquote', 'pre']);
@@ -164,6 +165,7 @@ export class PoaEditor extends HTMLElement {
   private scrollContainer:        HTMLElement | null = null;
   private _resizeObs:             ResizeObserver | null = null;
   private _fullscreenHandler:     (() => void) | null = null;
+  private embedBridge!:           EmbedBridge;
   /** 현재 선택(파란 outline)된 표 — null이면 미선택 */
   private selectedTable: HTMLTableElement | null = null;
   /** 표 컨텍스트 진입 직전 탭 — 표에서 벗어날 때 복귀에 사용 */
@@ -1067,6 +1069,12 @@ poa-status-bar { flex-shrink: 0; }
     this.contentEl.addEventListener('input', () => {
       this.statusBar.update(this.contentEl.innerHTML);
       this.fileManager.markDirty();
+      const text = new DOMParser()
+        .parseFromString(this.contentEl.innerHTML, 'text/html')
+        .body.textContent ?? '';
+      const charCount = [...text.replace(/\s/g, '')].length;
+      const wordCount = text.trim() === '' ? 0 : text.trim().split(/\s+/).length;
+      this.embedBridge.notifyContentChanged(this.getHTML(), charCount, wordCount);
     });
 
     // 커서만 있을 때 스타일을 설정한 뒤 타이핑하면 해당 스타일의 span으로 감싸 삽입.
@@ -1137,9 +1145,20 @@ poa-status-bar { flex-shrink: 0; }
 
     this.initResponsiveLayout();
     this.initResizeHandle();
+
+    this.embedBridge = new EmbedBridge({
+      editorEl: this,
+      getHTML:  () => this.getHTML(),
+      setHTML:  (html: string) => {
+        this.setHTML(html);
+        void this.core.captureHistory('embedSetContent');
+      },
+    });
+    this.embedBridge.attach();
   }
 
   disconnectedCallback(): void {
+    this.embedBridge?.detach();
     this._resizeObs?.disconnect();
     this._resizeObs = null;
     if (this._fullscreenHandler) {
@@ -2473,7 +2492,10 @@ p { margin: .4em 0; }
             : this._getDefaultDocTitle(),
         ),
       );
-      if (result) this.toast.show('저장되었습니다.', 'success');
+      if (result) {
+        this.toast.show('저장되었습니다.', 'success');
+        this.embedBridge.notifySaved(result.docKey, result.title ?? '');
+      }
     } catch (e) {
       this.toast.show(`저장 실패: ${(e as Error).message}`, 'error');
     }
@@ -2485,7 +2507,10 @@ p { margin: .4em 0; }
         this.getHTML(),
         () => this.docTitleDialog.showTitleInput(this._getDefaultDocTitle()),
       );
-      if (result) this.toast.show('저장되었습니다.', 'success');
+      if (result) {
+        this.toast.show('저장되었습니다.', 'success');
+        this.embedBridge.notifySaved(result.docKey, result.title ?? '');
+      }
     } catch (e) {
       this.toast.show(`저장 실패: ${(e as Error).message}`, 'error');
     }

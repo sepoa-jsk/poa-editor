@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach } from 'vitest';
-import { getAppMode, getTemplateId, buildUserModeUrl, isAdmin, isWriteMode, isUserMode } from '../../src/core/AppMode.js';
+import { getAppMode, getTemplateId, buildUserModeUrl, isAdmin, isWriteMode, isUserMode, getEditorSize } from '../../src/core/AppMode.js';
 
 function setLocation(search: string, origin = 'http://localhost', pathname = '/'): void {
   Object.defineProperty(window, 'location', {
@@ -124,5 +124,32 @@ describe('buildUserModeUrl', () => {
     setLocation('', 'http://192.168.50.120:5173', '/');
     const url = buildUserModeUrl('t1');
     expect(url).toBe('http://192.168.50.120:5173/?mode=user&template=t1');
+  });
+});
+
+describe('getEditorSize', () => {
+  it('파라미터 없으면 기본값 100% 반환', () => {
+    setLocation('');
+    expect(getEditorSize()).toEqual({ width: '100%', height: '100%' });
+  });
+
+  it('height 파라미터 반환', () => {
+    setLocation('?height=800px');
+    expect(getEditorSize().height).toBe('800px');
+  });
+
+  it('width 파라미터 반환', () => {
+    setLocation('?width=50%');
+    expect(getEditorSize().width).toBe('50%');
+  });
+
+  it('width + height 모두 지정 시 각각 반환', () => {
+    setLocation('?width=900px&height=600px');
+    expect(getEditorSize()).toEqual({ width: '900px', height: '600px' });
+  });
+
+  it('height 없으면 기본값 100%', () => {
+    setLocation('?width=80%');
+    expect(getEditorSize().height).toBe('100%');
   });
 });

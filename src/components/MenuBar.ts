@@ -74,6 +74,14 @@ const CSS = `
   font-size: 10px; font-weight: 700; color: #2563eb; background: #eff6ff;
   border: 1px solid #bfdbfe; border-radius: 3px; padding: 1px 5px;
 }
+.fullscreen-btn {
+  width: 28px; height: 28px; flex-shrink: 0; align-self: center;
+  border: 1px solid #E5E7EB; border-radius: 4px;
+  background: transparent; cursor: pointer; color: #6B7280;
+  display: flex; align-items: center; justify-content: center;
+  padding: 0; margin-right: 4px;
+}
+.fullscreen-btn:hover { background: #F3F4F6; color: #111827; }
 .user-dropdown {
   position: absolute; top: calc(100% + 4px); right: 0;
   background: #fff; border: 1px solid #e5e7eb; border-radius: 10px;
@@ -104,6 +112,7 @@ export class PoaMenuBar extends HTMLElement {
   private shadow: ShadowRoot;
   private _activeTab: MenuTab = 'edit';
   private _userMode = false;
+  private _fsHandler: (() => void) | null = null;
 
   private readonly busHandler = ({ tab }: { tab: MenuTab }): void => {
     this._activeTab = tab;
@@ -172,6 +181,34 @@ export class PoaMenuBar extends HTMLElement {
 
     bar.appendChild(userArea);
 
+    // 전체화면 버튼 (user-area 바로 오른쪽)
+    const fsBtn = document.createElement('button');
+    fsBtn.className = 'fullscreen-btn';
+    fsBtn.title = '전체화면으로 보기';
+    const fsBtnIcon = document.createElement('span');
+    fsBtnIcon.style.cssText = 'display:contents';
+    fsBtnIcon.innerHTML = Icons.maximize2_14;
+    fsBtn.appendChild(fsBtnIcon);
+    bar.appendChild(fsBtn);
+
+    const updateFsIcon = (): void => {
+      const isFs = !!document.fullscreenElement;
+      fsBtnIcon.innerHTML = isFs ? Icons.minimize2_14 : Icons.maximize2_14;
+      fsBtn.title = isFs ? '전체화면 종료' : '전체화면으로 보기';
+    };
+    this._fsHandler = updateFsIcon;
+    document.addEventListener('fullscreenchange', this._fsHandler);
+
+    fsBtn.addEventListener('click', () => {
+      if (document.fullscreenElement) {
+        void document.exitFullscreen();
+      } else {
+        void document.documentElement.requestFullscreen().catch(() => {
+          window.parent.postMessage({ type: 'POA_FULLSCREEN_REQUEST', enabled: true }, '*');
+        });
+      }
+    });
+
     this.shadow.querySelectorAll<HTMLButtonElement>('.tab').forEach(btn => {
       btn.addEventListener('mousedown', (e) => {
         e.preventDefault();
@@ -185,6 +222,10 @@ export class PoaMenuBar extends HTMLElement {
 
   disconnectedCallback(): void {
     eventBus.off<{ tab: MenuTab }>(BusEvent.MENUBAR_CHANGE, this.busHandler);
+    if (this._fsHandler) {
+      document.removeEventListener('fullscreenchange', this._fsHandler);
+      this._fsHandler = null;
+    }
   }
 
   private _bindUserArea(): void {

@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>poa-editor 임베딩 가이드</title>
+  <style>
+    body { font-family: sans-serif; max-width: 900px; margin: 40px auto; padding: 0 20px; color: #222; }
+    h1 { font-size: 22px; }
+    h2 { font-size: 16px; margin-top: 32px; color: #1D4ED8; }
+    pre { background: #F3F4F6; padding: 12px 16px; border-radius: 6px; font-size: 13px; overflow-x: auto; }
+    .actions { display: flex; gap: 8px; margin: 12px 0; flex-wrap: wrap; }
+    button { padding: 6px 14px; border: 1px solid #D1D5DB; border-radius: 5px; background: #fff; cursor: pointer; font-size: 13px; }
+    button:hover { background: #F3F4F6; }
+    button.primary { background: #1F2937; color: #fff; border-color: #1F2937; }
+    #log { margin-top: 8px; padding: 10px; background: #F8FAFC; border: 1px solid #E2E8F0; border-radius: 4px; font-family: monospace; font-size: 12px; min-height: 40px; max-height: 120px; overflow-y: auto; }
+    iframe { border: 1px solid #E5E7EB; border-radius: 6px; display: block; }
+  </style>
+</head>
+<body>
+  <h1>poa-editor 임베딩 가이드</h1>
+
+  <h2>방법 1 — 기본 임베딩</h2>
+  <pre>&lt;iframe
+  src="http://localhost:5173/?mode=write"
+  width="100%" height="800"
+  frameborder="0"&gt;&lt;/iframe&gt;</pre>
+
+  <h2>방법 2 — URL 파라미터로 크기 지정</h2>
+  <pre>&lt;iframe
+  src="http://localhost:5173/?mode=write&amp;height=600px"
+  width="100%" height="600"
+  frameborder="0"&gt;&lt;/iframe&gt;</pre>
+  <iframe id="demo-iframe"
+    src="http://localhost:5173/?mode=write&height=400px"
+    width="100%" height="400"
+    frameborder="0" allow="fullscreen">
+  </iframe>
+
+  <h2>방법 3 — CSS 변수 (Web Component 직접 임베딩)</h2>
+  <pre>&lt;style&gt;
+  poa-editor {
+    --poa-editor-width: 100%;
+    --poa-editor-height: 800px;
+  }
+&lt;/style&gt;
+&lt;poa-editor&gt;&lt;/poa-editor&gt;</pre>
+
+  <h2>postMessage 통신 예제</h2>
+  <div class="actions">
+    <button onclick="resizeEditor('400px')">높이 400px</button>
+    <button onclick="resizeEditor('600px')">높이 600px</button>
+    <button onclick="getContent()">내용 가져오기</button>
+    <button onclick="setContent()">내용 설정</button>
+    <button class="primary" onclick="requestFullscreen()">전체화면 요청</button>
+  </div>
+  <div id="log">— 메시지 로그 —</div>
+
+  <h2>postMessage 수신 이벤트</h2>
+  <pre>// 부모 페이지에서 수신하는 이벤트
+window.addEventListener('message', (e) => {
+  switch (e.data.type) {
+    case 'POA_READY':
+      console.log('에디터 준비 완료', e.data.version);
+      break;
+    case 'POA_CONTENT_CHANGED':
+      console.log('내용 변경:', e.data.charCount, '자', e.data.wordCount, '단어');
+      break;
+    case 'POA_CONTENT':
+      console.log('에디터 HTML:', e.data.html);
+      break;
+    case 'POA_SAVED':
+      console.log('저장 완료:', e.data.docKey, e.data.title);
+      break;
+    case 'POA_FULLSCREEN_REQUEST':
+      // iframe에서 전체화면 요청
+      iframe.requestFullscreen?.();
+      break;
+  }
+});</pre>
+
+  <h2>postMessage 발송 명령</h2>
+  <pre>const iframe = document.querySelector('iframe');
+
+// 크기 변경
+iframe.contentWindow.postMessage({ type: 'POA_RESIZE', height: '800px' }, '*');
+
+// 전체화면 진입
+iframe.contentWindow.postMessage({ type: 'POA_FULLSCREEN', enabled: true }, '*');
+
+// HTML 가져오기 (POA_CONTENT 이벤트로 응답)
+iframe.contentWindow.postMessage({ type: 'POA_GET_CONTENT' }, '*');
+
+// HTML 설정
+iframe.contentWindow.postMessage({ type: 'POA_SET_CONTENT', html: '&lt;p&gt;내용&lt;/p&gt;' }, '*');</pre>
+
+  <script>
+    const iframe = document.getElementById('demo-iframe');
+    const log    = document.getElementById('log');
+
+    function addLog(msg) {
+      const t = new Date().toLocaleTimeString();
+      log.textContent = `[${t}] ${msg}\n` + log.textContent;
+    }
+
+    window.addEventListener('message', (e) => {
+      if (!e.data?.type) return;
+      switch (e.data.type) {
+        case 'POA_READY':           addLog(`POA_READY v${e.data.version}`); break;
+        case 'POA_CONTENT_CHANGED': addLog(`POA_CONTENT_CHANGED: ${e.data.charCount}자 ${e.data.wordCount}단어`); break;
+        case 'POA_CONTENT':         addLog(`POA_CONTENT: ${(e.data.html ?? '').slice(0, 60)}...`); break;
+        case 'POA_SAVED':           addLog(`POA_SAVED: ${e.data.docKey} "${e.data.title}"`); break;
+        case 'POA_FULLSCREEN_REQUEST': addLog('POA_FULLSCREEN_REQUEST received'); iframe.requestFullscreen?.(); break;
+      }
+    });
+
+    function resizeEditor(height) {
+      iframe.contentWindow.postMessage({ type: 'POA_RESIZE', height }, '*');
+      iframe.height = parseInt(height);
+    }
+    function getContent() {
+      iframe.contentWindow.postMessage({ type: 'POA_GET_CONTENT' }, '*');
+    }
+    function setContent() {
+      iframe.contentWindow.postMessage({
+        type: 'POA_SET_CONTENT',
+        html: '<h2>임베딩으로 설정된 내용</h2><p>postMessage로 에디터 내용을 설정했습니다.</p>'
+      }, '*');
+    }
+    function requestFullscreen() {
+      iframe.contentWindow.postMessage({ type: 'POA_FULLSCREEN', enabled: true }, '*');
+    }
+  </script>
+</body>
+</html>

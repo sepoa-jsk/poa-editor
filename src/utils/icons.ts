@@ -20,7 +20,7 @@ import {
   Calendar, Minus, Omega, MonitorPlay,
   SeparatorHorizontal, LayoutTemplate, FormInput,
   // 보기
-  LayoutDashboard, Code2, Eye, Type, FileText, Maximize2, Ruler, Grid3x3, BoxSelect,
+  LayoutDashboard, Code2, Eye, Type, FileText, Maximize2, Minimize2, Ruler, Grid3x3, BoxSelect,
   // 표
   Table, TableProperties, LayoutGrid, TableCellsMerge, TableCellsSplit,
   ArrowUpFromLine, ArrowDownFromLine, ArrowLeftFromLine, ArrowRightFromLine,
@@ -33,7 +33,7 @@ import {
   Keyboard, BookOpen, Info,
   // 템플릿 트리 / 사용자 식별
   Folder, File, Users, UserCircle, ChevronRight, ChevronDown, Plus, Pencil,
-  Hash,
+  Hash, GripVertical,
 } from 'lucide-static';
 
 /** SVG width/height 24 → N으로 정규화 */
@@ -112,6 +112,9 @@ export const Icons = {
   viewText:     px16(Type),
   viewPage:     px16(FileText),
   fullscreen:   px16(Maximize2),
+  fullscreenExit: px16(Minimize2),
+  maximize2_14: px14(Maximize2),
+  minimize2_14: px14(Minimize2),
   ruler:        px16(Ruler),
   grid:         px16(Grid3x3),
   hiddenBorder: px16(BoxSelect),
@@ -172,6 +175,7 @@ export const Icons = {
   fileText14:     px14(FileText),
   users14:        px14(Users),
   user14:         px14(User),
+  grip14:         px14(GripVertical),
   chevronRight12: px12(ChevronRight),
   chevronDown12:  px12(ChevronDown),
   users12:        px12(Users),
