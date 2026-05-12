@@ -12,6 +12,7 @@ export default defineConfig({
     rollupOptions: {
       input: {
         main: './index.html',
+        fieldManager: './field-manager.html',
       },
     },
   },

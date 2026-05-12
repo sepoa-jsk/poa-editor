@@ -20,7 +20,10 @@ import type { PoaImageDialog } from './dialogs/ImageDialog.js';
 import type { PoaSettingsDialog } from './dialogs/SettingsDialog.js';
 import { loadSettings } from './dialogs/SettingsDialog.js';
 import type { PoaSettings } from './dialogs/SettingsDialog.js';
-import type { PoaFileManagerDialog } from './dialogs/FileManagerDialog.js';
+import type { PoaFileManagerDialog }    from './dialogs/FileManagerDialog.js';
+import type { PoaDocumentListDialog }  from './dialogs/DocumentListDialog.js';
+import type { PoaDocTitleDialog }      from './dialogs/DocTitleDialog.js';
+import type { DocumentDetail }         from '../modules/document/DocumentApiClient.js';
 import type { PoaTableDialog } from './dialogs/TableDialog.js';
 import type { PoaCellSplitDialog } from './dialogs/CellSplitDialog.js';
 import { TableBuilder } from '../modules/table/TableBuilder.js';
@@ -67,10 +70,12 @@ import type { PoaSignatureDialog } from './dialogs/SignatureDialog.js';
 import type { PoaEmojiDialog }     from './dialogs/EmojiDialog.js';
 import type { PoaTooltipDialog }        from './dialogs/TooltipDialog.js';
 import type { PoaInputPropertyDialog }  from './dialogs/InputPropertyDialog.js';
+import type { PoaShortcutsDialog }     from './dialogs/ShortcutsDialog.js';
+import type { PoaUserGuideDialog }     from './dialogs/UserGuideDialog.js';
 import { EmojiInserter }               from '../modules/insert/EmojiInserter.js';
 import { TooltipManager }              from '../modules/insert/TooltipManager.js';
 import { FieldInserter }               from '../modules/insert/FieldInserter.js';
-import { FIELD_MAP }                   from '../modules/insert/DocumentFields.js';
+import { getActiveFieldMap }           from '../modules/insert/DocumentFields.js';
 import { PaperSizeManager }            from '../modules/view/PaperSizeManager.js';
 import { buildUserModeUrl }            from '../core/AppMode.js';
 
@@ -108,7 +113,9 @@ export class PoaEditor extends HTMLElement {
   private imageDialog!: PoaImageEditDialog;
   private imageInsertDialog!: PoaImageDialog;
   private settingsDialog!: PoaSettingsDialog;
-  private fileManagerDialog!: PoaFileManagerDialog;
+  private fileManagerDialog!:   PoaFileManagerDialog;
+  private documentListDialog!:  PoaDocumentListDialog;
+  private docTitleDialog!:      PoaDocTitleDialog;
   private tableDialog!: PoaTableDialog;
   private cellSplitDialog!: PoaCellSplitDialog;
   private cellMerger!: CellMerger;
@@ -146,6 +153,8 @@ export class PoaEditor extends HTMLElement {
   private emojiDialog!:     PoaEmojiDialog;
   private tooltipDialog!:         PoaTooltipDialog;
   private inputPropertyDialog!:   PoaInputPropertyDialog;
+  private shortcutsDialog!:       PoaShortcutsDialog;
+  private userGuideDialog!:       PoaUserGuideDialog;
   private emojiInserter!:         EmojiInserter;
   private tooltipManager!:        TooltipManager;
   private fieldInserter!:         FieldInserter;
@@ -221,7 +230,11 @@ slot[name="content"] { display: contents; }
 <poa-signature-dialog></poa-signature-dialog>
 <poa-emoji-dialog></poa-emoji-dialog>
 <poa-tooltip-dialog></poa-tooltip-dialog>
-<poa-input-property-dialog></poa-input-property-dialog>`;
+<poa-input-property-dialog></poa-input-property-dialog>
+<poa-document-list-dialog></poa-document-list-dialog>
+<poa-doc-title-dialog></poa-doc-title-dialog>
+<poa-shortcuts-dialog></poa-shortcuts-dialog>
+<poa-user-guide-dialog></poa-user-guide-dialog>`;
 
     // contentEl을 light DOM(poa-editor의 직계 자식)으로 생성 — Selection API가 정상 작동
     this.contentEl = (this.querySelector('.poa-editor-content') as HTMLDivElement | null)
@@ -279,6 +292,16 @@ slot[name="content"] { display: contents; }
     this.tooltipDialog     = this.shadow.querySelector('poa-tooltip-dialog')   as unknown as PoaTooltipDialog;
     this.emojiInserter        = new EmojiInserter();
     this.inputPropertyDialog  = this.shadow.querySelector('poa-input-property-dialog') as unknown as PoaInputPropertyDialog;
+    this.documentListDialog   = this.shadow.querySelector('poa-document-list-dialog')  as unknown as PoaDocumentListDialog;
+    this.docTitleDialog       = this.shadow.querySelector('poa-doc-title-dialog')      as unknown as PoaDocTitleDialog;
+    this.shortcutsDialog      = this.shadow.querySelector('poa-shortcuts-dialog')      as unknown as PoaShortcutsDialog;
+    this.userGuideDialog      = this.shadow.querySelector('poa-user-guide-dialog')     as unknown as PoaUserGuideDialog;
+    this.documentListDialog.setup((doc: DocumentDetail) => {
+      this.fileManager.loadDocument(doc);
+      this.setHTML(doc.content);
+      void this.core.captureHistory('docLoad');
+      this._emitDocTitleChange();
+    });
     this.tooltipManager    = new TooltipManager(this.contentEl);
     TooltipManager.injectStyles();
     TooltipManager.attachHoverPopup(this.contentEl);
@@ -287,6 +310,14 @@ slot[name="content"] { display: contents; }
 
     this.toast = new PoaToast();
     this.imageInsertDialog.setOnError((msg) => this.toast.show(msg, 'error'));
+
+    eventBus.on(BusEvent.DOC_TITLE_CHANGE, (payload) => {
+      const { title, dirty } = payload as { title: string; dirty: boolean };
+      this.dispatchEvent(new CustomEvent('poa-doc-title-change', {
+        bubbles: true, composed: true,
+        detail: { title, dirty },
+      }));
+    });
 
     const placeholder = this.getAttribute('placeholder') ?? '';
     if (placeholder) this.contentEl.dataset.placeholder = placeholder;
@@ -919,7 +950,22 @@ slot[name="content"] { display: contents; }
 
     // Ctrl+F → 찾기, Ctrl+H → 찾기+바꾸기 / ESC → 서식 페인터 해제 / Tab → 목록 들여쓰기
     // Ctrl+= → 확대, Ctrl+- → 축소, Ctrl+0 → 100% 초기화
+    // Ctrl+S → 저장, Ctrl+Shift+S → 다른 이름으로 저장, Ctrl+O → 문서 목록
     this.contentEl.addEventListener('keydown', (e) => {
+      if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 's') {
+        e.preventDefault();
+        if (e.shiftKey) {
+          void this._doFileSaveAs();
+        } else {
+          void this._doFileSave();
+        }
+        return;
+      }
+      if ((e.ctrlKey || e.metaKey) && !e.shiftKey && e.key === 'o') {
+        e.preventDefault();
+        void this._doFileOpen();
+        return;
+      }
       if ((e.ctrlKey || e.metaKey) && e.key === 'f') {
         e.preventDefault();
         this.findDialog.open('find');
@@ -1026,30 +1072,10 @@ slot[name="content"] { display: contents; }
     });
 
     // 파일 관리 이벤트
-    this.shadow.addEventListener('poa-file-new', () => {
-      void (async () => {
-        if (this.fileManager.isDirty()) {
-          const ok = await this.confirmDialog.show('저장되지 않은 변경사항이 있습니다. 계속할까요?');
-          if (!ok) return;
-        }
-        this.fileManager.newDocument();
-        this.setHTML('');
-        void this.core.captureHistory('fileNew');
-      })();
-    });
-    this.shadow.addEventListener('poa-file-open', () => {
-      void this.fileManager.openFile().then((file) => {
-        if (!file) return;
-        this.setHTML(file.html);
-        void this.core.captureHistory('fileOpen');
-      });
-    });
-    this.shadow.addEventListener('poa-file-save', () => {
-      void this.fileManager.saveFile(this.getExportHTML());
-    });
-    this.shadow.addEventListener('poa-file-saveas', () => {
-      void this.fileManager.saveAsFile(this.getExportHTML());
-    });
+    this.shadow.addEventListener('poa-file-new',    () => { void this._doFileNew(); });
+    this.shadow.addEventListener('poa-file-open',   () => { void this._doFileOpen(); });
+    this.shadow.addEventListener('poa-file-save',   () => { void this._doFileSave(); });
+    this.shadow.addEventListener('poa-file-saveas', () => { void this._doFileSaveAs(); });
     this.shadow.addEventListener('poa-autosave-restore', (e) => {
       const { html } = (e as CustomEvent).detail as { html: string };
       this.setHTML(html);
@@ -1435,24 +1461,10 @@ p { margin: .4em 0; }
         return;
 
       // ── 파일 탭 액션 ─────────────────────────────────────────────
-      case 'file:new':
-        if (this.fileManager.isDirty()) {
-          const ok = await this.confirmDialog.show('저장되지 않은 변경사항이 있습니다. 계속할까요?');
-          if (!ok) return;
-        }
-        this.fileManager.newDocument(); this.setHTML('');
-        this._applySettings(loadSettings());
-        void this.core.captureHistory('fileNew'); return;
-      case 'file:open':
-        void this.fileManager.openFile().then((file) => {
-          if (!file) return;
-          this.setHTML(file.html);
-          void this.core.captureHistory('fileOpen');
-        }); return;
-      case 'file:save':
-        void this.fileManager.saveFile(this.getExportHTML()); return;
-      case 'file:saveas':
-        void this.fileManager.saveAsFile(this.getExportHTML()); return;
+      case 'file:new':    void this._doFileNew();    return;
+      case 'file:open':   void this._doFileOpen();   return;
+      case 'file:save':   void this._doFileSave();   return;
+      case 'file:saveas': void this._doFileSaveAs(); return;
       case 'file:print':
         this.fileManager.printDocument(this.getExportHTML(), this.paperSizeManager?.getMargin()); return;
 
@@ -1687,7 +1699,7 @@ p { margin: .4em 0; }
         this.tooltipDialog.openList(this.tooltipManager.getAll());
         return;
       case 'insert:field': {
-        const field = value ? FIELD_MAP[value] : undefined;
+        const field = value ? getActiveFieldMap()[value] : undefined;
         if (!field) { this.toast.show('알 수 없는 양식 필드입니다.', 'error'); return; }
         this.fieldInserter.insertField(field, this.savedRange);
         await this.core.captureHistory('insertField');
@@ -1700,8 +1712,16 @@ p { margin: .4em 0; }
         this.statusBar.update(this.contentEl.innerHTML);
         return;
       case 'insert:hr': case 'insert:symbol': case 'insert:multi-image':
-      case 'help:shortcuts': case 'help:guide': case 'help:about':
         this.toast.show(`'${type}' 기능은 준비 중입니다.`, 'info');
+        return;
+      case 'help:shortcuts':
+        this.shortcutsDialog.open();
+        return;
+      case 'help:guide':
+        this.userGuideDialog.open();
+        return;
+      case 'help:about':
+        this.toast.show('제품 정보는 준비 중입니다.', 'info');
         return;
     }
 
@@ -2302,5 +2322,66 @@ p { margin: .4em 0; }
   private hideLinkContextMenu(): void {
     this.linkContextMenu?.remove();
     this.linkContextMenu = null;
+  }
+
+  // ── 문서 저장/열기 헬퍼 ─────────────────────────────────────────────────
+
+  private _getDefaultDocTitle(): string {
+    const d = new Date();
+    const ymd = `${d.getFullYear()}${String(d.getMonth() + 1).padStart(2, '0')}${String(d.getDate()).padStart(2, '0')}`;
+    return `새 문서_${ymd}`;
+  }
+
+  private _emitDocTitleChange(): void {
+    eventBus.emit(BusEvent.DOC_TITLE_CHANGE, {
+      title: this.fileManager.getCurrentDocTitle(),
+      dirty: this.fileManager.isDirty(),
+    });
+  }
+
+  private async _doFileSave(): Promise<void> {
+    try {
+      const result = await this.fileManager.saveDocument(
+        this.getHTML(),
+        () => this.docTitleDialog.showTitleInput(
+          this.fileManager.getCurrentDocKey()
+            ? this.fileManager.getCurrentDocTitle()
+            : this._getDefaultDocTitle(),
+        ),
+      );
+      if (result) this.toast.show('저장되었습니다.', 'success');
+    } catch (e) {
+      this.toast.show(`저장 실패: ${(e as Error).message}`, 'error');
+    }
+  }
+
+  private async _doFileSaveAs(): Promise<void> {
+    try {
+      const result = await this.fileManager.saveAsDocument(
+        this.getHTML(),
+        () => this.docTitleDialog.showTitleInput(this._getDefaultDocTitle()),
+      );
+      if (result) this.toast.show('저장되었습니다.', 'success');
+    } catch (e) {
+      this.toast.show(`저장 실패: ${(e as Error).message}`, 'error');
+    }
+  }
+
+  private async _doFileOpen(): Promise<void> {
+    await this.documentListDialog.open();
+  }
+
+  private async _doFileNew(): Promise<void> {
+    if (this.fileManager.isDirty()) {
+      const action = await this.docTitleDialog.showUnsavedConfirm();
+      if (action === 'cancel') return;
+      if (action === 'save') {
+        await this._doFileSave();
+      }
+    }
+    this.fileManager.newDocument();
+    this.setHTML('');
+    this._applySettings(loadSettings());
+    void this.core.captureHistory('fileNew');
   }
 }

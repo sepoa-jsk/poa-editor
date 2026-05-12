@@ -2,7 +2,7 @@ import { eventBus, BusEvent } from '../utils/eventBus.js';
 import type { MenuTab } from '../core/types.js';
 import type { ViewMode } from '../modules/view/ViewManager.js';
 import { Icons, ACTION_ICON } from '../utils/icons.js';
-import { DOCUMENT_FIELDS } from '../modules/insert/DocumentFields.js';
+import { getActiveDocumentFields } from '../modules/insert/DocumentFields.js';
 import type { DocumentField } from '../modules/insert/DocumentFields.js';
 
 /** [label, action, value?, title?] */
@@ -26,18 +26,19 @@ const TYPE_ICONS: Record<string, string> = {
   date:   Icons.fieldDate,
 };
 
-/** 카테고리별로 그룹핑한 양식 필드 드롭다운 아이템 생성 */
+/** 카테고리별로 그룹핑한 양식 필드 드롭다운 아이템 생성 (동적 로딩) */
 function buildFieldDropdownItems(): ReadonlyArray<readonly [string, string, string?, string?]> {
-  const categories: ReadonlyArray<DocumentField['category']> = ['기본', '계약', '금액', '보증', '기타'];
+  const fields = getActiveDocumentFields();
+  const catOrder = Array.from(new Set(fields.map(f => f.category)));
   const result: (readonly [string, string, string?, string?])[] = [];
   let first = true;
-  for (const cat of categories) {
-    const fields = DOCUMENT_FIELDS.filter(f => f.category === cat);
-    if (fields.length === 0) continue;
+  for (const cat of catOrder) {
+    const catFields = fields.filter((f: DocumentField) => f.category === cat);
+    if (catFields.length === 0) continue;
     if (!first) result.push(['', '__sep__']);
     result.push([cat, '__cat__']);
     first = false;
-    for (const f of fields) {
+    for (const f of catFields) {
       result.push([f.label, 'insert:field', f.id, TYPE_ICONS[f.type]]);
     }
   }
@@ -86,7 +87,7 @@ const TABS: Record<MenuTab, ReadonlyArray<GroupDef>> = {
     [['사용자 모드로 보기','misc:user-mode']],
   ],
   help: [
-    [['단축키','help:shortcuts'],['사용자 가이드','help:guide'],['제품 정보','help:about']],
+    [['단축키','help:shortcuts'],['사용자 가이드','help:guide']],
   ],
 };
 
@@ -261,7 +262,8 @@ export class PoaContextToolbar extends HTMLElement {
         if (item === null) {
           parts.push('<div class="sep" style="margin:0 2px;"></div>');
         } else if ('dropdown' in item && item.dropdown) {
-          const menuItems = item.items.map(([label, action, value, typeIcon]) => {
+          const dynItems = item.id === 'doc-field' ? buildFieldDropdownItems() : item.items;
+          const menuItems = dynItems.map(([label, action, value, typeIcon]) => {
             if (action === '__sep__') return `<hr class="drop-sep">`;
             if (action === '__cat__') return `<div class="drop-cat">${label}</div>`;
             const da = value ? ` data-value="${value}"` : '';

@@ -73,14 +73,20 @@ export type { EmojiCategory } from './modules/insert/EmojiInserter.js';
 export { TooltipManager } from './modules/insert/TooltipManager.js';
 export type { TooltipEntry } from './modules/insert/TooltipManager.js';
 export { FieldInserter } from './modules/insert/FieldInserter.js';
-export { DOCUMENT_FIELDS, FIELD_MAP } from './modules/insert/DocumentFields.js';
-export type { DocumentField } from './modules/insert/DocumentFields.js';
+export { DOCUMENT_FIELDS, FIELD_MAP, getActiveDocumentFields, getActiveFieldMap, loadFieldDefinitions, loadFieldCategories, saveFieldDefinitions, saveFieldCategories, NUMBER_FORMAT_OPTIONS, DATE_FORMAT_OPTIONS } from './modules/insert/DocumentFields.js';
+export type { DocumentField, FieldDefinition, FieldCategory } from './modules/insert/DocumentFields.js';
 export { PoaEmojiDialog }          from './components/dialogs/EmojiDialog.js';
 export { PoaTooltipDialog }        from './components/dialogs/TooltipDialog.js';
 export { PoaInputPropertyDialog }  from './components/dialogs/InputPropertyDialog.js';
 export { PoaSettingsDialog, loadSettings } from './components/dialogs/SettingsDialog.js';
 export type { PoaSettings } from './components/dialogs/SettingsDialog.js';
 export { PoaFileManagerDialog } from './components/dialogs/FileManagerDialog.js';
+export { PoaDocumentListDialog } from './components/dialogs/DocumentListDialog.js';
+export { PoaDocTitleDialog }     from './components/dialogs/DocTitleDialog.js';
+export { DocumentApiClient } from './modules/document/DocumentApiClient.js';
+export type { DocumentMeta, DocumentDetail } from './modules/document/DocumentApiClient.js';
+export { PoaShortcutsDialog } from './components/dialogs/ShortcutsDialog.js';
+export { PoaUserGuideDialog }  from './components/dialogs/UserGuideDialog.js';
 
 // ── Web Components 등록 ───────────────────────────────────────────────────────
 
@@ -110,6 +116,10 @@ import { PoaSignatureDialog as _PoaSignatureDialog } from './components/dialogs/
 import { PoaEmojiDialog    as _PoaEmojiDialog    } from './components/dialogs/EmojiDialog.js';
 import { PoaTooltipDialog       as _PoaTooltipDialog       } from './components/dialogs/TooltipDialog.js';
 import { PoaInputPropertyDialog as _PoaInputPropertyDialog } from './components/dialogs/InputPropertyDialog.js';
+import { PoaDocumentListDialog  as _PoaDocumentListDialog  } from './components/dialogs/DocumentListDialog.js';
+import { PoaDocTitleDialog      as _PoaDocTitleDialog      } from './components/dialogs/DocTitleDialog.js';
+import { PoaShortcutsDialog     as _PoaShortcutsDialog     } from './components/dialogs/ShortcutsDialog.js';
+import { PoaUserGuideDialog     as _PoaUserGuideDialog     } from './components/dialogs/UserGuideDialog.js';
 
 // poa-editor의 connectedCallback 시점에 모든 하위 요소가 이미 정의되어 있어야 한다.
 // poa-editor를 마지막으로 등록하면 shadow.innerHTML 파싱 시 child 요소가 즉시 업그레이드된다.
@@ -138,6 +148,10 @@ if (!customElements.get('poa-signature-dialog'))         customElements.define('
 if (!customElements.get('poa-emoji-dialog'))             customElements.define('poa-emoji-dialog',             _PoaEmojiDialog);
 if (!customElements.get('poa-tooltip-dialog'))           customElements.define('poa-tooltip-dialog',           _PoaTooltipDialog);
 if (!customElements.get('poa-input-property-dialog'))    customElements.define('poa-input-property-dialog',    _PoaInputPropertyDialog);
+if (!customElements.get('poa-document-list-dialog'))     customElements.define('poa-document-list-dialog',     _PoaDocumentListDialog);
+if (!customElements.get('poa-doc-title-dialog'))         customElements.define('poa-doc-title-dialog',         _PoaDocTitleDialog);
+if (!customElements.get('poa-shortcuts-dialog'))         customElements.define('poa-shortcuts-dialog',         _PoaShortcutsDialog);
+if (!customElements.get('poa-user-guide-dialog'))        customElements.define('poa-user-guide-dialog',        _PoaUserGuideDialog);
 if (!customElements.get('poa-editor'))                   customElements.define('poa-editor',                   PoaEditor);
 
 // ── 팩토리 함수 ───────────────────────────────────────────────────────────────
