@@ -212,6 +212,30 @@ poa-menubar,
 poa-context-toolbar,
 poa-toolbar,
 poa-status-bar { flex-shrink: 0; }
+.poa-resize-handle {
+  height: 6px;
+  background: #F3F4F6;
+  border-top: 1px solid #E5E7EB;
+  cursor: ns-resize;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  user-select: none;
+  flex-shrink: 0;
+}
+.poa-resize-handle:hover { background: #E5E7EB; }
+.poa-resize-handle.active {
+  background: #DBEAFE;
+  border-top-color: #2563EB;
+}
+.poa-resize-handle-bar {
+  width: 32px;
+  height: 3px;
+  background: #D1D5DB;
+  border-radius: 2px;
+}
+.poa-resize-handle:hover .poa-resize-handle-bar,
+.poa-resize-handle.active .poa-resize-handle-bar { background: #2563EB; }
 </style>
 <poa-menubar></poa-menubar>
 <poa-context-toolbar></poa-context-toolbar>
@@ -219,6 +243,7 @@ poa-status-bar { flex-shrink: 0; }
 <poa-find-replace-dialog></poa-find-replace-dialog>
 <slot name="content"></slot>
 <poa-status-bar></poa-status-bar>
+<div class="poa-resize-handle"><div class="poa-resize-handle-bar"></div></div>
 <poa-image-edit-dialog></poa-image-edit-dialog>
 <poa-image-dialog></poa-image-dialog>
 <poa-settings-dialog></poa-settings-dialog>
@@ -1111,6 +1136,7 @@ poa-status-bar { flex-shrink: 0; }
     }
 
     this.initResponsiveLayout();
+    this.initResizeHandle();
   }
 
   disconnectedCallback(): void {
@@ -1185,6 +1211,54 @@ poa-status-bar { flex-shrink: 0; }
 
     this._fullscreenHandler = (): void => { setTimeout(applyAutoZoom, 100); };
     document.addEventListener('fullscreenchange', this._fullscreenHandler);
+  }
+
+  private initResizeHandle(): void {
+    const STORAGE_KEY = 'poa-editor-height';
+
+    try {
+      const saved = localStorage.getItem(STORAGE_KEY);
+      if (saved) {
+        const h = parseInt(saved, 10);
+        if (!isNaN(h) && h >= 300) {
+          this.style.height = `${h}px`;
+          this.style.flex   = 'none';
+        }
+      }
+    } catch { /* localStorage unavailable */ }
+
+    const handle = this.shadow.querySelector('.poa-resize-handle') as HTMLElement | null;
+    if (!handle) return;
+
+    handle.addEventListener('mousedown', (e: MouseEvent) => {
+      e.preventDefault();
+      const startY = e.clientY;
+      const startH = this.offsetHeight;
+      handle.classList.add('active');
+      document.body.style.cursor     = 'ns-resize';
+      document.body.style.userSelect = 'none';
+
+      const onMove = (ev: MouseEvent): void => {
+        const newH = Math.min(
+          window.innerHeight - 100,
+          Math.max(300, startH + (ev.clientY - startY)),
+        );
+        this.style.height = `${newH}px`;
+        this.style.flex   = 'none';
+      };
+
+      const onUp = (): void => {
+        document.removeEventListener('mousemove', onMove);
+        document.removeEventListener('mouseup', onUp);
+        handle.classList.remove('active');
+        document.body.style.cursor     = '';
+        document.body.style.userSelect = '';
+        try { localStorage.setItem(STORAGE_KEY, String(this.offsetHeight)); } catch { /* ignore */ }
+      };
+
+      document.addEventListener('mousemove', onMove);
+      document.addEventListener('mouseup', onUp);
+    });
   }
 
   // ── Public API ──────────────────────────────────────────────────────────
