@@ -257,14 +257,13 @@ export class PoaContextToolbar extends HTMLElement {
     const isWrite = getAppMode() === 'write';
     let rawGroups = TABS[this.activeTab] ?? [];
 
-    // 신규작성 모드: 삽입 탭에서 양식 필드 드롭다운과 템플릿 버튼 제거
+    // 신규작성 모드: 삽입 탭에서 양식 필드 드롭다운만 제거 (템플릿 버튼은 허용)
     if (isWrite && this.activeTab === 'insert') {
       rawGroups = rawGroups.map(group =>
         group.filter(item => {
           if (item === null) return true;
           if ('dropdown' in item && item.dropdown) return item.id !== 'doc-field';
-          const action = (item as readonly [string, string, string?, string?])[1];
-          return action !== 'misc:template';
+          return true;
         })
       ).filter(group => group.length > 0) as typeof rawGroups;
     }
