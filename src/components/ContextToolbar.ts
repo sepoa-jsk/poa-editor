@@ -47,7 +47,7 @@ function buildFieldDropdownItems(): ReadonlyArray<readonly [string, string, stri
 const TABS: Record<MenuTab, ReadonlyArray<GroupDef>> = {
   file: [
     [['새 문서','file:new'],['열기','file:open'],['저장','file:save'],['다른 이름으로 저장','file:saveas']],
-    [['인쇄','file:print'],['환경설정','settings'],['이력','file:history']],
+    [['인쇄','file:print'],['환경설정','settings'],['문서 이력','file:history']],
   ],
   edit: [
     [['잘라내기','edit:cut'],['복사','edit:copy'],['붙여넣기','edit:paste'],['서식 없이 붙여넣기','edit:paste-plain']],

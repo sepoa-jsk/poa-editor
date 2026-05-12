@@ -21,6 +21,7 @@ interface ServerFolder {
   createdBy: string | null;
   createdAt: string;
   updatedAt: string;
+  templateCount?: number;
 }
 
 interface ServerTemplate {

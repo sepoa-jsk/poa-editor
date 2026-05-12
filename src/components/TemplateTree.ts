@@ -39,8 +39,13 @@ const STYLE = `
 .chevron { width: 12px; flex-shrink: 0; display: flex; align-items: center; color: #9ca3af; }
 .chevron-spacer { width: 12px; flex-shrink: 0; }
 .node-icon { flex-shrink: 0; display: flex; align-items: center; color: #94a3b8; }
-.node-icon.open { color: #3b82f6; }
-.node-row:hover .node-icon { color: #64748b; }
+/* 폴더 아이콘 색상: 내용 있음 */
+.node-icon.folder-has { color: #2563EB; }
+.node-icon.folder-has.open { color: #1D4ED8; }
+/* 폴더 아이콘 색상: 비어있음 */
+.node-icon.folder-empty { color: #D1D5DB; }
+.node-row:hover .node-icon.folder-empty { color: #9CA3AF; }
+/* 선택 상태: 항상 파란색 */
 .node-row.selected .node-icon { color: #2563eb; }
 .label { flex: 1; overflow: hidden; text-overflow: ellipsis; }
 
@@ -197,10 +202,17 @@ export class PoaTemplateTree extends HTMLElement {
 
     // 아이콘
     const iconEl = document.createElement('span');
-    iconEl.className = `node-icon${isFolder && isOpen ? ' open' : ''}`;
     if (isFolder) {
-      iconEl.innerHTML = isOpen ? Icons.folderOpen14 : Icons.folder14;
+      const children = this.mgr.getChildren(node.id).filter(isVisible);
+      const templateCount = children.filter(c => c.type === 'template').length;
+      const hasTemplates  = templateCount > 0;
+      iconEl.className = `node-icon${isOpen ? ' open' : ''} ${hasTemplates ? 'folder-has' : 'folder-empty'}`;
+      iconEl.innerHTML  = hasTemplates ? Icons.folderOpen14 : Icons.folder14;
+      row.title = hasTemplates
+        ? `${node.name} (${templateCount}개)`
+        : `${node.name} (비어있음)`;
     } else {
+      iconEl.className = 'node-icon';
       iconEl.innerHTML = node.isPublic ? Icons.fileText14 : Icons.file14;
     }
     row.appendChild(iconEl);

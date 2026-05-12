@@ -11,7 +11,7 @@ import {
   Baseline, Highlighter,
   BetweenVerticalStart, MoveHorizontal,
   // 파일
-  FilePlus, FolderOpen, Save, FileOutput, Printer, Settings, Clock,
+  FilePlus, FolderOpen, Save, FileOutput, Printer, Settings, Clock, History,
   // 편집
   Scissors, Copy, Clipboard, ClipboardX, SquareDashed, Search, ImagePlus,
   // 삽입
@@ -74,6 +74,7 @@ export const Icons = {
   print:      px16(Printer),
   settings:   px16(Settings),
   clock:      px16(Clock),
+  history:    px16(History),
 
   // 편집
   cut:        px16(Scissors),
@@ -188,12 +189,13 @@ export type IconName = keyof typeof Icons;
 /** action 문자열 → Icons 키 매핑 */
 export const ACTION_ICON: Record<string, IconName> = {
   // 파일
-  'file:new':    'fileNew',
-  'file:open':   'fileOpen',
-  'file:save':   'save',
-  'file:saveas': 'fileSaveAs',
-  'file:print':  'print',
-  'settings':    'settings',
+  'file:new':     'fileNew',
+  'file:open':    'fileOpen',
+  'file:save':    'save',
+  'file:saveas':  'fileSaveAs',
+  'file:print':   'print',
+  'file:history': 'history',
+  'settings':     'settings',
   // 편집
   'edit:cut':          'cut',
   'edit:copy':         'copy',
