@@ -10,7 +10,7 @@ function isTempNode(n: TemplateNode): boolean {
   return false;
 }
 import type { PoaTemplateTree } from '../TemplateTree.js';
-import { isAdmin } from '../../core/AppMode.js';
+import { isAdmin, isWriteMode } from '../../core/AppMode.js';
 import { Icons } from '../../utils/icons.js';
 import { TemplateApiClient, toServerId } from '../../modules/template/TemplateApiClient.js';
 
@@ -302,6 +302,10 @@ export class PoaTemplateDialog extends HTMLElement {
     // 폴더 추가
     this.shadow.getElementById('btn-add-folder')!.addEventListener('click', () => {
       const sel = this.tree.getSelected();
+      if (isWriteMode() && sel?.isPublic) {
+        this._showToast('공용 템플릿 폴더는 관리자만 생성할 수 있습니다.');
+        return;
+      }
       const parentId = sel?.type === 'folder' ? sel.id : null;
       const pub = sel?.isPublic ?? false;
       this.tree.addFolder(parentId, isAdmin() ? pub : false);
@@ -496,7 +500,9 @@ table{border-collapse:collapse;width:100%;}td,th{border:1px solid #ccc;padding:4
   private _fillFolderSelect(): void {
     const sel = this.shadow.getElementById('sf-folder') as HTMLSelectElement;
     sel.innerHTML = '<option value="">폴더 없음</option>';
-    for (const f of this.mgr.getFolders().filter(n => !isTempNode(n))) {
+    const folders = this.mgr.getFolders().filter(n => !isTempNode(n));
+    const visibleFolders = isWriteMode() ? folders.filter(f => !f.isPublic) : folders;
+    for (const f of visibleFolders) {
       const opt = document.createElement('option');
       opt.value = f.id;
       opt.textContent = (f.isPublic ? '[공용] ' : '[내] ') + f.name;

@@ -1,5 +1,5 @@
 import type { TemplateManager, TemplateNode } from '../modules/template/TemplateManager.js';
-import { buildUserModeUrl, isAdmin } from '../core/AppMode.js';
+import { buildUserModeUrl, isAdmin, isWriteMode } from '../core/AppMode.js';
 import { Icons } from '../utils/icons.js';
 
 function isVisible(n: TemplateNode): boolean {
@@ -22,6 +22,10 @@ const STYLE = `
   font-size: 11px; font-weight: 700; color: #9ca3af;
   letter-spacing: .08em; text-transform: uppercase;
   user-select: none;
+}
+.readonly-badge {
+  font-size: 11px; font-weight: 400; color: #9ca3af;
+  letter-spacing: 0; text-transform: none; margin-left: 2px;
 }
 .section-hdr svg { flex-shrink: 0; opacity: .7; }
 .section-private { margin-top: 16px; }
@@ -173,7 +177,9 @@ export class PoaTemplateTree extends HTMLElement {
     const hdr = document.createElement('div');
     hdr.className = 'section-hdr';
     const icon = kind === 'public' ? Icons.users12 : Icons.user12;
-    hdr.innerHTML = `${icon}<span>${label}</span>`;
+    const readonlyBadge = (kind === 'public' && isWriteMode())
+      ? '<span class="readonly-badge">(읽기 전용)</span>' : '';
+    hdr.innerHTML = `${icon}<span>${label}</span>${readonlyBadge}`;
     wrap.appendChild(hdr);
 
     const visibleRoots = q
