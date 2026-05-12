@@ -1681,6 +1681,23 @@ textarea { resize:vertical; min-height:72px; }
 </svg>
 `,Ra=`
 <svg
+  class="lucide lucide-history"
+  xmlns="http://www.w3.org/2000/svg"
+  width="24"
+  height="24"
+  viewBox="0 0 24 24"
+  fill="none"
+  stroke="currentColor"
+  stroke-width="2"
+  stroke-linecap="round"
+  stroke-linejoin="round"
+>
+  <path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8" />
+  <path d="M3 3v5h5" />
+  <path d="M12 7v5l4 2" />
+</svg>
+`,za=`
+<svg
   class="lucide lucide-image-plus"
   xmlns="http://www.w3.org/2000/svg"
   width="24"
@@ -1698,7 +1715,7 @@ textarea { resize:vertical; min-height:72px; }
   <path d="m21 15-3.086-3.086a2 2 0 0 0-2.828 0L6 21" />
   <circle cx="9" cy="9" r="2" />
 </svg>
-`,za=`
+`,Ba=`
 <svg
   class="lucide lucide-image"
   xmlns="http://www.w3.org/2000/svg"
@@ -1715,7 +1732,7 @@ textarea { resize:vertical; min-height:72px; }
   <circle cx="9" cy="9" r="2" />
   <path d="m21 15-3.086-3.086a2 2 0 0 0-2.828 0L6 21" />
 </svg>
-`,Ba=`
+`,Va=`
 <svg
   class="lucide lucide-images"
   xmlns="http://www.w3.org/2000/svg"
@@ -1733,7 +1750,7 @@ textarea { resize:vertical; min-height:72px; }
   <circle cx="13" cy="7" r="1" fill="currentColor" />
   <rect x="8" y="2" width="14" height="14" rx="2" />
 </svg>
-`,Va=`
+`,Ha=`
 <svg
   class="lucide lucide-info"
   xmlns="http://www.w3.org/2000/svg"
@@ -1750,7 +1767,7 @@ textarea { resize:vertical; min-height:72px; }
   <path d="M12 16v-4" />
   <path d="M12 8h.01" />
 </svg>
-`,Ha=`
+`,Ua=`
 <svg
   class="lucide lucide-italic"
   xmlns="http://www.w3.org/2000/svg"
@@ -1767,7 +1784,7 @@ textarea { resize:vertical; min-height:72px; }
   <line x1="14" x2="5" y1="20" y2="20" />
   <line x1="15" x2="9" y1="4" y2="20" />
 </svg>
-`,Ua=`
+`,Wa=`
 <svg
   class="lucide lucide-keyboard"
   xmlns="http://www.w3.org/2000/svg"
@@ -1790,7 +1807,7 @@ textarea { resize:vertical; min-height:72px; }
   <path d="M8 12h.01" />
   <rect width="20" height="16" x="2" y="4" rx="2" />
 </svg>
-`,Wa=`
+`,Ga=`
 <svg
   class="lucide lucide-layout-dashboard"
   xmlns="http://www.w3.org/2000/svg"
@@ -1808,7 +1825,7 @@ textarea { resize:vertical; min-height:72px; }
   <rect width="7" height="9" x="14" y="12" rx="1" />
   <rect width="7" height="5" x="3" y="16" rx="1" />
 </svg>
-`,Ga=`
+`,Ka=`
 <svg
   class="lucide lucide-layout-grid"
   xmlns="http://www.w3.org/2000/svg"
@@ -1826,7 +1843,7 @@ textarea { resize:vertical; min-height:72px; }
   <rect width="7" height="7" x="14" y="14" rx="1" />
   <rect width="7" height="7" x="3" y="14" rx="1" />
 </svg>
-`,Ka=`
+`,qa=`
 <svg
   class="lucide lucide-layout-template"
   xmlns="http://www.w3.org/2000/svg"
@@ -1843,7 +1860,7 @@ textarea { resize:vertical; min-height:72px; }
   <rect width="9" height="7" x="3" y="14" rx="1" />
   <rect width="5" height="7" x="16" y="14" rx="1" />
 </svg>
-`,qa=`
+`,Ja=`
 <svg
   class="lucide lucide-link-2-off"
   xmlns="http://www.w3.org/2000/svg"
@@ -1861,7 +1878,7 @@ textarea { resize:vertical; min-height:72px; }
   <line x1="8" x2="12" y1="12" y2="12" />
   <line x1="2" x2="22" y1="2" y2="22" />
 </svg>
-`,Ja=`
+`,Ya=`
 <svg
   class="lucide lucide-link"
   xmlns="http://www.w3.org/2000/svg"
@@ -1877,7 +1894,7 @@ textarea { resize:vertical; min-height:72px; }
   <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71" />
   <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71" />
 </svg>
-`,Ya=`
+`,Xa=`
 <svg
   class="lucide lucide-list-indent-decrease"
   xmlns="http://www.w3.org/2000/svg"
@@ -1895,7 +1912,7 @@ textarea { resize:vertical; min-height:72px; }
   <path d="M21 19H11" />
   <path d="m7 8-4 4 4 4" />
 </svg>
-`,Xa=`
+`,Za=`
 <svg
   class="lucide lucide-list-indent-increase"
   xmlns="http://www.w3.org/2000/svg"
@@ -1913,7 +1930,7 @@ textarea { resize:vertical; min-height:72px; }
   <path d="M21 19H11" />
   <path d="m3 8 4 4-4 4" />
 </svg>
-`,Za=`
+`,Qa=`
 <svg
   class="lucide lucide-list-ordered"
   xmlns="http://www.w3.org/2000/svg"
@@ -1933,7 +1950,7 @@ textarea { resize:vertical; min-height:72px; }
   <path d="M4 9h2" />
   <path d="M6.5 20H3.4c0-1 2.6-1.925 2.6-3.5a1.5 1.5 0 0 0-2.6-1.02" />
 </svg>
-`,Qa=`
+`,$a=`
 <svg
   class="lucide lucide-list"
   xmlns="http://www.w3.org/2000/svg"
@@ -1953,7 +1970,7 @@ textarea { resize:vertical; min-height:72px; }
   <path d="M8 12h13" />
   <path d="M8 19h13" />
 </svg>
-`,$a=`
+`,eo=`
 <svg
   class="lucide lucide-maximize-2"
   xmlns="http://www.w3.org/2000/svg"
@@ -1971,7 +1988,7 @@ textarea { resize:vertical; min-height:72px; }
   <path d="m3 21 7-7" />
   <path d="M9 21H3v-6" />
 </svg>
-`,eo=`
+`,to=`
 <svg
   class="lucide lucide-message-circle"
   xmlns="http://www.w3.org/2000/svg"
@@ -1986,7 +2003,7 @@ textarea { resize:vertical; min-height:72px; }
 >
   <path d="M2.992 16.342a2 2 0 0 1 .094 1.167l-1.065 3.29a1 1 0 0 0 1.236 1.168l3.413-.998a2 2 0 0 1 1.099.092 10 10 0 1 0-4.777-4.719" />
 </svg>
-`,to=`
+`,no=`
 <svg
   class="lucide lucide-message-square"
   xmlns="http://www.w3.org/2000/svg"
@@ -2001,7 +2018,7 @@ textarea { resize:vertical; min-height:72px; }
 >
   <path d="M22 17a2 2 0 0 1-2 2H6.828a2 2 0 0 0-1.414.586l-2.202 2.202A.71.71 0 0 1 2 21.286V5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2z" />
 </svg>
-`,no=`
+`,ro=`
 <svg
   class="lucide lucide-minus"
   xmlns="http://www.w3.org/2000/svg"
@@ -2016,7 +2033,7 @@ textarea { resize:vertical; min-height:72px; }
 >
   <path d="M5 12h14" />
 </svg>
-`,ro=`
+`,io=`
 <svg
   class="lucide lucide-monitor-play"
   xmlns="http://www.w3.org/2000/svg"
@@ -2034,7 +2051,7 @@ textarea { resize:vertical; min-height:72px; }
   <path d="M8 21h8" />
   <rect x="2" y="3" width="20" height="14" rx="2" />
 </svg>
-`,io=`
+`,ao=`
 <svg
   class="lucide lucide-move-horizontal"
   xmlns="http://www.w3.org/2000/svg"
@@ -2051,7 +2068,7 @@ textarea { resize:vertical; min-height:72px; }
   <path d="M2 12h20" />
   <path d="m6 8-4 4 4 4" />
 </svg>
-`,ao=`
+`,oo=`
 <svg
   class="lucide lucide-omega"
   xmlns="http://www.w3.org/2000/svg"
@@ -2066,7 +2083,7 @@ textarea { resize:vertical; min-height:72px; }
 >
   <path d="M3 20h4.5a.5.5 0 0 0 .5-.5v-.282a.52.52 0 0 0-.247-.437 8 8 0 1 1 8.494-.001.52.52 0 0 0-.247.438v.282a.5.5 0 0 0 .5.5H21" />
 </svg>
-`,oo=`
+`,so=`
 <svg
   class="lucide lucide-paintbrush"
   xmlns="http://www.w3.org/2000/svg"
@@ -2083,7 +2100,7 @@ textarea { resize:vertical; min-height:72px; }
   <path d="M18.376 2.622a1 1 0 1 1 3.002 3.002L17.36 9.643a.5.5 0 0 0 0 .707l.944.944a2.41 2.41 0 0 1 0 3.408l-.944.944a.5.5 0 0 1-.707 0L8.354 7.348a.5.5 0 0 1 0-.707l.944-.944a2.41 2.41 0 0 1 3.408 0l.944.944a.5.5 0 0 0 .707 0z" />
   <path d="M9 8c-1.804 2.71-3.97 3.46-6.583 3.948a.507.507 0 0 0-.302.819l7.32 8.883a1 1 0 0 0 1.185.204C12.735 20.405 16 16.792 16 15" />
 </svg>
-`,so=`
+`,co=`
 <svg
   class="lucide lucide-paintbrush-vertical"
   xmlns="http://www.w3.org/2000/svg"
@@ -2101,7 +2118,7 @@ textarea { resize:vertical; min-height:72px; }
   <path d="M17 2a1 1 0 0 1 1 1v9H6V3a1 1 0 0 1 1-1z" />
   <path d="M6 12a1 1 0 0 0-1 1v1a2 2 0 0 0 2 2h2a1 1 0 0 1 1 1v2.9a2 2 0 1 0 4 0V17a1 1 0 0 1 1-1h2a2 2 0 0 0 2-2v-1a1 1 0 0 0-1-1" />
 </svg>
-`,co=`
+`,lo=`
 <svg
   class="lucide lucide-pen-line"
   xmlns="http://www.w3.org/2000/svg"
@@ -2117,7 +2134,7 @@ textarea { resize:vertical; min-height:72px; }
   <path d="M13 21h8" />
   <path d="M21.174 6.812a1 1 0 0 0-3.986-3.987L3.842 16.174a2 2 0 0 0-.5.83l-1.321 4.352a.5.5 0 0 0 .623.622l4.353-1.32a2 2 0 0 0 .83-.497z" />
 </svg>
-`,lo=`
+`,uo=`
 <svg
   class="lucide lucide-pencil"
   xmlns="http://www.w3.org/2000/svg"
@@ -2133,7 +2150,7 @@ textarea { resize:vertical; min-height:72px; }
   <path d="M21.174 6.812a1 1 0 0 0-3.986-3.987L3.842 16.174a2 2 0 0 0-.5.83l-1.321 4.352a.5.5 0 0 0 .623.622l4.353-1.32a2 2 0 0 0 .83-.497z" />
   <path d="m15 5 4 4" />
 </svg>
-`,uo=`
+`,fo=`
 <svg
   class="lucide lucide-plus"
   xmlns="http://www.w3.org/2000/svg"
@@ -2149,7 +2166,7 @@ textarea { resize:vertical; min-height:72px; }
   <path d="M5 12h14" />
   <path d="M12 5v14" />
 </svg>
-`,fo=`
+`,po=`
 <svg
   class="lucide lucide-printer"
   xmlns="http://www.w3.org/2000/svg"
@@ -2166,7 +2183,7 @@ textarea { resize:vertical; min-height:72px; }
   <path d="M6 9V3a1 1 0 0 1 1-1h10a1 1 0 0 1 1 1v6" />
   <rect x="6" y="14" width="12" height="8" rx="1" />
 </svg>
-`,po=`
+`,mo=`
 <svg
   class="lucide lucide-rectangle-ellipsis"
   xmlns="http://www.w3.org/2000/svg"
@@ -2184,7 +2201,7 @@ textarea { resize:vertical; min-height:72px; }
   <path d="M17 12h.01" />
   <path d="M7 12h.01" />
 </svg>
-`,mo=`
+`,ho=`
 <svg
   class="lucide lucide-redo-2"
   xmlns="http://www.w3.org/2000/svg"
@@ -2200,7 +2217,7 @@ textarea { resize:vertical; min-height:72px; }
   <path d="m15 14 5-5-5-5" />
   <path d="M20 9H9.5A5.5 5.5 0 0 0 4 14.5A5.5 5.5 0 0 0 9.5 20H13" />
 </svg>
-`,ho=`
+`,go=`
 <svg
   class="lucide lucide-remove-formatting"
   xmlns="http://www.w3.org/2000/svg"
@@ -2219,7 +2236,7 @@ textarea { resize:vertical; min-height:72px; }
   <path d="m15 15 5 5" />
   <path d="m20 15-5 5" />
 </svg>
-`,go=`
+`,_o=`
 <svg
   class="lucide lucide-rows-3"
   xmlns="http://www.w3.org/2000/svg"
@@ -2236,7 +2253,7 @@ textarea { resize:vertical; min-height:72px; }
   <path d="M21 9H3" />
   <path d="M21 15H3" />
 </svg>
-`,_o=`
+`,vo=`
 <svg
   class="lucide lucide-ruler"
   xmlns="http://www.w3.org/2000/svg"
@@ -2255,7 +2272,7 @@ textarea { resize:vertical; min-height:72px; }
   <path d="m8.5 6.5 2-2" />
   <path d="m17.5 15.5 2-2" />
 </svg>
-`,vo=`
+`,yo=`
 <svg
   class="lucide lucide-save"
   xmlns="http://www.w3.org/2000/svg"
@@ -2272,7 +2289,7 @@ textarea { resize:vertical; min-height:72px; }
   <path d="M17 21v-7a1 1 0 0 0-1-1H8a1 1 0 0 0-1 1v7" />
   <path d="M7 3v4a1 1 0 0 0 1 1h7" />
 </svg>
-`,yo=`
+`,bo=`
 <svg
   class="lucide lucide-scissors"
   xmlns="http://www.w3.org/2000/svg"
@@ -2291,7 +2308,7 @@ textarea { resize:vertical; min-height:72px; }
   <circle cx="6" cy="18" r="3" />
   <path d="M14.8 14.8 20 20" />
 </svg>
-`,bo=`
+`,xo=`
 <svg
   class="lucide lucide-search"
   xmlns="http://www.w3.org/2000/svg"
@@ -2307,7 +2324,7 @@ textarea { resize:vertical; min-height:72px; }
   <path d="m21 21-4.34-4.34" />
   <circle cx="11" cy="11" r="8" />
 </svg>
-`,xo=`
+`,So=`
 <svg
   class="lucide lucide-separator-horizontal"
   xmlns="http://www.w3.org/2000/svg"
@@ -2324,7 +2341,7 @@ textarea { resize:vertical; min-height:72px; }
   <path d="M3 12h18" />
   <path d="m8 8 4-4 4 4" />
 </svg>
-`,So=`
+`,Co=`
 <svg
   class="lucide lucide-settings"
   xmlns="http://www.w3.org/2000/svg"
@@ -2340,7 +2357,7 @@ textarea { resize:vertical; min-height:72px; }
   <path d="M9.671 4.136a2.34 2.34 0 0 1 4.659 0 2.34 2.34 0 0 0 3.319 1.915 2.34 2.34 0 0 1 2.33 4.033 2.34 2.34 0 0 0 0 3.831 2.34 2.34 0 0 1-2.33 4.033 2.34 2.34 0 0 0-3.319 1.915 2.34 2.34 0 0 1-4.659 0 2.34 2.34 0 0 0-3.32-1.915 2.34 2.34 0 0 1-2.33-4.033 2.34 2.34 0 0 0 0-3.831A2.34 2.34 0 0 1 6.35 6.051a2.34 2.34 0 0 0 3.319-1.915" />
   <circle cx="12" cy="12" r="3" />
 </svg>
-`,Co=`
+`,wo=`
 <svg
   class="lucide lucide-shield-check"
   xmlns="http://www.w3.org/2000/svg"
@@ -2356,7 +2373,7 @@ textarea { resize:vertical; min-height:72px; }
   <path d="M20 13c0 5-3.5 7.5-7.66 8.95a1 1 0 0 1-.67-.01C7.5 20.5 4 18 4 13V6a1 1 0 0 1 1-1c2 0 4.5-1.2 6.24-2.72a1.17 1.17 0 0 1 1.52 0C14.51 3.81 17 5 19 5a1 1 0 0 1 1 1z" />
   <path d="m9 12 2 2 4-4" />
 </svg>
-`,wo=`
+`,To=`
 <svg
   class="lucide lucide-sigma"
   xmlns="http://www.w3.org/2000/svg"
@@ -2371,7 +2388,7 @@ textarea { resize:vertical; min-height:72px; }
 >
   <path d="M18 7V5a1 1 0 0 0-1-1H6.5a.5.5 0 0 0-.4.8l4.5 6a2 2 0 0 1 0 2.4l-4.5 6a.5.5 0 0 0 .4.8H17a1 1 0 0 0 1-1v-2" />
 </svg>
-`,To=`
+`,Eo=`
 <svg
   class="lucide lucide-smile"
   xmlns="http://www.w3.org/2000/svg"
@@ -2389,7 +2406,7 @@ textarea { resize:vertical; min-height:72px; }
   <line x1="9" x2="9.01" y1="9" y2="9" />
   <line x1="15" x2="15.01" y1="9" y2="9" />
 </svg>
-`,Eo=`
+`,Do=`
 <svg
   class="lucide lucide-square-check"
   xmlns="http://www.w3.org/2000/svg"
@@ -2405,7 +2422,7 @@ textarea { resize:vertical; min-height:72px; }
   <rect width="18" height="18" x="3" y="3" rx="2" />
   <path d="m9 12 2 2 4-4" />
 </svg>
-`,Do=`
+`,Oo=`
 <svg
   class="lucide lucide-square-dashed"
   xmlns="http://www.w3.org/2000/svg"
@@ -2431,7 +2448,7 @@ textarea { resize:vertical; min-height:72px; }
   <path d="M3 14v1" />
   <path d="M21 14v1" />
 </svg>
-`,Oo=`
+`,ko=`
 <svg
   class="lucide lucide-strikethrough"
   xmlns="http://www.w3.org/2000/svg"
@@ -2448,7 +2465,7 @@ textarea { resize:vertical; min-height:72px; }
   <path d="M14 12a4 4 0 0 1 0 8H6" />
   <line x1="4" x2="20" y1="12" y2="12" />
 </svg>
-`,ko=`
+`,Ao=`
 <svg
   class="lucide lucide-subscript"
   xmlns="http://www.w3.org/2000/svg"
@@ -2465,7 +2482,7 @@ textarea { resize:vertical; min-height:72px; }
   <path d="m12 5-8 8" />
   <path d="M20 19h-4c0-1.5.44-2 1.5-2.5S20 15.33 20 14c0-.47-.17-.93-.48-1.29a2.11 2.11 0 0 0-2.62-.44c-.42.24-.74.62-.9 1.07" />
 </svg>
-`,Ao=`
+`,jo=`
 <svg
   class="lucide lucide-superscript"
   xmlns="http://www.w3.org/2000/svg"
@@ -2482,7 +2499,7 @@ textarea { resize:vertical; min-height:72px; }
   <path d="m12 19-8-8" />
   <path d="M20 12h-4c0-1.5.442-2 1.5-2.5S20 8.334 20 7.002c0-.472-.17-.93-.484-1.29a2.105 2.105 0 0 0-2.617-.436c-.42.239-.738.614-.899 1.06" />
 </svg>
-`,jo=`
+`,Mo=`
 <svg
   class="lucide lucide-table-cells-merge"
   xmlns="http://www.w3.org/2000/svg"
@@ -2501,7 +2518,7 @@ textarea { resize:vertical; min-height:72px; }
   <path d="M3 9h18" />
   <rect width="18" height="18" x="3" y="3" rx="2" />
 </svg>
-`,Mo=`
+`,No=`
 <svg
   class="lucide lucide-table-cells-split"
   xmlns="http://www.w3.org/2000/svg"
@@ -2519,7 +2536,7 @@ textarea { resize:vertical; min-height:72px; }
   <path d="M3 9h18" />
   <rect width="18" height="18" x="3" y="3" rx="2" />
 </svg>
-`,No=`
+`,Po=`
 <svg
   class="lucide lucide-table-properties"
   xmlns="http://www.w3.org/2000/svg"
@@ -2537,7 +2554,7 @@ textarea { resize:vertical; min-height:72px; }
   <path d="M21 9H3" />
   <path d="M21 15H3" />
 </svg>
-`,Po=`
+`,Fo=`
 <svg
   class="lucide lucide-table"
   xmlns="http://www.w3.org/2000/svg"
@@ -2555,7 +2572,7 @@ textarea { resize:vertical; min-height:72px; }
   <path d="M3 9h18" />
   <path d="M3 15h18" />
 </svg>
-`,Fo=`
+`,Io=`
 <svg
   class="lucide lucide-text-align-center"
   xmlns="http://www.w3.org/2000/svg"
@@ -2572,7 +2589,7 @@ textarea { resize:vertical; min-height:72px; }
   <path d="M17 12H7" />
   <path d="M19 19H5" />
 </svg>
-`,Io=`
+`,Lo=`
 <svg
   class="lucide lucide-text-align-end"
   xmlns="http://www.w3.org/2000/svg"
@@ -2589,7 +2606,7 @@ textarea { resize:vertical; min-height:72px; }
   <path d="M21 12H9" />
   <path d="M21 19H7" />
 </svg>
-`,Lo=`
+`,Ro=`
 <svg
   class="lucide lucide-text-align-justify"
   xmlns="http://www.w3.org/2000/svg"
@@ -2606,7 +2623,7 @@ textarea { resize:vertical; min-height:72px; }
   <path d="M3 12h18" />
   <path d="M3 19h18" />
 </svg>
-`,Ro=`
+`,zo=`
 <svg
   class="lucide lucide-text-align-start"
   xmlns="http://www.w3.org/2000/svg"
@@ -2623,7 +2640,7 @@ textarea { resize:vertical; min-height:72px; }
   <path d="M15 12H3" />
   <path d="M17 19H3" />
 </svg>
-`,zo=`
+`,Bo=`
 <svg
   class="lucide lucide-trash-2"
   xmlns="http://www.w3.org/2000/svg"
@@ -2642,7 +2659,7 @@ textarea { resize:vertical; min-height:72px; }
   <path d="M3 6h18" />
   <path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
 </svg>
-`,Bo=`
+`,Vo=`
 <svg
   class="lucide lucide-type"
   xmlns="http://www.w3.org/2000/svg"
@@ -2659,7 +2676,7 @@ textarea { resize:vertical; min-height:72px; }
   <path d="M4 7V5a1 1 0 0 1 1-1h14a1 1 0 0 1 1 1v2" />
   <path d="M9 20h6" />
 </svg>
-`,Vo=`
+`,Ho=`
 <svg
   class="lucide lucide-underline"
   xmlns="http://www.w3.org/2000/svg"
@@ -2675,7 +2692,7 @@ textarea { resize:vertical; min-height:72px; }
   <path d="M6 4v6a6 6 0 0 0 12 0V4" />
   <line x1="4" x2="20" y1="20" y2="20" />
 </svg>
-`,Ho=`
+`,Uo=`
 <svg
   class="lucide lucide-undo-2"
   xmlns="http://www.w3.org/2000/svg"
@@ -2691,7 +2708,7 @@ textarea { resize:vertical; min-height:72px; }
   <path d="M9 14 4 9l5-5" />
   <path d="M4 9h10.5a5.5 5.5 0 0 1 5.5 5.5a5.5 5.5 0 0 1-5.5 5.5H11" />
 </svg>
-`,Uo=`
+`,Wo=`
 <svg
   class="lucide lucide-user"
   xmlns="http://www.w3.org/2000/svg"
@@ -2707,7 +2724,7 @@ textarea { resize:vertical; min-height:72px; }
   <path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2" />
   <circle cx="12" cy="7" r="4" />
 </svg>
-`,Wo=`
+`,Go=`
 <svg
   class="lucide lucide-users"
   xmlns="http://www.w3.org/2000/svg"
@@ -2725,7 +2742,7 @@ textarea { resize:vertical; min-height:72px; }
   <path d="M22 21v-2a4 4 0 0 0-3-3.87" />
   <circle cx="9" cy="7" r="4" />
 </svg>
-`;function Go(e,t){return e.replace(/width="24"/,`width="${t}"`).replace(/height="24"/,`height="${t}"`)}function Z(e){return Go(e,16)}function Ko(e){return Go(e,14)}function qo(e){return Go(e,12)}var Q={bold:Z(pa),italic:Z(Ha),underline:Z(Vo),strike:Z(Oo),undo:Z(Ho),redo:Z(mo),alignLeft:Z(Ro),alignCenter:Z(Fo),alignRight:Z(Io),alignJustify:Z(Lo),indent:Z(Xa),outdent:Z(Ya),foreColor:Z(da),backColor:Z(La),lineHeight:Z(fa),letterSpacing:Z(io),fileNew:Z(ka),fileOpen:Z(Na),save:Z(vo),fileSaveAs:Z(Oa),print:Z(fo),settings:Z(So),clock:Z(Ca),cut:Z(yo),copy:Z(Ea),paste:Z(Sa),pastePlain:Z(xa),selectAll:Z(Do),search:Z(bo),imageEdit:Z(Ra),image:Z(za),images:Z(Ba),videoTag:Z(Ma),embedVideo:Z(ya),link:Z(Ja),linkOff:Z(qa),bookmark:Z(ha),signature:Z(co),emoji:Z(To),tooltip:Z(eo),tooltipList:Z(to),calendar:Z(ga),hr:Z(no),symbol:Z(ao),youtube:Z(ro),pageBreak:Z(xo),template:Z(Ka),formField:Z(po),viewDesign:Z(Wa),viewHtml:Z(wa),viewPreview:Z(Da),viewText:Z(Bo),viewPage:Z(Aa),fullscreen:Z($a),ruler:Z(_o),grid:Z(Fa),hiddenBorder:Z(Do),table:Z(Po),tableProps:Z(No),cellProps:Z(Ga),mergeCells:Z(jo),splitCell:Z(Mo),rowAbove:Z(ua),rowBelow:Z(sa),colLeft:Z(ca),colRight:Z(la),rowDelete:Z(go),colDelete:Z(Ta),tableDelete:Z(zo),painterCopy:Z(oo),painterPaste:Z(so),formatClear:Z(ho),ul:Z(Qa),ol:Z(Za),sup:Z(Ao),sub:Z(ko),a11y:Z(oa),privacy:Z(Co),form:Z(Eo),calc:Z(wo),userMode:Z(Uo),shortcuts:Z(Ua),guide:Z(ma),about:Z(Va),folder:Z(Pa),folderOpen:Z(Na),file:Z(ja),fileText16:Z(Aa),users16:Z(Wo),user16:Z(Uo),userCircle:Z(ba),plus:Z(uo),pencil:Z(lo),trash:Z(zo),link16:Z(Ja),chevronRight:Z(va),chevronDown:Z(_a),folder14:Ko(Pa),folderOpen14:Ko(Na),file14:Ko(ja),fileText14:Ko(Aa),users14:Ko(Wo),user14:Ko(Uo),chevronRight12:qo(va),chevronDown12:qo(_a),users12:qo(Wo),user12:qo(Uo),fieldText:Ko(Bo),fieldNumber:Ko(Ia),fieldDate:Ko(ga),layoutTemplate48:Go(Ka,48)},Jo={"file:new":`fileNew`,"file:open":`fileOpen`,"file:save":`save`,"file:saveas":`fileSaveAs`,"file:print":`print`,settings:`settings`,"edit:cut":`cut`,"edit:copy":`copy`,"edit:paste":`paste`,"edit:paste-plain":`pastePlain`,"edit:select-all":`selectAll`,"find-replace":`search`,"edit:image-edit":`imageEdit`,image:`image`,"insert:multi-image":`images`,"insert:video":`videoTag`,"insert:embed":`embedVideo`,"insert:link":`link`,"insert:link-remove":`linkOff`,"insert:bookmark":`bookmark`,"insert:signature":`signature`,"insert:emoji":`emoji`,"insert:tooltip":`tooltip`,"insert:tooltip-list":`tooltipList`,"insert:datetime":`calendar`,"insert:hr":`hr`,"insert:symbol":`symbol`,"insert:pagebreak":`pageBreak`,"misc:template":`template`,"view:design":`viewDesign`,"view:html":`viewHtml`,"view:preview":`viewPreview`,"view:text":`viewText`,"view:page":`viewPage`,"view:fullscreen":`fullscreen`,"view:ruler":`ruler`,"view:grid":`grid`,"view:hidden-border":`hiddenBorder`,table:`table`,"table:table-props":`tableProps`,"table:cell-props":`cellProps`,"table:merge":`mergeCells`,"table:split-cell":`splitCell`,"table:row-above":`rowAbove`,"table:row-below":`rowBelow`,"table:col-left":`colLeft`,"table:col-right":`colRight`,"table:row-delete":`rowDelete`,"table:col-delete":`colDelete`,"table:delete":`tableDelete`,"table:align-left":`alignLeft`,"table:align-center":`alignCenter`,"table:align-right":`alignRight`,"format:painter-copy":`painterCopy`,"format:painter-paste":`painterPaste`,"format:clear":`formatClear`,"format:ul":`ul`,"format:ol":`ol`,"format:sup":`sup`,"format:sub":`sub`,"misc:a11y":`a11y`,"misc:privacy":`privacy`,"misc:form":`form`,"misc:calc":`calc`,"misc:user-mode":`userMode`,"help:shortcuts":`shortcuts`,"help:guide":`guide`,"help:about":`about`};function Yo(e){return!(e.isTemp||e.name.startsWith(`임시_`)||e.name.startsWith(`preview_`)||e.name.startsWith(`__`))}var Xo=`
+`;function Ko(e,t){return e.replace(/width="24"/,`width="${t}"`).replace(/height="24"/,`height="${t}"`)}function Z(e){return Ko(e,16)}function qo(e){return Ko(e,14)}function Jo(e){return Ko(e,12)}var Q={bold:Z(pa),italic:Z(Ua),underline:Z(Ho),strike:Z(ko),undo:Z(Uo),redo:Z(ho),alignLeft:Z(zo),alignCenter:Z(Io),alignRight:Z(Lo),alignJustify:Z(Ro),indent:Z(Za),outdent:Z(Xa),foreColor:Z(da),backColor:Z(La),lineHeight:Z(fa),letterSpacing:Z(ao),fileNew:Z(ka),fileOpen:Z(Na),save:Z(yo),fileSaveAs:Z(Oa),print:Z(po),settings:Z(Co),clock:Z(Ca),history:Z(Ra),cut:Z(bo),copy:Z(Ea),paste:Z(Sa),pastePlain:Z(xa),selectAll:Z(Oo),search:Z(xo),imageEdit:Z(za),image:Z(Ba),images:Z(Va),videoTag:Z(Ma),embedVideo:Z(ya),link:Z(Ya),linkOff:Z(Ja),bookmark:Z(ha),signature:Z(lo),emoji:Z(Eo),tooltip:Z(to),tooltipList:Z(no),calendar:Z(ga),hr:Z(ro),symbol:Z(oo),youtube:Z(io),pageBreak:Z(So),template:Z(qa),formField:Z(mo),viewDesign:Z(Ga),viewHtml:Z(wa),viewPreview:Z(Da),viewText:Z(Vo),viewPage:Z(Aa),fullscreen:Z(eo),ruler:Z(vo),grid:Z(Fa),hiddenBorder:Z(Oo),table:Z(Fo),tableProps:Z(Po),cellProps:Z(Ka),mergeCells:Z(Mo),splitCell:Z(No),rowAbove:Z(ua),rowBelow:Z(sa),colLeft:Z(ca),colRight:Z(la),rowDelete:Z(_o),colDelete:Z(Ta),tableDelete:Z(Bo),painterCopy:Z(so),painterPaste:Z(co),formatClear:Z(go),ul:Z($a),ol:Z(Qa),sup:Z(jo),sub:Z(Ao),a11y:Z(oa),privacy:Z(wo),form:Z(Do),calc:Z(To),userMode:Z(Wo),shortcuts:Z(Wa),guide:Z(ma),about:Z(Ha),folder:Z(Pa),folderOpen:Z(Na),file:Z(ja),fileText16:Z(Aa),users16:Z(Go),user16:Z(Wo),userCircle:Z(ba),plus:Z(fo),pencil:Z(uo),trash:Z(Bo),link16:Z(Ya),chevronRight:Z(va),chevronDown:Z(_a),folder14:qo(Pa),folderOpen14:qo(Na),file14:qo(ja),fileText14:qo(Aa),users14:qo(Go),user14:qo(Wo),chevronRight12:Jo(va),chevronDown12:Jo(_a),users12:Jo(Go),user12:Jo(Wo),fieldText:qo(Vo),fieldNumber:qo(Ia),fieldDate:qo(ga),layoutTemplate48:Ko(qa,48)},Yo={"file:new":`fileNew`,"file:open":`fileOpen`,"file:save":`save`,"file:saveas":`fileSaveAs`,"file:print":`print`,"file:history":`history`,settings:`settings`,"edit:cut":`cut`,"edit:copy":`copy`,"edit:paste":`paste`,"edit:paste-plain":`pastePlain`,"edit:select-all":`selectAll`,"find-replace":`search`,"edit:image-edit":`imageEdit`,image:`image`,"insert:multi-image":`images`,"insert:video":`videoTag`,"insert:embed":`embedVideo`,"insert:link":`link`,"insert:link-remove":`linkOff`,"insert:bookmark":`bookmark`,"insert:signature":`signature`,"insert:emoji":`emoji`,"insert:tooltip":`tooltip`,"insert:tooltip-list":`tooltipList`,"insert:datetime":`calendar`,"insert:hr":`hr`,"insert:symbol":`symbol`,"insert:pagebreak":`pageBreak`,"misc:template":`template`,"view:design":`viewDesign`,"view:html":`viewHtml`,"view:preview":`viewPreview`,"view:text":`viewText`,"view:page":`viewPage`,"view:fullscreen":`fullscreen`,"view:ruler":`ruler`,"view:grid":`grid`,"view:hidden-border":`hiddenBorder`,table:`table`,"table:table-props":`tableProps`,"table:cell-props":`cellProps`,"table:merge":`mergeCells`,"table:split-cell":`splitCell`,"table:row-above":`rowAbove`,"table:row-below":`rowBelow`,"table:col-left":`colLeft`,"table:col-right":`colRight`,"table:row-delete":`rowDelete`,"table:col-delete":`colDelete`,"table:delete":`tableDelete`,"table:align-left":`alignLeft`,"table:align-center":`alignCenter`,"table:align-right":`alignRight`,"format:painter-copy":`painterCopy`,"format:painter-paste":`painterPaste`,"format:clear":`formatClear`,"format:ul":`ul`,"format:ol":`ol`,"format:sup":`sup`,"format:sub":`sub`,"misc:a11y":`a11y`,"misc:privacy":`privacy`,"misc:form":`form`,"misc:calc":`calc`,"misc:user-mode":`userMode`,"help:shortcuts":`shortcuts`,"help:guide":`guide`,"help:about":`about`};function Xo(e){return!(e.isTemp||e.name.startsWith(`임시_`)||e.name.startsWith(`preview_`)||e.name.startsWith(`__`))}var Zo=`
 *, *::before, *::after { box-sizing: border-box; }
 :host { display: block; height: 100%; }
 
@@ -2753,8 +2770,13 @@ textarea { resize:vertical; min-height:72px; }
 .chevron { width: 12px; flex-shrink: 0; display: flex; align-items: center; color: #9ca3af; }
 .chevron-spacer { width: 12px; flex-shrink: 0; }
 .node-icon { flex-shrink: 0; display: flex; align-items: center; color: #94a3b8; }
-.node-icon.open { color: #3b82f6; }
-.node-row:hover .node-icon { color: #64748b; }
+/* 폴더 아이콘 색상: 내용 있음 */
+.node-icon.folder-has { color: #2563EB; }
+.node-icon.folder-has.open { color: #1D4ED8; }
+/* 폴더 아이콘 색상: 비어있음 */
+.node-icon.folder-empty { color: #D1D5DB; }
+.node-row:hover .node-icon.folder-empty { color: #9CA3AF; }
+/* 선택 상태: 항상 파란색 */
 .node-row.selected .node-icon { color: #2563eb; }
 .label { flex: 1; overflow: hidden; text-overflow: ellipsis; }
 
@@ -2785,7 +2807,7 @@ textarea { resize:vertical; min-height:72px; }
   padding: 12px 8px;
   font-size: 12px; color: #9ca3af;
 }
-`,Zo=class extends HTMLElement{shadow;mgr;expanded=new Set;selectedId=null;editingId=null;ctxMenu=null;filterQuery=``;connectedCallback(){this.shadow=this.attachShadow({mode:`open`}),this.shadow.innerHTML=`<style>${Xo}</style><div id="tree"></div>`}setManager(e){this.mgr=e,e.getRoots().filter(e=>e.type===`folder`).forEach(e=>this.expanded.add(e.id)),this.render()}setFilter(e){this.filterQuery=e.trim().toLowerCase(),this.render()}render(){if(!this.mgr)return;let e=this.shadow.getElementById(`tree`);e.innerHTML=``;let t=this.mgr.getAll().filter(Yo),n=this.filterQuery,r=t.filter(e=>e.parentId===null&&e.isPublic),i=t.filter(e=>e.parentId===null&&!e.isPublic);e.appendChild(this._renderSection(`공용 템플릿`,`public`,r,n)),e.appendChild(this._renderSection(`내 템플릿`,`private`,i,n))}getSelected(){return this.selectedId?this.mgr.getById(this.selectedId):null}addFolder(e,t=!1){e&&this.expanded.add(e);let n=this.mgr.addFolder(`새 폴더`,e,t);this.editingId=n.id,this.render()}_renderSection(e,t,n,r){let i=document.createElement(`div`);t===`private`&&i.classList.add(`section-private`);let a=document.createElement(`div`);a.className=`section-hdr`,a.innerHTML=`${t===`public`?Q.users12:Q.user12}<span>${e}</span>`,i.appendChild(a);let o=r?n.filter(e=>this._subtreeMatches(e,r)):n;if(o.length===0){let e=document.createElement(`div`);e.className=`empty-section`,r?e.textContent=`검색 결과 없음`:e.textContent=t===`public`?`등록된 공용 템플릿이 없습니다.`:`등록된 개인 템플릿이 없습니다.`,i.appendChild(e)}else o.forEach(e=>i.appendChild(this._renderNode(e,0,r)));return i}_subtreeMatches(e,t){return e.name.toLowerCase().includes(t)?!0:this.mgr.getChildren(e.id).filter(Yo).some(e=>this._subtreeMatches(e,t))}_renderNode(e,t,n){let r=document.createElement(`div`),i=document.createElement(`div`),a=e.type===`folder`,o=this.expanded.has(e.id);i.className=`node-row ${a?`folder-row`:`tmpl-row`}${this.selectedId===e.id?` selected`:``}`,i.style.paddingLeft=`${t*20+8}px`;let s=document.createElement(`span`);a?(s.className=`chevron`,s.innerHTML=o?Q.chevronDown12:Q.chevronRight12):s.className=`chevron-spacer`,i.appendChild(s);let c=document.createElement(`span`);if(c.className=`node-icon${a&&o?` open`:``}`,a?c.innerHTML=o?Q.folderOpen14:Q.folder14:c.innerHTML=e.isPublic?Q.fileText14:Q.file14,i.appendChild(c),this.editingId===e.id){let t=document.createElement(`input`);t.type=`text`,t.className=`inline-input`,t.value=e.name,t.addEventListener(`keydown`,n=>{n.key===`Enter`&&this._commitEdit(e.id,t.value),n.key===`Escape`&&(this.editingId=null,this.render()),n.stopPropagation()}),t.addEventListener(`blur`,()=>this._commitEdit(e.id,t.value)),i.appendChild(t),requestAnimationFrame(()=>{t.focus(),t.select()})}else{let t=document.createElement(`span`);t.className=`label`,t.textContent=e.name,i.appendChild(t)}if(i.addEventListener(`click`,t=>{t.stopPropagation(),this._select(e)}),i.addEventListener(`dblclick`,t=>{t.stopPropagation(),e.type===`template`&&this._emit(`poa-tmpl-dblclick`,{node:e})}),i.addEventListener(`contextmenu`,t=>{t.preventDefault(),t.stopPropagation(),this._showCtx(e,t.clientX,t.clientY)}),r.appendChild(i),a&&o){let i=this.mgr.getChildren(e.id).filter(Yo);(n?i.filter(e=>this._subtreeMatches(e,n)):i).forEach(e=>r.appendChild(this._renderNode(e,t+1,n)))}return r}_select(e){e.type===`folder`&&(this.expanded.has(e.id)?this.expanded.delete(e.id):this.expanded.add(e.id)),this.selectedId=e.id,this.render(),this._emit(`poa-tmpl-select`,{node:e})}_commitEdit(e,t){t.trim()&&this.mgr.rename(e,t.trim()),this.editingId=null,this.render()}_showCtx(e,t,n){this._hideCtx();let r=Be(),i=e.isPublic?r:!0,a=document.createElement(`div`);a.className=`ctx-menu`,a.style.left=`${t}px`,a.style.top=`${n}px`;let o=document.createElement(`button`);if(o.className=`ctx-item${i?``:` disabled`}`,o.innerHTML=`${Q.pencil} 이름 변경`,o.addEventListener(`click`,()=>{this._hideCtx(),this.editingId=e.id,this.render()}),a.appendChild(o),e.type===`template`){let t=document.createElement(`div`);t.className=`ctx-sep`,a.appendChild(t);let n=document.createElement(`button`);n.className=`ctx-item`,n.innerHTML=`${Q.link16} 사용자 링크 복사`,n.addEventListener(`click`,()=>{this._hideCtx();let t=ji(e.id);navigator.clipboard.writeText(t).then(()=>this._emit(`poa-tmpl-copy-link`,{id:e.id,url:t})).catch(()=>this._emit(`poa-tmpl-copy-link`,{id:e.id,url:t}))}),a.appendChild(n)}let s=document.createElement(`div`);s.className=`ctx-sep`,a.appendChild(s);let c=document.createElement(`button`);c.className=`ctx-item danger${i?``:` disabled`}`,c.innerHTML=`${Q.trash} 삭제`,c.addEventListener(`click`,()=>{this._hideCtx(),this.mgr.delete(e.id),this.expanded.delete(e.id),this.selectedId===e.id&&(this.selectedId=null),this.render(),this._emit(`poa-tmpl-delete`,{id:e.id})}),a.appendChild(c),this.shadow.appendChild(a),this.ctxMenu=a,setTimeout(()=>document.addEventListener(`click`,()=>this._hideCtx(),{once:!0}),0)}_hideCtx(){this.ctxMenu?.remove(),this.ctxMenu=null}_emit(e,t){this.dispatchEvent(new CustomEvent(e,{bubbles:!0,composed:!0,detail:t}))}};function Qo(e){return!!(e.isTemp||e.name.startsWith(`임시_`)||e.name.startsWith(`preview_`)||e.name.startsWith(`__`))}var $o=`
+`,Qo=class extends HTMLElement{shadow;mgr;expanded=new Set;selectedId=null;editingId=null;ctxMenu=null;filterQuery=``;connectedCallback(){this.shadow=this.attachShadow({mode:`open`}),this.shadow.innerHTML=`<style>${Zo}</style><div id="tree"></div>`}setManager(e){this.mgr=e,e.getRoots().filter(e=>e.type===`folder`).forEach(e=>this.expanded.add(e.id)),this.render()}setFilter(e){this.filterQuery=e.trim().toLowerCase(),this.render()}render(){if(!this.mgr)return;let e=this.shadow.getElementById(`tree`);e.innerHTML=``;let t=this.mgr.getAll().filter(Xo),n=this.filterQuery,r=t.filter(e=>e.parentId===null&&e.isPublic),i=t.filter(e=>e.parentId===null&&!e.isPublic);e.appendChild(this._renderSection(`공용 템플릿`,`public`,r,n)),e.appendChild(this._renderSection(`내 템플릿`,`private`,i,n))}getSelected(){return this.selectedId?this.mgr.getById(this.selectedId):null}addFolder(e,t=!1){e&&this.expanded.add(e);let n=this.mgr.addFolder(`새 폴더`,e,t);this.editingId=n.id,this.render()}_renderSection(e,t,n,r){let i=document.createElement(`div`);t===`private`&&i.classList.add(`section-private`);let a=document.createElement(`div`);a.className=`section-hdr`,a.innerHTML=`${t===`public`?Q.users12:Q.user12}<span>${e}</span>`,i.appendChild(a);let o=r?n.filter(e=>this._subtreeMatches(e,r)):n;if(o.length===0){let e=document.createElement(`div`);e.className=`empty-section`,r?e.textContent=`검색 결과 없음`:e.textContent=t===`public`?`등록된 공용 템플릿이 없습니다.`:`등록된 개인 템플릿이 없습니다.`,i.appendChild(e)}else o.forEach(e=>i.appendChild(this._renderNode(e,0,r)));return i}_subtreeMatches(e,t){return e.name.toLowerCase().includes(t)?!0:this.mgr.getChildren(e.id).filter(Xo).some(e=>this._subtreeMatches(e,t))}_renderNode(e,t,n){let r=document.createElement(`div`),i=document.createElement(`div`),a=e.type===`folder`,o=this.expanded.has(e.id);i.className=`node-row ${a?`folder-row`:`tmpl-row`}${this.selectedId===e.id?` selected`:``}`,i.style.paddingLeft=`${t*20+8}px`;let s=document.createElement(`span`);a?(s.className=`chevron`,s.innerHTML=o?Q.chevronDown12:Q.chevronRight12):s.className=`chevron-spacer`,i.appendChild(s);let c=document.createElement(`span`);if(a){let t=this.mgr.getChildren(e.id).filter(Xo).filter(e=>e.type===`template`).length,n=t>0;c.className=`node-icon${o?` open`:``} ${n?`folder-has`:`folder-empty`}`,c.innerHTML=n?Q.folderOpen14:Q.folder14,i.title=n?`${e.name} (${t}개)`:`${e.name} (비어있음)`}else c.className=`node-icon`,c.innerHTML=e.isPublic?Q.fileText14:Q.file14;if(i.appendChild(c),this.editingId===e.id){let t=document.createElement(`input`);t.type=`text`,t.className=`inline-input`,t.value=e.name,t.addEventListener(`keydown`,n=>{n.key===`Enter`&&this._commitEdit(e.id,t.value),n.key===`Escape`&&(this.editingId=null,this.render()),n.stopPropagation()}),t.addEventListener(`blur`,()=>this._commitEdit(e.id,t.value)),i.appendChild(t),requestAnimationFrame(()=>{t.focus(),t.select()})}else{let t=document.createElement(`span`);t.className=`label`,t.textContent=e.name,i.appendChild(t)}if(i.addEventListener(`click`,t=>{t.stopPropagation(),this._select(e)}),i.addEventListener(`dblclick`,t=>{t.stopPropagation(),e.type===`template`&&this._emit(`poa-tmpl-dblclick`,{node:e})}),i.addEventListener(`contextmenu`,t=>{t.preventDefault(),t.stopPropagation(),this._showCtx(e,t.clientX,t.clientY)}),r.appendChild(i),a&&o){let i=this.mgr.getChildren(e.id).filter(Xo);(n?i.filter(e=>this._subtreeMatches(e,n)):i).forEach(e=>r.appendChild(this._renderNode(e,t+1,n)))}return r}_select(e){e.type===`folder`&&(this.expanded.has(e.id)?this.expanded.delete(e.id):this.expanded.add(e.id)),this.selectedId=e.id,this.render(),this._emit(`poa-tmpl-select`,{node:e})}_commitEdit(e,t){t.trim()&&this.mgr.rename(e,t.trim()),this.editingId=null,this.render()}_showCtx(e,t,n){this._hideCtx();let r=Be(),i=e.isPublic?r:!0,a=document.createElement(`div`);a.className=`ctx-menu`,a.style.left=`${t}px`,a.style.top=`${n}px`;let o=document.createElement(`button`);if(o.className=`ctx-item${i?``:` disabled`}`,o.innerHTML=`${Q.pencil} 이름 변경`,o.addEventListener(`click`,()=>{this._hideCtx(),this.editingId=e.id,this.render()}),a.appendChild(o),e.type===`template`){let t=document.createElement(`div`);t.className=`ctx-sep`,a.appendChild(t);let n=document.createElement(`button`);n.className=`ctx-item`,n.innerHTML=`${Q.link16} 사용자 링크 복사`,n.addEventListener(`click`,()=>{this._hideCtx();let t=ji(e.id);navigator.clipboard.writeText(t).then(()=>this._emit(`poa-tmpl-copy-link`,{id:e.id,url:t})).catch(()=>this._emit(`poa-tmpl-copy-link`,{id:e.id,url:t}))}),a.appendChild(n)}let s=document.createElement(`div`);s.className=`ctx-sep`,a.appendChild(s);let c=document.createElement(`button`);c.className=`ctx-item danger${i?``:` disabled`}`,c.innerHTML=`${Q.trash} 삭제`,c.addEventListener(`click`,()=>{this._hideCtx(),this.mgr.delete(e.id),this.expanded.delete(e.id),this.selectedId===e.id&&(this.selectedId=null),this.render(),this._emit(`poa-tmpl-delete`,{id:e.id})}),a.appendChild(c),this.shadow.appendChild(a),this.ctxMenu=a,setTimeout(()=>document.addEventListener(`click`,()=>this._hideCtx(),{once:!0}),0)}_hideCtx(){this.ctxMenu?.remove(),this.ctxMenu=null}_emit(e,t){this.dispatchEvent(new CustomEvent(e,{bubbles:!0,composed:!0,detail:t}))}};function $o(e){return!!(e.isTemp||e.name.startsWith(`임시_`)||e.name.startsWith(`preview_`)||e.name.startsWith(`__`))}var es=`
 *, *::before, *::after { box-sizing: border-box; }
 :host {
   display: none; position: fixed; inset: 0; z-index: 9999;
@@ -2948,7 +2970,7 @@ textarea { resize:vertical; min-height:72px; }
 }
 @keyframes tmpl-fadein { from { opacity: 0; transform: translateX(-50%) translateY(6px); } to { opacity: 1; transform: translateX(-50%) translateY(0); } }
 .hidden { display: none !important; }
-`,es=`
+`,ts=`
 <div class="dlg">
   <div class="hdr">
     <h3>템플릿</h3>
@@ -3014,7 +3036,7 @@ textarea { resize:vertical; min-height:72px; }
     <button class="btn-replace" id="btn-replace" disabled>교체하여 적용</button>
   </div>
 </div>
-`,ts=class extends HTMLElement{shadow;mgr;tree;selected=null;_getEditorHTML=null;_saveFormOpen=!1;connectedCallback(){this.shadow=this.attachShadow({mode:`open`}),this.shadow.innerHTML=`<style>${$o}</style>${es}`,this.mgr=new aa,this.tree=this.shadow.querySelector(`poa-template-tree`),this.tree.setManager(this.mgr),this._bind()}setup(e){this._getEditorHTML=e}open(){this.selected=null,this._refreshPreview(),this._fillFolderSelect(),this.tree.render(),this._closeSaveForm(),this.setAttribute(`open`,``),setTimeout(()=>this.tree.render(),300)}close(){this.removeAttribute(`open`)}_bind(){if(this.shadow.querySelector(`.x-btn`).addEventListener(`click`,()=>this.close()),this.addEventListener(`click`,e=>{e.composedPath()[0]===this&&this.close()}),this.addEventListener(`keydown`,e=>{e.key===`Escape`&&(this._saveFormOpen?this._closeSaveForm():this.close())}),this.shadow.getElementById(`search-input`).addEventListener(`input`,e=>{this.tree.setFilter(e.target.value)}),this.shadow.getElementById(`btn-add-folder`).addEventListener(`click`,()=>{let e=this.tree.getSelected(),t=e?.type===`folder`?e.id:null,n=e?.isPublic??!1;this.tree.addFolder(t,Be()?n:!1)}),this.shadow.getElementById(`btn-save-tmpl`).addEventListener(`click`,()=>{this._saveFormOpen?this._closeSaveForm():this._openSaveForm()}),this.shadow.getElementById(`sf-cancel`).addEventListener(`click`,()=>this._closeSaveForm()),this.shadow.getElementById(`sf-ok`).addEventListener(`click`,()=>this._doSave()),this.shadow.getElementById(`sf-name`).addEventListener(`keydown`,e=>{e.key===`Enter`&&this._doSave()}),Be()||this.shadow.getElementById(`sf-public-label`).classList.add(`disabled`),this.shadow.getElementById(`btn-append`).addEventListener(`click`,()=>this._apply(`append`)),this.shadow.getElementById(`btn-replace`).addEventListener(`click`,()=>this._apply(`replace`)),this.shadow.getElementById(`btn-apply-quick`).addEventListener(`click`,()=>this._apply(`replace`)),Be()){let e=document.createElement(`button`);e.className=`left-action-btn danger`,e.title=`임시/테스트 데이터 일괄 삭제 (관리자 전용)`,e.innerHTML=`${Q.trash} 정리`,this.shadow.querySelector(`.left-btns`).appendChild(e),e.addEventListener(`click`,()=>void this._adminCleanup())}this.shadow.addEventListener(`poa-tmpl-copy-link`,()=>{this._showToast(`링크가 복사되었습니다.`)}),this.shadow.addEventListener(`poa-tmpl-select`,e=>{let{node:t}=e.detail;this.selected=t.type===`template`?t:null,this._refreshPreview()}),this.shadow.addEventListener(`poa-tmpl-dblclick`,e=>{let{node:t}=e.detail;this.selected=t,this._apply(`replace`)})}_openSaveForm(){this._saveFormOpen=!0,this._fillFolderSelect(),this.shadow.getElementById(`sf-name`).value=``,this.shadow.getElementById(`save-form`).classList.add(`visible`),this.shadow.getElementById(`btn-save-tmpl`).classList.add(`active`),setTimeout(()=>this.shadow.getElementById(`sf-name`).focus(),50)}_closeSaveForm(){this._saveFormOpen=!1,this.shadow.getElementById(`save-form`).classList.remove(`visible`),this.shadow.getElementById(`btn-save-tmpl`).classList.remove(`active`)}async _ensureContent(){if(!this.selected)return``;if(this.selected.content)return this.selected.content;let e=Qi(this.selected.id);if(e===null)return``;try{let t=await X.getTemplate(e);return this.selected={...this.selected,content:t.content??``},this.selected.content??``}catch{return``}}async _refreshPreview(){let e=this.shadow.getElementById(`preview-empty`),t=this.shadow.getElementById(`preview-content`),n=this.shadow.getElementById(`preview-frame`),r=this.shadow.getElementById(`btn-append`),i=this.shadow.getElementById(`btn-replace`);if(!this.selected||this.selected.type!==`template`){e.classList.remove(`hidden`),t.classList.add(`hidden`),r.disabled=!0,i.disabled=!0;return}this.shadow.getElementById(`info-name`).textContent=this.selected.name,this.shadow.getElementById(`info-date`).textContent=new Date(this.selected.updatedAt).toLocaleDateString(`ko-KR`,{year:`numeric`,month:`2-digit`,day:`2-digit`}),e.classList.add(`hidden`),t.classList.remove(`hidden`),r.disabled=!1,i.disabled=!1;let a=await this._ensureContent();n.srcdoc=`<!DOCTYPE html>
+`,ns=class extends HTMLElement{shadow;mgr;tree;selected=null;_getEditorHTML=null;_saveFormOpen=!1;connectedCallback(){this.shadow=this.attachShadow({mode:`open`}),this.shadow.innerHTML=`<style>${es}</style>${ts}`,this.mgr=new aa,this.tree=this.shadow.querySelector(`poa-template-tree`),this.tree.setManager(this.mgr),this._bind()}setup(e){this._getEditorHTML=e}open(){this.selected=null,this._refreshPreview(),this._fillFolderSelect(),this.tree.render(),this._closeSaveForm(),this.setAttribute(`open`,``),setTimeout(()=>this.tree.render(),300)}close(){this.removeAttribute(`open`)}_bind(){if(this.shadow.querySelector(`.x-btn`).addEventListener(`click`,()=>this.close()),this.addEventListener(`click`,e=>{e.composedPath()[0]===this&&this.close()}),this.addEventListener(`keydown`,e=>{e.key===`Escape`&&(this._saveFormOpen?this._closeSaveForm():this.close())}),this.shadow.getElementById(`search-input`).addEventListener(`input`,e=>{this.tree.setFilter(e.target.value)}),this.shadow.getElementById(`btn-add-folder`).addEventListener(`click`,()=>{let e=this.tree.getSelected(),t=e?.type===`folder`?e.id:null,n=e?.isPublic??!1;this.tree.addFolder(t,Be()?n:!1)}),this.shadow.getElementById(`btn-save-tmpl`).addEventListener(`click`,()=>{this._saveFormOpen?this._closeSaveForm():this._openSaveForm()}),this.shadow.getElementById(`sf-cancel`).addEventListener(`click`,()=>this._closeSaveForm()),this.shadow.getElementById(`sf-ok`).addEventListener(`click`,()=>this._doSave()),this.shadow.getElementById(`sf-name`).addEventListener(`keydown`,e=>{e.key===`Enter`&&this._doSave()}),Be()||this.shadow.getElementById(`sf-public-label`).classList.add(`disabled`),this.shadow.getElementById(`btn-append`).addEventListener(`click`,()=>this._apply(`append`)),this.shadow.getElementById(`btn-replace`).addEventListener(`click`,()=>this._apply(`replace`)),this.shadow.getElementById(`btn-apply-quick`).addEventListener(`click`,()=>this._apply(`replace`)),Be()){let e=document.createElement(`button`);e.className=`left-action-btn danger`,e.title=`임시/테스트 데이터 일괄 삭제 (관리자 전용)`,e.innerHTML=`${Q.trash} 정리`,this.shadow.querySelector(`.left-btns`).appendChild(e),e.addEventListener(`click`,()=>void this._adminCleanup())}this.shadow.addEventListener(`poa-tmpl-copy-link`,()=>{this._showToast(`링크가 복사되었습니다.`)}),this.shadow.addEventListener(`poa-tmpl-select`,e=>{let{node:t}=e.detail;this.selected=t.type===`template`?t:null,this._refreshPreview()}),this.shadow.addEventListener(`poa-tmpl-dblclick`,e=>{let{node:t}=e.detail;this.selected=t,this._apply(`replace`)})}_openSaveForm(){this._saveFormOpen=!0,this._fillFolderSelect(),this.shadow.getElementById(`sf-name`).value=``,this.shadow.getElementById(`save-form`).classList.add(`visible`),this.shadow.getElementById(`btn-save-tmpl`).classList.add(`active`),setTimeout(()=>this.shadow.getElementById(`sf-name`).focus(),50)}_closeSaveForm(){this._saveFormOpen=!1,this.shadow.getElementById(`save-form`).classList.remove(`visible`),this.shadow.getElementById(`btn-save-tmpl`).classList.remove(`active`)}async _ensureContent(){if(!this.selected)return``;if(this.selected.content)return this.selected.content;let e=Qi(this.selected.id);if(e===null)return``;try{let t=await X.getTemplate(e);return this.selected={...this.selected,content:t.content??``},this.selected.content??``}catch{return``}}async _refreshPreview(){let e=this.shadow.getElementById(`preview-empty`),t=this.shadow.getElementById(`preview-content`),n=this.shadow.getElementById(`preview-frame`),r=this.shadow.getElementById(`btn-append`),i=this.shadow.getElementById(`btn-replace`);if(!this.selected||this.selected.type!==`template`){e.classList.remove(`hidden`),t.classList.add(`hidden`),r.disabled=!0,i.disabled=!0;return}this.shadow.getElementById(`info-name`).textContent=this.selected.name,this.shadow.getElementById(`info-date`).textContent=new Date(this.selected.updatedAt).toLocaleDateString(`ko-KR`,{year:`numeric`,month:`2-digit`,day:`2-digit`}),e.classList.add(`hidden`),t.classList.remove(`hidden`),r.disabled=!1,i.disabled=!1;let a=await this._ensureContent();n.srcdoc=`<!DOCTYPE html>
 <html><head><meta charset="UTF-8">
 <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR&display=swap" rel="stylesheet">
 <style>
@@ -3027,7 +3049,7 @@ table{border-collapse:collapse;width:100%;}td,th{border:1px solid #ccc;padding:4
   font-size:inherit;font-family:inherit;padding:2px 4px;pointer-events:none;}
 .poa-field-drag-handle,.poa-field-resize-handle{display:none;}
 </style>
-</head><body>${String(j.sanitize(a,{ADD_TAGS:[`textarea`],ADD_ATTR:[`data-field-id`,`data-placeholder`,`data-label`,`data-field-type`,`data-prefix`,`data-suffix`,`data-multiline`,`data-number-format`,`data-date-format`,`data-width`,`data-height`,`data-size-fixed`,`data-raw-value`,`contenteditable`,`rows`],FORCE_BODY:!0}))}</body></html>`}async _apply(e){if(!this.selected)return;let t=await this._ensureContent();if(!t)return;let n=String(j.sanitize(t,{ADD_TAGS:[`textarea`],ADD_ATTR:[`data-field-id`,`data-placeholder`,`data-label`,`data-field-type`,`data-prefix`,`data-suffix`,`data-multiline`,`data-number-format`,`data-date-format`,`data-font-size`,`data-text-align`,`data-font-family`,`data-width`,`data-height`,`data-size-fixed`,`data-raw-value`,`value`,`rows`],FORCE_BODY:!0}));this.dispatchEvent(new CustomEvent(`poa-tmpl-insert`,{bubbles:!0,composed:!0,detail:{html:n,mode:e}})),this.close()}_doSave(){let e=this.shadow.getElementById(`sf-name`).value.trim();if(!e){this.shadow.getElementById(`sf-name`).focus();return}let t=this.shadow.getElementById(`sf-folder`).value||null,n=this.shadow.getElementById(`sf-public`).checked&&Be(),r=this._getEditorHTML?.()??``;this.mgr.addTemplate(e,r,t,n),this.tree.render(),this._closeSaveForm(),this._showToast(`"${e}" 저장 완료`)}_fillFolderSelect(){let e=this.shadow.getElementById(`sf-folder`);e.innerHTML=`<option value="">폴더 없음</option>`;for(let t of this.mgr.getFolders().filter(e=>!Qo(e))){let n=document.createElement(`option`);n.value=t.id,n.textContent=(t.isPublic?`[공용] `:`[내] `)+t.name,e.appendChild(n)}}async _adminCleanup(){let e=await X.adminCleanup().then(()=>!0).catch(()=>!1);try{let e=await X.getAllNodes();try{localStorage.removeItem(`poa-templates`)}catch{}if(e.length>0)try{localStorage.setItem(`poa-templates`,JSON.stringify(e))}catch{}}catch{}this.mgr.reload(),this.tree.setManager(this.mgr),this._showToast(e?`서버 데이터 정리 완료`:`서버 정리 실패 (로컬 재동기화됨)`)}_showToast(e){let t=document.createElement(`div`);t.className=`tmpl-toast`,t.textContent=e,this.shadow.querySelector(`.dlg`).appendChild(t),setTimeout(()=>t.remove(),2200)}},ns=`poa-signatures`,rs=10;function is(){return`${Date.now().toString(36)}-${Math.random().toString(36).slice(2,7)}`}function $(e){return e.replace(/&/g,`&amp;`).replace(/</g,`&lt;`).replace(/>/g,`&gt;`).replace(/"/g,`&quot;`)}function as(e){let{layout:t,fields:n,logo:r,headerColor:i=`#2563eb`}=e,a=n.displayName?`<strong style="font-size:15px;color:#111;">${$(n.displayName)}</strong>`:``,o=[n.title,n.department].filter(Boolean).map($).join(` | `),s=n.company?`<span style="color:#555;">${$(n.company)}</span>`:``,c=n.phone?`<span style="color:#888;font-size:12px;">T.</span>&nbsp;${$(n.phone)}`:``,l=n.email?`<span style="color:#888;font-size:12px;">E.</span>&nbsp;${$(n.email)}`:``,u=n.website?`<span style="color:#888;font-size:12px;">W.</span>&nbsp;${$(n.website)}`:``,d=[o?`<span style="color:#555;">${o}</span>`:``,s,c,l,u].filter(Boolean),f=r?`<img src="${$(r)}" alt="" style="max-width:80px;max-height:60px;display:block;">`:``,p=`font-size:14px;line-height:1.6;border-collapse:collapse;font-family:Arial,Helvetica,sans-serif;`,m=()=>[a,...d].filter(Boolean).join(`<br>`);switch(t){case 1:return`<table class="poa-signature" style="${p}"><tbody><tr><td style="padding:8px 0;vertical-align:top;">${m()}</td></tr></tbody></table>`;case 2:return r?`<table class="poa-signature" style="${p}"><tbody><tr><td style="padding:0 14px 0 0;vertical-align:middle;border-right:2px solid #e5e7eb;">${f}</td><td style="padding:0 0 0 14px;vertical-align:middle;">${m()}</td></tr></tbody></table>`:as({...e,layout:1});case 3:return r?`<table class="poa-signature" style="${p}"><tbody><tr><td style="text-align:center;padding-bottom:6px;">${f}</td></tr><tr><td style="padding:4px 0;">${m()}</td></tr></tbody></table>`:as({...e,layout:1});case 4:return`<table class="poa-signature" style="${p}"><tbody><tr><td style="padding:8px 0;vertical-align:top;">${a?a+`<br>`:``}<hr style="border:none;border-top:1px solid #aaa;margin:4px 0;">${d.join(`<br>`)}</td></tr></tbody></table>`;case 5:{let e=[a,n.department?`<span style="color:#555;">${$(n.department)}</span>`:``].filter(Boolean).join(`<br>`),t=[n.title?`<span style="color:#555;">${$(n.title)}</span>`:``,s].filter(Boolean).join(`<br>`),r=[c,l].filter(Boolean).join(`&nbsp;|&nbsp;`);return`<table class="poa-signature" style="${p}"><tbody><tr><td style="padding:4px 14px 4px 0;border-right:1px solid #ddd;vertical-align:top;">${e||`&nbsp;`}</td><td style="padding:4px 0 4px 14px;vertical-align:top;">${t||`&nbsp;`}</td></tr>`+(r?`<tr><td colspan="2" style="padding:6px 0 4px;border-top:1px solid #eee;font-size:13px;">${r}</td></tr>`:``)+`</tbody></table>`}case 6:{let e=[n.displayName?`<strong style="color:#fff;">${$(n.displayName)}</strong>`:``,n.title?`<span style="color:rgba(255,255,255,.85);">${$(n.title)}</span>`:``].filter(Boolean).join(`&nbsp;&nbsp;`),t=[n.department?`<span style="color:#555;">${$(n.department)}</span>`:``,s,c,l,u].filter(Boolean);return`<table class="poa-signature" style="${p}border:1px solid ${$(i)};"><tbody><tr><td style="background:${$(i)};padding:8px 16px;">${e||`&nbsp;`}</td></tr><tr><td style="padding:8px 16px;">${t.join(`<br>`)||`&nbsp;`}</td></tr></tbody></table>`}default:return``}}var os=class{sigs=[];constructor(){this._load()}_load(){try{let e=localStorage.getItem(ns);this.sigs=e?JSON.parse(e):[]}catch{this.sigs=[]}}_persist(){try{localStorage.setItem(ns,JSON.stringify(this.sigs))}catch{}}getAll(){return[...this.sigs]}getById(e){return this.sigs.find(t=>t.id===e)??null}add(e){if(this.sigs.length>=rs)throw Error(`최대 ${rs}개까지 저장할 수 있습니다.`);let t={...e,id:is(),createdAt:Date.now(),updatedAt:Date.now()};return this.sigs.push(t),this._persist(),t}update(e,t){let n=this.sigs.find(t=>t.id===e);return n?(Object.assign(n,t,{updatedAt:Date.now()}),this._persist(),!0):!1}delete(e){let t=this.sigs.findIndex(t=>t.id===e);return t<0?!1:(this.sigs.splice(t,1),this._persist(),!0)}isFull(){return this.sigs.length>=rs}},ss={1:`기본형`,2:`로고(좌)`,3:`로고(상)`,4:`구분선형`,5:`2단형`,6:`컬러헤더`},cs=`
+</head><body>${String(j.sanitize(a,{ADD_TAGS:[`textarea`],ADD_ATTR:[`data-field-id`,`data-placeholder`,`data-label`,`data-field-type`,`data-prefix`,`data-suffix`,`data-multiline`,`data-number-format`,`data-date-format`,`data-width`,`data-height`,`data-size-fixed`,`data-raw-value`,`contenteditable`,`rows`],FORCE_BODY:!0}))}</body></html>`}async _apply(e){if(!this.selected)return;let t=await this._ensureContent();if(!t)return;let n=String(j.sanitize(t,{ADD_TAGS:[`textarea`],ADD_ATTR:[`data-field-id`,`data-placeholder`,`data-label`,`data-field-type`,`data-prefix`,`data-suffix`,`data-multiline`,`data-number-format`,`data-date-format`,`data-font-size`,`data-text-align`,`data-font-family`,`data-width`,`data-height`,`data-size-fixed`,`data-raw-value`,`value`,`rows`],FORCE_BODY:!0}));this.dispatchEvent(new CustomEvent(`poa-tmpl-insert`,{bubbles:!0,composed:!0,detail:{html:n,mode:e}})),this.close()}_doSave(){let e=this.shadow.getElementById(`sf-name`).value.trim();if(!e){this.shadow.getElementById(`sf-name`).focus();return}let t=this.shadow.getElementById(`sf-folder`).value||null,n=this.shadow.getElementById(`sf-public`).checked&&Be(),r=this._getEditorHTML?.()??``;this.mgr.addTemplate(e,r,t,n),this.tree.render(),this._closeSaveForm(),this._showToast(`"${e}" 저장 완료`)}_fillFolderSelect(){let e=this.shadow.getElementById(`sf-folder`);e.innerHTML=`<option value="">폴더 없음</option>`;for(let t of this.mgr.getFolders().filter(e=>!$o(e))){let n=document.createElement(`option`);n.value=t.id,n.textContent=(t.isPublic?`[공용] `:`[내] `)+t.name,e.appendChild(n)}}async _adminCleanup(){let e=await X.adminCleanup().then(()=>!0).catch(()=>!1);try{let e=await X.getAllNodes();try{localStorage.removeItem(`poa-templates`)}catch{}if(e.length>0)try{localStorage.setItem(`poa-templates`,JSON.stringify(e))}catch{}}catch{}this.mgr.reload(),this.tree.setManager(this.mgr),this._showToast(e?`서버 데이터 정리 완료`:`서버 정리 실패 (로컬 재동기화됨)`)}_showToast(e){let t=document.createElement(`div`);t.className=`tmpl-toast`,t.textContent=e,this.shadow.querySelector(`.dlg`).appendChild(t),setTimeout(()=>t.remove(),2200)}},rs=`poa-signatures`,is=10;function as(){return`${Date.now().toString(36)}-${Math.random().toString(36).slice(2,7)}`}function $(e){return e.replace(/&/g,`&amp;`).replace(/</g,`&lt;`).replace(/>/g,`&gt;`).replace(/"/g,`&quot;`)}function os(e){let{layout:t,fields:n,logo:r,headerColor:i=`#2563eb`}=e,a=n.displayName?`<strong style="font-size:15px;color:#111;">${$(n.displayName)}</strong>`:``,o=[n.title,n.department].filter(Boolean).map($).join(` | `),s=n.company?`<span style="color:#555;">${$(n.company)}</span>`:``,c=n.phone?`<span style="color:#888;font-size:12px;">T.</span>&nbsp;${$(n.phone)}`:``,l=n.email?`<span style="color:#888;font-size:12px;">E.</span>&nbsp;${$(n.email)}`:``,u=n.website?`<span style="color:#888;font-size:12px;">W.</span>&nbsp;${$(n.website)}`:``,d=[o?`<span style="color:#555;">${o}</span>`:``,s,c,l,u].filter(Boolean),f=r?`<img src="${$(r)}" alt="" style="max-width:80px;max-height:60px;display:block;">`:``,p=`font-size:14px;line-height:1.6;border-collapse:collapse;font-family:Arial,Helvetica,sans-serif;`,m=()=>[a,...d].filter(Boolean).join(`<br>`);switch(t){case 1:return`<table class="poa-signature" style="${p}"><tbody><tr><td style="padding:8px 0;vertical-align:top;">${m()}</td></tr></tbody></table>`;case 2:return r?`<table class="poa-signature" style="${p}"><tbody><tr><td style="padding:0 14px 0 0;vertical-align:middle;border-right:2px solid #e5e7eb;">${f}</td><td style="padding:0 0 0 14px;vertical-align:middle;">${m()}</td></tr></tbody></table>`:os({...e,layout:1});case 3:return r?`<table class="poa-signature" style="${p}"><tbody><tr><td style="text-align:center;padding-bottom:6px;">${f}</td></tr><tr><td style="padding:4px 0;">${m()}</td></tr></tbody></table>`:os({...e,layout:1});case 4:return`<table class="poa-signature" style="${p}"><tbody><tr><td style="padding:8px 0;vertical-align:top;">${a?a+`<br>`:``}<hr style="border:none;border-top:1px solid #aaa;margin:4px 0;">${d.join(`<br>`)}</td></tr></tbody></table>`;case 5:{let e=[a,n.department?`<span style="color:#555;">${$(n.department)}</span>`:``].filter(Boolean).join(`<br>`),t=[n.title?`<span style="color:#555;">${$(n.title)}</span>`:``,s].filter(Boolean).join(`<br>`),r=[c,l].filter(Boolean).join(`&nbsp;|&nbsp;`);return`<table class="poa-signature" style="${p}"><tbody><tr><td style="padding:4px 14px 4px 0;border-right:1px solid #ddd;vertical-align:top;">${e||`&nbsp;`}</td><td style="padding:4px 0 4px 14px;vertical-align:top;">${t||`&nbsp;`}</td></tr>`+(r?`<tr><td colspan="2" style="padding:6px 0 4px;border-top:1px solid #eee;font-size:13px;">${r}</td></tr>`:``)+`</tbody></table>`}case 6:{let e=[n.displayName?`<strong style="color:#fff;">${$(n.displayName)}</strong>`:``,n.title?`<span style="color:rgba(255,255,255,.85);">${$(n.title)}</span>`:``].filter(Boolean).join(`&nbsp;&nbsp;`),t=[n.department?`<span style="color:#555;">${$(n.department)}</span>`:``,s,c,l,u].filter(Boolean);return`<table class="poa-signature" style="${p}border:1px solid ${$(i)};"><tbody><tr><td style="background:${$(i)};padding:8px 16px;">${e||`&nbsp;`}</td></tr><tr><td style="padding:8px 16px;">${t.join(`<br>`)||`&nbsp;`}</td></tr></tbody></table>`}default:return``}}var ss=class{sigs=[];constructor(){this._load()}_load(){try{let e=localStorage.getItem(rs);this.sigs=e?JSON.parse(e):[]}catch{this.sigs=[]}}_persist(){try{localStorage.setItem(rs,JSON.stringify(this.sigs))}catch{}}getAll(){return[...this.sigs]}getById(e){return this.sigs.find(t=>t.id===e)??null}add(e){if(this.sigs.length>=is)throw Error(`최대 ${is}개까지 저장할 수 있습니다.`);let t={...e,id:as(),createdAt:Date.now(),updatedAt:Date.now()};return this.sigs.push(t),this._persist(),t}update(e,t){let n=this.sigs.find(t=>t.id===e);return n?(Object.assign(n,t,{updatedAt:Date.now()}),this._persist(),!0):!1}delete(e){let t=this.sigs.findIndex(t=>t.id===e);return t<0?!1:(this.sigs.splice(t,1),this._persist(),!0)}isFull(){return this.sigs.length>=is}},cs={1:`기본형`,2:`로고(좌)`,3:`로고(상)`,4:`구분선형`,5:`2단형`,6:`컬러헤더`},ls=`
 *, *::before, *::after { box-sizing: border-box; }
 :host { display: none; position: fixed; inset: 0; z-index: 9999; align-items: center; justify-content: center; }
 :host([open]) { display: flex; background: rgba(0,0,0,.45); }
@@ -3126,7 +3148,7 @@ table{border-collapse:collapse;width:100%;}td,th{border:1px solid #ccc;padding:4
 }
 .btn-insert:hover { background: #1d4ed8; }
 .hidden { display: none !important; }
-`,ls=`
+`,us=`
 <div class="dlg">
   <div class="hdr">
     <h3>서명 템플릿</h3>
@@ -3183,7 +3205,7 @@ table{border-collapse:collapse;width:100%;}td,th{border:1px solid #ccc;padding:4
     </div>
   </div>
 </div>
-`,us=class extends HTMLElement{shadow;mgr;selectedId=null;currentLayout=1;currentLogo;currentHeaderColor=`#2563eb`;connectedCallback(){this.shadow=this.attachShadow({mode:`open`}),this.shadow.innerHTML=`<style>${cs}</style>${ls}`,this.mgr=new os,this._buildLayoutGrid(),this._bind()}open(){this.mgr=new os,this._renderList();let e=this.mgr.getAll();e.length>0?this._loadSignature(e[0].id):this._newSignature(),this.setAttribute(`open`,``)}close(){this.removeAttribute(`open`)}_buildLayoutGrid(){let e=this.shadow.getElementById(`layout-grid`);e.innerHTML=``,[1,2,3,4,5,6].forEach(t=>{let n=document.createElement(`button`);n.className=`layout-card${t===this.currentLayout?` active`:``}`,n.dataset.layout=String(t),n.innerHTML=`<span class="layout-num">${t}</span>${ss[t]}`,n.addEventListener(`click`,()=>this._setLayout(t)),e.appendChild(n)})}_bind(){this.shadow.querySelector(`.x-btn`).addEventListener(`click`,()=>this.close()),this.addEventListener(`click`,e=>{e.composedPath()[0]===this&&this.close()}),this.shadow.getElementById(`btn-new`).addEventListener(`click`,()=>this._newSignature()),this.shadow.getElementById(`btn-delete`).addEventListener(`click`,()=>{if(!this.selectedId)return;this.mgr.delete(this.selectedId),this.selectedId=null,this._renderList();let e=this.mgr.getAll();e.length>0?this._loadSignature(e[0].id):this._newSignature()}),this.shadow.getElementById(`f-hdr-color`).addEventListener(`input`,e=>{this.currentHeaderColor=e.target.value,this._refreshPreview()});for(let e of[`f-name`,`f-title`,`f-dept`,`f-company`,`f-phone`,`f-email`,`f-website`,`f-signame`])this.shadow.getElementById(e).addEventListener(`input`,()=>this._refreshPreview());this.shadow.getElementById(`btn-logo`).addEventListener(`click`,()=>{this.shadow.getElementById(`logo-input`).click()}),this.shadow.getElementById(`btn-logo-rm`).addEventListener(`click`,()=>{this.currentLogo=void 0,this.shadow.getElementById(`logo-preview`).classList.add(`hidden`),this.shadow.getElementById(`logo-preview`).innerHTML=``,this._refreshPreview()}),this.shadow.getElementById(`logo-input`).addEventListener(`change`,e=>{let t=e.target.files?.[0];t&&this._handleLogoUpload(t)}),this.shadow.getElementById(`btn-save`).addEventListener(`click`,()=>this._doSave()),this.shadow.getElementById(`btn-insert`).addEventListener(`click`,()=>this._doInsert())}_renderList(){let e=this.shadow.getElementById(`sig-list`);e.innerHTML=``;for(let t of this.mgr.getAll()){let n=document.createElement(`div`);n.className=`sig-item${t.id===this.selectedId?` selected`:``}`,n.textContent=t.name||`(이름 없음)`,n.dataset.id=t.id,n.addEventListener(`click`,()=>this._loadSignature(t.id)),e.appendChild(n)}}_loadSignature(e){let t=this.mgr.getById(e);t&&(this.selectedId=e,this.currentLayout=t.layout,this.currentLogo=t.logo,this.currentHeaderColor=t.headerColor??`#2563eb`,this._val(`f-signame`,t.name),this._val(`f-name`,t.fields.displayName),this._val(`f-title`,t.fields.title),this._val(`f-dept`,t.fields.department),this._val(`f-company`,t.fields.company),this._val(`f-phone`,t.fields.phone),this._val(`f-email`,t.fields.email),this._val(`f-website`,t.fields.website),this.shadow.getElementById(`f-hdr-color`).value=this.currentHeaderColor,this._syncLayoutCards(),this._syncColorRow(),this._syncLogoPreview(),this._renderList(),this._refreshPreview())}_newSignature(){this.selectedId=null,this.currentLayout=1,this.currentLogo=void 0,this.currentHeaderColor=`#2563eb`,[`f-signame`,`f-name`,`f-title`,`f-dept`,`f-company`,`f-phone`,`f-email`,`f-website`].forEach(e=>this._val(e,``)),this.shadow.getElementById(`f-hdr-color`).value=`#2563eb`,this._syncLayoutCards(),this._syncColorRow(),this.shadow.getElementById(`logo-preview`).classList.add(`hidden`),this.shadow.getElementById(`logo-preview`).innerHTML=``,this._renderList(),this._refreshPreview(),setTimeout(()=>this.shadow.getElementById(`f-signame`).focus(),50)}_setLayout(e){this.currentLayout=e,this._syncLayoutCards(),this._syncColorRow(),this._refreshPreview()}_syncLayoutCards(){this.shadow.querySelectorAll(`.layout-card`).forEach(e=>{e.classList.toggle(`active`,e.dataset.layout===String(this.currentLayout))})}_syncColorRow(){this.shadow.getElementById(`color-row`).classList.toggle(`hidden`,this.currentLayout!==6)}_refreshPreview(){let e=as({layout:this.currentLayout,fields:this._collectFields(),logo:this.currentLogo,headerColor:this.currentHeaderColor}),t=j.sanitize(e,{FORCE_BODY:!1,ADD_DATA_URI_TAGS:[`img`],ALLOWED_TAGS:[`table`,`tbody`,`tr`,`td`,`strong`,`span`,`img`,`hr`,`br`],ALLOWED_ATTR:[`style`,`class`,`alt`,`src`,`colspan`]}),n=this.shadow.getElementById(`preview-box`);n.innerHTML=t||`<div class="preview-empty">정보를 입력하면 미리보기가 표시됩니다</div>`}_handleLogoUpload(e){let t=this.shadow.getElementById(`logo-error`);if(e.size>204800){t.textContent=`파일 크기가 200KB를 초과합니다. (${Math.round(e.size/1024)}KB)`,t.classList.remove(`hidden`);return}t.classList.add(`hidden`);let n=new FileReader;n.onload=()=>{this.currentLogo=n.result,this._syncLogoPreview(),this._refreshPreview()},n.readAsDataURL(e)}_syncLogoPreview(){let e=this.shadow.getElementById(`logo-preview`);this.currentLogo?(e.innerHTML=`<img src="${this.currentLogo}" alt="로고 미리보기">`,e.classList.remove(`hidden`)):(e.innerHTML=``,e.classList.add(`hidden`))}_doSave(){let e=this.shadow.getElementById(`f-signame`).value.trim();if(!e){this.shadow.getElementById(`f-signame`).focus();return}let t={name:e,layout:this.currentLayout,fields:this._collectFields(),logo:this.currentLogo,headerColor:this.currentHeaderColor};try{if(this.selectedId)this.mgr.update(this.selectedId,t);else{let e=this.mgr.add(t);this.selectedId=e.id}this._renderList()}catch(e){let t=this.shadow.getElementById(`logo-error`);t.textContent=e.message,t.classList.remove(`hidden`)}}_doInsert(){let e=as({layout:this.currentLayout,fields:this._collectFields(),logo:this.currentLogo,headerColor:this.currentHeaderColor});e&&(this.dispatchEvent(new CustomEvent(`poa-signature-insert`,{bubbles:!0,composed:!0,detail:{html:e}})),this.close())}_val(e,t){this.shadow.getElementById(e).value=t}_collectFields(){return{displayName:this.shadow.getElementById(`f-name`).value.trim(),title:this.shadow.getElementById(`f-title`).value.trim(),department:this.shadow.getElementById(`f-dept`).value.trim(),company:this.shadow.getElementById(`f-company`).value.trim(),phone:this.shadow.getElementById(`f-phone`).value.trim(),email:this.shadow.getElementById(`f-email`).value.trim(),website:this.shadow.getElementById(`f-website`).value.trim()}}},ds=`
+`,ds=class extends HTMLElement{shadow;mgr;selectedId=null;currentLayout=1;currentLogo;currentHeaderColor=`#2563eb`;connectedCallback(){this.shadow=this.attachShadow({mode:`open`}),this.shadow.innerHTML=`<style>${ls}</style>${us}`,this.mgr=new ss,this._buildLayoutGrid(),this._bind()}open(){this.mgr=new ss,this._renderList();let e=this.mgr.getAll();e.length>0?this._loadSignature(e[0].id):this._newSignature(),this.setAttribute(`open`,``)}close(){this.removeAttribute(`open`)}_buildLayoutGrid(){let e=this.shadow.getElementById(`layout-grid`);e.innerHTML=``,[1,2,3,4,5,6].forEach(t=>{let n=document.createElement(`button`);n.className=`layout-card${t===this.currentLayout?` active`:``}`,n.dataset.layout=String(t),n.innerHTML=`<span class="layout-num">${t}</span>${cs[t]}`,n.addEventListener(`click`,()=>this._setLayout(t)),e.appendChild(n)})}_bind(){this.shadow.querySelector(`.x-btn`).addEventListener(`click`,()=>this.close()),this.addEventListener(`click`,e=>{e.composedPath()[0]===this&&this.close()}),this.shadow.getElementById(`btn-new`).addEventListener(`click`,()=>this._newSignature()),this.shadow.getElementById(`btn-delete`).addEventListener(`click`,()=>{if(!this.selectedId)return;this.mgr.delete(this.selectedId),this.selectedId=null,this._renderList();let e=this.mgr.getAll();e.length>0?this._loadSignature(e[0].id):this._newSignature()}),this.shadow.getElementById(`f-hdr-color`).addEventListener(`input`,e=>{this.currentHeaderColor=e.target.value,this._refreshPreview()});for(let e of[`f-name`,`f-title`,`f-dept`,`f-company`,`f-phone`,`f-email`,`f-website`,`f-signame`])this.shadow.getElementById(e).addEventListener(`input`,()=>this._refreshPreview());this.shadow.getElementById(`btn-logo`).addEventListener(`click`,()=>{this.shadow.getElementById(`logo-input`).click()}),this.shadow.getElementById(`btn-logo-rm`).addEventListener(`click`,()=>{this.currentLogo=void 0,this.shadow.getElementById(`logo-preview`).classList.add(`hidden`),this.shadow.getElementById(`logo-preview`).innerHTML=``,this._refreshPreview()}),this.shadow.getElementById(`logo-input`).addEventListener(`change`,e=>{let t=e.target.files?.[0];t&&this._handleLogoUpload(t)}),this.shadow.getElementById(`btn-save`).addEventListener(`click`,()=>this._doSave()),this.shadow.getElementById(`btn-insert`).addEventListener(`click`,()=>this._doInsert())}_renderList(){let e=this.shadow.getElementById(`sig-list`);e.innerHTML=``;for(let t of this.mgr.getAll()){let n=document.createElement(`div`);n.className=`sig-item${t.id===this.selectedId?` selected`:``}`,n.textContent=t.name||`(이름 없음)`,n.dataset.id=t.id,n.addEventListener(`click`,()=>this._loadSignature(t.id)),e.appendChild(n)}}_loadSignature(e){let t=this.mgr.getById(e);t&&(this.selectedId=e,this.currentLayout=t.layout,this.currentLogo=t.logo,this.currentHeaderColor=t.headerColor??`#2563eb`,this._val(`f-signame`,t.name),this._val(`f-name`,t.fields.displayName),this._val(`f-title`,t.fields.title),this._val(`f-dept`,t.fields.department),this._val(`f-company`,t.fields.company),this._val(`f-phone`,t.fields.phone),this._val(`f-email`,t.fields.email),this._val(`f-website`,t.fields.website),this.shadow.getElementById(`f-hdr-color`).value=this.currentHeaderColor,this._syncLayoutCards(),this._syncColorRow(),this._syncLogoPreview(),this._renderList(),this._refreshPreview())}_newSignature(){this.selectedId=null,this.currentLayout=1,this.currentLogo=void 0,this.currentHeaderColor=`#2563eb`,[`f-signame`,`f-name`,`f-title`,`f-dept`,`f-company`,`f-phone`,`f-email`,`f-website`].forEach(e=>this._val(e,``)),this.shadow.getElementById(`f-hdr-color`).value=`#2563eb`,this._syncLayoutCards(),this._syncColorRow(),this.shadow.getElementById(`logo-preview`).classList.add(`hidden`),this.shadow.getElementById(`logo-preview`).innerHTML=``,this._renderList(),this._refreshPreview(),setTimeout(()=>this.shadow.getElementById(`f-signame`).focus(),50)}_setLayout(e){this.currentLayout=e,this._syncLayoutCards(),this._syncColorRow(),this._refreshPreview()}_syncLayoutCards(){this.shadow.querySelectorAll(`.layout-card`).forEach(e=>{e.classList.toggle(`active`,e.dataset.layout===String(this.currentLayout))})}_syncColorRow(){this.shadow.getElementById(`color-row`).classList.toggle(`hidden`,this.currentLayout!==6)}_refreshPreview(){let e=os({layout:this.currentLayout,fields:this._collectFields(),logo:this.currentLogo,headerColor:this.currentHeaderColor}),t=j.sanitize(e,{FORCE_BODY:!1,ADD_DATA_URI_TAGS:[`img`],ALLOWED_TAGS:[`table`,`tbody`,`tr`,`td`,`strong`,`span`,`img`,`hr`,`br`],ALLOWED_ATTR:[`style`,`class`,`alt`,`src`,`colspan`]}),n=this.shadow.getElementById(`preview-box`);n.innerHTML=t||`<div class="preview-empty">정보를 입력하면 미리보기가 표시됩니다</div>`}_handleLogoUpload(e){let t=this.shadow.getElementById(`logo-error`);if(e.size>204800){t.textContent=`파일 크기가 200KB를 초과합니다. (${Math.round(e.size/1024)}KB)`,t.classList.remove(`hidden`);return}t.classList.add(`hidden`);let n=new FileReader;n.onload=()=>{this.currentLogo=n.result,this._syncLogoPreview(),this._refreshPreview()},n.readAsDataURL(e)}_syncLogoPreview(){let e=this.shadow.getElementById(`logo-preview`);this.currentLogo?(e.innerHTML=`<img src="${this.currentLogo}" alt="로고 미리보기">`,e.classList.remove(`hidden`)):(e.innerHTML=``,e.classList.add(`hidden`))}_doSave(){let e=this.shadow.getElementById(`f-signame`).value.trim();if(!e){this.shadow.getElementById(`f-signame`).focus();return}let t={name:e,layout:this.currentLayout,fields:this._collectFields(),logo:this.currentLogo,headerColor:this.currentHeaderColor};try{if(this.selectedId)this.mgr.update(this.selectedId,t);else{let e=this.mgr.add(t);this.selectedId=e.id}this._renderList()}catch(e){let t=this.shadow.getElementById(`logo-error`);t.textContent=e.message,t.classList.remove(`hidden`)}}_doInsert(){let e=os({layout:this.currentLayout,fields:this._collectFields(),logo:this.currentLogo,headerColor:this.currentHeaderColor});e&&(this.dispatchEvent(new CustomEvent(`poa-signature-insert`,{bubbles:!0,composed:!0,detail:{html:e}})),this.close())}_val(e,t){this.shadow.getElementById(e).value=t}_collectFields(){return{displayName:this.shadow.getElementById(`f-name`).value.trim(),title:this.shadow.getElementById(`f-title`).value.trim(),department:this.shadow.getElementById(`f-dept`).value.trim(),company:this.shadow.getElementById(`f-company`).value.trim(),phone:this.shadow.getElementById(`f-phone`).value.trim(),email:this.shadow.getElementById(`f-email`).value.trim(),website:this.shadow.getElementById(`f-website`).value.trim()}}},fs=`
 *, *::before, *::after { box-sizing: border-box; }
 :host { display: none; position: fixed; inset: 0; z-index: 9999; align-items: center; justify-content: center; }
 :host([open]) { display: flex; background: rgba(0,0,0,.45); }
@@ -3245,7 +3267,7 @@ table{border-collapse:collapse;width:100%;}td,th{border:1px solid #ccc;padding:4
 }
 .cat-btn:hover   { background: #f3f4f6; }
 .cat-btn.active  { background: #eff6ff; outline: 1.5px solid #2563eb; }
-`,fs=class extends HTMLElement{shadow;inserter=new ei;activeCatId=Zr[0].id;connectedCallback(){this.shadow=this.attachShadow({mode:`open`}),this.shadow.innerHTML=`<style>${ds}</style>
+`,ps=class extends HTMLElement{shadow;inserter=new ei;activeCatId=Zr[0].id;connectedCallback(){this.shadow=this.attachShadow({mode:`open`}),this.shadow.innerHTML=`<style>${fs}</style>
 <div class="dlg">
   <div class="hdr"><h3>이모지</h3><button class="x-btn" aria-label="닫기">✕</button></div>
   <div class="search-wrap"><input class="search-input" id="search" type="text" placeholder="🔍 이모지 검색…"></div>
@@ -3253,7 +3275,7 @@ table{border-collapse:collapse;width:100%;}td,th{border:1px solid #ccc;padding:4
     <div class="emoji-area" id="emoji-area"></div>
     <div class="cat-bar" id="cat-bar"></div>
   </div>
-</div>`,this._buildCatBar(),this._bind()}open(){this._renderCategory(this.activeCatId),this.setAttribute(`open`,``),setTimeout(()=>this.shadow.getElementById(`search`).focus(),50)}close(){this.removeAttribute(`open`)}_buildCatBar(){let e=this.shadow.getElementById(`cat-bar`);e.innerHTML=``;for(let t of Zr){let n=document.createElement(`button`);n.className=`cat-btn${t.id===this.activeCatId?` active`:``}`,n.title=t.label,n.textContent=t.icon,n.dataset.catId=t.id,n.addEventListener(`click`,()=>{this.activeCatId=t.id,this._syncCatBar(),this._renderCategory(t.id),this.shadow.getElementById(`search`).value=``}),e.appendChild(n)}}_syncCatBar(){this.shadow.querySelectorAll(`.cat-btn`).forEach(e=>{e.classList.toggle(`active`,e.dataset.catId===this.activeCatId)})}_renderCategory(e){let t=this.shadow.getElementById(`emoji-area`);t.innerHTML=``;let n=this.inserter.getRecent();if(n.length>0){this._appendSection(t,`최근 사용`,n);let e=document.createElement(`hr`);e.className=`divider`,t.appendChild(e)}let r=Zr.find(t=>t.id===e);r&&this._appendSection(t,r.label,r.emojis)}_renderSearch(e){let t=this.shadow.getElementById(`emoji-area`);t.innerHTML=``;let n=$r(e);if(n.length===0){let n=document.createElement(`div`);n.className=`no-result`,n.textContent=`"${e}"에 대한 결과가 없습니다`,t.appendChild(n)}else this._appendSection(t,`검색 결과 (${n.length})`,n)}_appendSection(e,t,n){let r=document.createElement(`div`);r.className=`section-label`,r.textContent=t,e.appendChild(r);let i=document.createElement(`div`);i.className=`emoji-grid`;for(let e of n){let t=document.createElement(`button`);t.className=`emoji-btn`,t.textContent=e,t.title=e,t.addEventListener(`click`,()=>this._pickEmoji(e)),i.appendChild(t)}e.appendChild(i)}_bind(){this.shadow.querySelector(`.x-btn`).addEventListener(`click`,()=>this.close()),this.addEventListener(`click`,e=>{e.composedPath()[0]===this&&this.close()});let e=this.shadow.getElementById(`search`);e.addEventListener(`input`,()=>{let t=e.value.trim();t?this._renderSearch(t):this._renderCategory(this.activeCatId)}),e.addEventListener(`keydown`,e=>{e.key===`Escape`&&(e.stopPropagation(),this.close())})}_pickEmoji(e){this.dispatchEvent(new CustomEvent(`poa-emoji-insert`,{bubbles:!0,composed:!0,detail:{emoji:e}})),this.shadow.getElementById(`search`).value.trim()||this._renderCategory(this.activeCatId)}},ps=`
+</div>`,this._buildCatBar(),this._bind()}open(){this._renderCategory(this.activeCatId),this.setAttribute(`open`,``),setTimeout(()=>this.shadow.getElementById(`search`).focus(),50)}close(){this.removeAttribute(`open`)}_buildCatBar(){let e=this.shadow.getElementById(`cat-bar`);e.innerHTML=``;for(let t of Zr){let n=document.createElement(`button`);n.className=`cat-btn${t.id===this.activeCatId?` active`:``}`,n.title=t.label,n.textContent=t.icon,n.dataset.catId=t.id,n.addEventListener(`click`,()=>{this.activeCatId=t.id,this._syncCatBar(),this._renderCategory(t.id),this.shadow.getElementById(`search`).value=``}),e.appendChild(n)}}_syncCatBar(){this.shadow.querySelectorAll(`.cat-btn`).forEach(e=>{e.classList.toggle(`active`,e.dataset.catId===this.activeCatId)})}_renderCategory(e){let t=this.shadow.getElementById(`emoji-area`);t.innerHTML=``;let n=this.inserter.getRecent();if(n.length>0){this._appendSection(t,`최근 사용`,n);let e=document.createElement(`hr`);e.className=`divider`,t.appendChild(e)}let r=Zr.find(t=>t.id===e);r&&this._appendSection(t,r.label,r.emojis)}_renderSearch(e){let t=this.shadow.getElementById(`emoji-area`);t.innerHTML=``;let n=$r(e);if(n.length===0){let n=document.createElement(`div`);n.className=`no-result`,n.textContent=`"${e}"에 대한 결과가 없습니다`,t.appendChild(n)}else this._appendSection(t,`검색 결과 (${n.length})`,n)}_appendSection(e,t,n){let r=document.createElement(`div`);r.className=`section-label`,r.textContent=t,e.appendChild(r);let i=document.createElement(`div`);i.className=`emoji-grid`;for(let e of n){let t=document.createElement(`button`);t.className=`emoji-btn`,t.textContent=e,t.title=e,t.addEventListener(`click`,()=>this._pickEmoji(e)),i.appendChild(t)}e.appendChild(i)}_bind(){this.shadow.querySelector(`.x-btn`).addEventListener(`click`,()=>this.close()),this.addEventListener(`click`,e=>{e.composedPath()[0]===this&&this.close()});let e=this.shadow.getElementById(`search`);e.addEventListener(`input`,()=>{let t=e.value.trim();t?this._renderSearch(t):this._renderCategory(this.activeCatId)}),e.addEventListener(`keydown`,e=>{e.key===`Escape`&&(e.stopPropagation(),this.close())})}_pickEmoji(e){this.dispatchEvent(new CustomEvent(`poa-emoji-insert`,{bubbles:!0,composed:!0,detail:{emoji:e}})),this.shadow.getElementById(`search`).value.trim()||this._renderCategory(this.activeCatId)}},ms=`
 *, *::before, *::after { box-sizing: border-box; }
 :host { display: none; position: fixed; inset: 0; z-index: 9999; align-items: center; justify-content: center; }
 :host([open]) { display: flex; background: rgba(0,0,0,.45); }
@@ -3333,7 +3355,7 @@ table{border-collapse:collapse;width:100%;}td,th{border:1px solid #ccc;padding:4
   background: #fff; cursor: pointer; font-size: 13px; color: #ef4444;
 }
 .hidden { display: none !important; }
-`,ms=class extends HTMLElement{shadow;mode=`add`;editId=null;entries=[];connectedCallback(){this.shadow=this.attachShadow({mode:`open`}),this.shadow.innerHTML=`<style>${ps}</style>
+`,hs=class extends HTMLElement{shadow;mode=`add`;editId=null;entries=[];connectedCallback(){this.shadow=this.attachShadow({mode:`open`}),this.shadow.innerHTML=`<style>${ms}</style>
 <div class="dlg">
   <div class="hdr">
     <h3 id="dlg-title">툴팁 추가</h3>
@@ -3377,7 +3399,7 @@ table{border-collapse:collapse;width:100%;}td,th{border:1px solid #ccc;padding:4
     <button class="btn-del-all" id="btn-del-all">전체 삭제</button>
     <button class="btn-cancel"  id="btn-close-list">닫기</button>
   </div>
-</div>`,this._bind()}openAdd(e){this.mode=`add`,this.editId=null,this._val(`f-title`,``),this._val(`f-content`,``),this._showEditPanel(`툴팁 추가`,`추가`),this.shadow.getElementById(`anchor-wrap`).classList.remove(`hidden`),this.shadow.getElementById(`anchor-text`).textContent=`"${e}"`,this._updatePreview(),this.setAttribute(`open`,``),setTimeout(()=>this.shadow.getElementById(`f-title`).focus(),50)}openEdit(e){this.mode=`edit`,this.editId=e.id,this._val(`f-title`,e.title),this._val(`f-content`,e.content),this._showEditPanel(`툴팁 수정`,`저장`),this.shadow.getElementById(`anchor-wrap`).classList.remove(`hidden`),this.shadow.getElementById(`anchor-text`).textContent=`"${e.anchorText}"`,this._updatePreview(),this.setAttribute(`open`,``),setTimeout(()=>this.shadow.getElementById(`f-content`).focus(),50)}openList(e){this.mode=`list`,this.entries=e,this._showListPanel(),this._renderList(),this.setAttribute(`open`,``)}close(){this.removeAttribute(`open`)}_showEditPanel(e,t){this.shadow.getElementById(`dlg-title`).textContent=e,this.shadow.getElementById(`edit-panel`).classList.remove(`hidden`),this.shadow.getElementById(`list-panel`).classList.add(`hidden`),this.shadow.getElementById(`edit-footer`).classList.remove(`hidden`),this.shadow.getElementById(`list-footer`).classList.add(`hidden`),this.shadow.getElementById(`btn-ok`).textContent=t}_showListPanel(){this.shadow.getElementById(`dlg-title`).textContent=`툴팁 목록`,this.shadow.getElementById(`edit-panel`).classList.add(`hidden`),this.shadow.getElementById(`list-panel`).classList.remove(`hidden`),this.shadow.getElementById(`edit-footer`).classList.add(`hidden`),this.shadow.getElementById(`list-footer`).classList.remove(`hidden`)}_renderList(){let e=this.entries.length;this.shadow.getElementById(`list-summary`).textContent=`문서 내 툴팁 ${e}개`;let t=this.shadow.getElementById(`list-items`);if(t.innerHTML=``,e===0){let e=document.createElement(`div`);e.className=`list-empty`,e.textContent=`툴팁이 없습니다`,t.appendChild(e);return}for(let e of this.entries){let n=document.createElement(`div`);n.className=`tt-item`,n.innerHTML=`<div class="tt-anchor">"${e.anchorText}"</div><div class="tt-content">→ ${e.content}</div><div class="tt-actions"><button class="tt-edit-btn" data-id="${e.id}">수정</button><button class="tt-del-btn"  data-id="${e.id}">삭제</button></div>`,n.querySelector(`.tt-edit-btn`).addEventListener(`click`,()=>this.openEdit(e)),n.querySelector(`.tt-del-btn`).addEventListener(`click`,()=>{this.dispatchEvent(new CustomEvent(`poa-tooltip-remove`,{bubbles:!0,composed:!0,detail:{id:e.id}})),this.entries=this.entries.filter(t=>t.id!==e.id),this._renderList()}),t.appendChild(n)}}_updatePreview(){let e=this.shadow.getElementById(`f-title`).value.trim(),t=this.shadow.getElementById(`f-content`).value.trim(),n=this.shadow.getElementById(`preview-title`),r=this.shadow.getElementById(`preview-body`);n.textContent=e,n.classList.toggle(`hidden`,!e),r.textContent=t||`내용을 입력하세요`}_bind(){this.shadow.querySelector(`.x-btn`).addEventListener(`click`,()=>this.close()),this.addEventListener(`click`,e=>{e.composedPath()[0]===this&&this.close()}),this.shadow.getElementById(`btn-cancel`).addEventListener(`click`,()=>this.close()),this.shadow.getElementById(`btn-close-list`).addEventListener(`click`,()=>this.close()),this.shadow.getElementById(`btn-del-all`).addEventListener(`click`,()=>{this.dispatchEvent(new CustomEvent(`poa-tooltip-remove-all`,{bubbles:!0,composed:!0})),this.entries=[],this._renderList()}),this.shadow.getElementById(`btn-ok`).addEventListener(`click`,()=>this._doOk());let e=()=>this._updatePreview();this.shadow.getElementById(`f-title`).addEventListener(`input`,e),this.shadow.getElementById(`f-content`).addEventListener(`input`,e),this.shadow.getElementById(`f-content`).addEventListener(`keydown`,e=>{(e.ctrlKey||e.metaKey)&&e.key===`Enter`&&this._doOk(),e.key===`Escape`&&(e.stopPropagation(),this.close())})}_doOk(){let e=this.shadow.getElementById(`f-title`).value.trim(),t=this.shadow.getElementById(`f-content`).value.trim();if(!t){this.shadow.getElementById(`f-content`).focus();return}this.mode===`edit`&&this.editId?this.dispatchEvent(new CustomEvent(`poa-tooltip-update`,{bubbles:!0,composed:!0,detail:{id:this.editId,title:e,content:t}})):this.dispatchEvent(new CustomEvent(`poa-tooltip-insert`,{bubbles:!0,composed:!0,detail:{title:e,content:t}})),this.close()}_val(e,t){this.shadow.getElementById(e).value=t}},hs=`
+</div>`,this._bind()}openAdd(e){this.mode=`add`,this.editId=null,this._val(`f-title`,``),this._val(`f-content`,``),this._showEditPanel(`툴팁 추가`,`추가`),this.shadow.getElementById(`anchor-wrap`).classList.remove(`hidden`),this.shadow.getElementById(`anchor-text`).textContent=`"${e}"`,this._updatePreview(),this.setAttribute(`open`,``),setTimeout(()=>this.shadow.getElementById(`f-title`).focus(),50)}openEdit(e){this.mode=`edit`,this.editId=e.id,this._val(`f-title`,e.title),this._val(`f-content`,e.content),this._showEditPanel(`툴팁 수정`,`저장`),this.shadow.getElementById(`anchor-wrap`).classList.remove(`hidden`),this.shadow.getElementById(`anchor-text`).textContent=`"${e.anchorText}"`,this._updatePreview(),this.setAttribute(`open`,``),setTimeout(()=>this.shadow.getElementById(`f-content`).focus(),50)}openList(e){this.mode=`list`,this.entries=e,this._showListPanel(),this._renderList(),this.setAttribute(`open`,``)}close(){this.removeAttribute(`open`)}_showEditPanel(e,t){this.shadow.getElementById(`dlg-title`).textContent=e,this.shadow.getElementById(`edit-panel`).classList.remove(`hidden`),this.shadow.getElementById(`list-panel`).classList.add(`hidden`),this.shadow.getElementById(`edit-footer`).classList.remove(`hidden`),this.shadow.getElementById(`list-footer`).classList.add(`hidden`),this.shadow.getElementById(`btn-ok`).textContent=t}_showListPanel(){this.shadow.getElementById(`dlg-title`).textContent=`툴팁 목록`,this.shadow.getElementById(`edit-panel`).classList.add(`hidden`),this.shadow.getElementById(`list-panel`).classList.remove(`hidden`),this.shadow.getElementById(`edit-footer`).classList.add(`hidden`),this.shadow.getElementById(`list-footer`).classList.remove(`hidden`)}_renderList(){let e=this.entries.length;this.shadow.getElementById(`list-summary`).textContent=`문서 내 툴팁 ${e}개`;let t=this.shadow.getElementById(`list-items`);if(t.innerHTML=``,e===0){let e=document.createElement(`div`);e.className=`list-empty`,e.textContent=`툴팁이 없습니다`,t.appendChild(e);return}for(let e of this.entries){let n=document.createElement(`div`);n.className=`tt-item`,n.innerHTML=`<div class="tt-anchor">"${e.anchorText}"</div><div class="tt-content">→ ${e.content}</div><div class="tt-actions"><button class="tt-edit-btn" data-id="${e.id}">수정</button><button class="tt-del-btn"  data-id="${e.id}">삭제</button></div>`,n.querySelector(`.tt-edit-btn`).addEventListener(`click`,()=>this.openEdit(e)),n.querySelector(`.tt-del-btn`).addEventListener(`click`,()=>{this.dispatchEvent(new CustomEvent(`poa-tooltip-remove`,{bubbles:!0,composed:!0,detail:{id:e.id}})),this.entries=this.entries.filter(t=>t.id!==e.id),this._renderList()}),t.appendChild(n)}}_updatePreview(){let e=this.shadow.getElementById(`f-title`).value.trim(),t=this.shadow.getElementById(`f-content`).value.trim(),n=this.shadow.getElementById(`preview-title`),r=this.shadow.getElementById(`preview-body`);n.textContent=e,n.classList.toggle(`hidden`,!e),r.textContent=t||`내용을 입력하세요`}_bind(){this.shadow.querySelector(`.x-btn`).addEventListener(`click`,()=>this.close()),this.addEventListener(`click`,e=>{e.composedPath()[0]===this&&this.close()}),this.shadow.getElementById(`btn-cancel`).addEventListener(`click`,()=>this.close()),this.shadow.getElementById(`btn-close-list`).addEventListener(`click`,()=>this.close()),this.shadow.getElementById(`btn-del-all`).addEventListener(`click`,()=>{this.dispatchEvent(new CustomEvent(`poa-tooltip-remove-all`,{bubbles:!0,composed:!0})),this.entries=[],this._renderList()}),this.shadow.getElementById(`btn-ok`).addEventListener(`click`,()=>this._doOk());let e=()=>this._updatePreview();this.shadow.getElementById(`f-title`).addEventListener(`input`,e),this.shadow.getElementById(`f-content`).addEventListener(`input`,e),this.shadow.getElementById(`f-content`).addEventListener(`keydown`,e=>{(e.ctrlKey||e.metaKey)&&e.key===`Enter`&&this._doOk(),e.key===`Escape`&&(e.stopPropagation(),this.close())})}_doOk(){let e=this.shadow.getElementById(`f-title`).value.trim(),t=this.shadow.getElementById(`f-content`).value.trim();if(!t){this.shadow.getElementById(`f-content`).focus();return}this.mode===`edit`&&this.editId?this.dispatchEvent(new CustomEvent(`poa-tooltip-update`,{bubbles:!0,composed:!0,detail:{id:this.editId,title:e,content:t}})):this.dispatchEvent(new CustomEvent(`poa-tooltip-insert`,{bubbles:!0,composed:!0,detail:{title:e,content:t}})),this.close()}_val(e,t){this.shadow.getElementById(e).value=t}},gs=`
 *, *::before, *::after { box-sizing: border-box; }
 
 :host { display:none; position:fixed; inset:0; z-index:10000; align-items:center; justify-content:center; }
@@ -3455,7 +3477,7 @@ input[type=text]:focus { border-color:#2563eb; }
   background:#2563eb; cursor:pointer; font-size:13px; color:#fff; font-weight:600;
 }
 .btn-apply:hover { background:#1d4ed8; }
-`,gs=class extends HTMLElement{shadow;targetInput=null;connectedCallback(){this.shadow||(this.shadow=this.attachShadow({mode:`open`}),this.shadow.innerHTML=`<style>${hs}</style>${this._tpl()}`,this._bindEvents())}open(e){this.shadow||this.connectedCallback(),this.targetInput=e,this._populate(e),this.setAttribute(`open`,``)}close(){this.removeAttribute(`open`)}_tpl(){return`<div class="dlg">
+`,_s=class extends HTMLElement{shadow;targetInput=null;connectedCallback(){this.shadow||(this.shadow=this.attachShadow({mode:`open`}),this.shadow.innerHTML=`<style>${gs}</style>${this._tpl()}`,this._bindEvents())}open(e){this.shadow||this.connectedCallback(),this.targetInput=e,this._populate(e),this.setAttribute(`open`,``)}close(){this.removeAttribute(`open`)}_tpl(){return`<div class="dlg">
   <div class="hdr">
     <h3>입력 요소 속성</h3>
     <button class="x-btn" aria-label="닫기">✕</button>
@@ -3514,7 +3536,7 @@ input[type=text]:focus { border-color:#2563eb; }
     <button class="btn-cancel" id="btn-cancel">취소</button>
     <button class="btn-apply"  id="btn-apply">적용</button>
   </div>
-</div>`}_populate(e){let t=this.shadow,n=e.style.width,r=t.querySelectorAll(`input[name="w-mode"]`),i=t.getElementById(`w-px`),a=t.getElementById(`w-pct`);!n||n===`100%`?r[0].checked=!0:n.endsWith(`px`)?(r[1].checked=!0,i.value=parseFloat(n).toString()):n.endsWith(`%`)?(r[2].checked=!0,a.value=parseFloat(n).toString()):r[0].checked=!0,i.disabled=!r[1].checked,a.disabled=!r[2].checked;let o=e.style.marginLeft,s=e.style.marginRight,c=t.getElementById(`align`);o===`auto`&&s===`auto`?c.value=`center`:o===`auto`?c.value=`right`:c.value=`left`,t.getElementById(`text-align`).value=e.style.textAlign||``;let l=t.getElementById(`placeholder`);l.value=e.placeholder??``,t.getElementById(`required`).checked=e.required??!1,t.getElementById(`disabled`).checked=e.disabled??!1}_bindEvents(){this.shadow.querySelector(`.x-btn`).addEventListener(`click`,()=>this.close()),this.shadow.getElementById(`btn-cancel`).addEventListener(`click`,()=>this.close()),this.shadow.getElementById(`btn-apply`).addEventListener(`click`,()=>this._apply()),this.shadow.addEventListener(`change`,e=>{let t=e.target;if(t.name===`w-mode`){let e=t.value;this.shadow.getElementById(`w-px`).disabled=e!==`px`,this.shadow.getElementById(`w-pct`).disabled=e!==`pct`}}),this.addEventListener(`click`,e=>{e.composedPath()[0]===this&&this.close()})}_apply(){let e=this.targetInput;if(!e){this.close();return}let t=this.shadow,n=t.querySelector(`input[name="w-mode"]:checked`)?.value??`full`;if(n===`full`)e.style.width=`100%`,e.style.maxWidth=`100%`;else if(n===`px`){let n=parseFloat(t.getElementById(`w-px`).value);n>0&&(e.style.width=`${n}px`)}else{let n=parseFloat(t.getElementById(`w-pct`).value);n>0&&(e.style.width=`${n}%`)}let r=t.getElementById(`align`).value;e.style.display=`block`,e.style.marginLeft=r===`center`||r===`right`?`auto`:``,e.style.marginRight=r===`center`||r===`left`?`auto`:``,r===`left`&&(e.style.marginLeft=``,e.style.marginRight=`auto`),r===`right`&&(e.style.marginLeft=`auto`,e.style.marginRight=``),e.style.textAlign=t.getElementById(`text-align`).value,e.placeholder=t.getElementById(`placeholder`).value,e.required=t.getElementById(`required`).checked,e.disabled=t.getElementById(`disabled`).checked,this.dispatchEvent(new CustomEvent(`poa-input-props-apply`,{bubbles:!0,composed:!0,detail:{el:e}})),this.close()}},_s=`
+</div>`}_populate(e){let t=this.shadow,n=e.style.width,r=t.querySelectorAll(`input[name="w-mode"]`),i=t.getElementById(`w-px`),a=t.getElementById(`w-pct`);!n||n===`100%`?r[0].checked=!0:n.endsWith(`px`)?(r[1].checked=!0,i.value=parseFloat(n).toString()):n.endsWith(`%`)?(r[2].checked=!0,a.value=parseFloat(n).toString()):r[0].checked=!0,i.disabled=!r[1].checked,a.disabled=!r[2].checked;let o=e.style.marginLeft,s=e.style.marginRight,c=t.getElementById(`align`);o===`auto`&&s===`auto`?c.value=`center`:o===`auto`?c.value=`right`:c.value=`left`,t.getElementById(`text-align`).value=e.style.textAlign||``;let l=t.getElementById(`placeholder`);l.value=e.placeholder??``,t.getElementById(`required`).checked=e.required??!1,t.getElementById(`disabled`).checked=e.disabled??!1}_bindEvents(){this.shadow.querySelector(`.x-btn`).addEventListener(`click`,()=>this.close()),this.shadow.getElementById(`btn-cancel`).addEventListener(`click`,()=>this.close()),this.shadow.getElementById(`btn-apply`).addEventListener(`click`,()=>this._apply()),this.shadow.addEventListener(`change`,e=>{let t=e.target;if(t.name===`w-mode`){let e=t.value;this.shadow.getElementById(`w-px`).disabled=e!==`px`,this.shadow.getElementById(`w-pct`).disabled=e!==`pct`}}),this.addEventListener(`click`,e=>{e.composedPath()[0]===this&&this.close()})}_apply(){let e=this.targetInput;if(!e){this.close();return}let t=this.shadow,n=t.querySelector(`input[name="w-mode"]:checked`)?.value??`full`;if(n===`full`)e.style.width=`100%`,e.style.maxWidth=`100%`;else if(n===`px`){let n=parseFloat(t.getElementById(`w-px`).value);n>0&&(e.style.width=`${n}px`)}else{let n=parseFloat(t.getElementById(`w-pct`).value);n>0&&(e.style.width=`${n}%`)}let r=t.getElementById(`align`).value;e.style.display=`block`,e.style.marginLeft=r===`center`||r===`right`?`auto`:``,e.style.marginRight=r===`center`||r===`left`?`auto`:``,r===`left`&&(e.style.marginLeft=``,e.style.marginRight=`auto`),r===`right`&&(e.style.marginLeft=`auto`,e.style.marginRight=``),e.style.textAlign=t.getElementById(`text-align`).value,e.placeholder=t.getElementById(`placeholder`).value,e.required=t.getElementById(`required`).checked,e.disabled=t.getElementById(`disabled`).checked,this.dispatchEvent(new CustomEvent(`poa-input-props-apply`,{bubbles:!0,composed:!0,detail:{el:e}})),this.close()}},vs=`
 :host { display: none; }
 :host([open]) { display: block; }
 .backdrop {
@@ -3524,83 +3546,97 @@ input[type=text]:focus { border-color:#2563eb; }
   display: flex; align-items: center; justify-content: center;
 }
 .dialog {
-  background: #fff; border-radius: 8px;
+  background: #fff; border-radius: 10px;
   box-shadow: 0 8px 32px rgba(0,0,0,.25);
-  width: 480px; max-width: 95vw; max-height: 80vh;
+  width: 440px; max-width: 95vw; max-height: 80vh;
   display: flex; flex-direction: column;
   font-family: 'Noto Sans KR', 'Roboto', sans-serif;
   overflow: hidden;
 }
 .header {
   display: flex; align-items: center; justify-content: space-between;
-  padding: 14px 20px; border-bottom: 1px solid #e8eaed;
-  font-size: 15px; font-weight: 600; color: #1e293b;
+  padding: 14px 20px; border-bottom: 1px solid #E5E7EB;
+  font-size: 15px; font-weight: 700; color: #111827;
+  flex-shrink: 0;
 }
 .close-btn {
   border: none; background: transparent; font-size: 20px;
-  cursor: pointer; color: #94a3b8; line-height: 1; padding: 0 4px;
+  cursor: pointer; color: #9CA3AF; line-height: 1; padding: 0 4px;
+  border-radius: 4px;
 }
-.close-btn:hover { color: #334155; }
-.body { flex: 1; overflow-y: auto; }
-.section { padding: 16px 20px; }
-.section + .section { border-top: 1px solid #f0f0f0; }
-.section-title {
-  font-size: 11px; font-weight: 600; color: #64748b;
-  text-transform: uppercase; letter-spacing: .08em;
-  margin: 0 0 10px;
+.close-btn:hover { color: #374151; background: #F3F4F6; }
+.body { flex: 1; overflow-y: auto; padding: 0 20px; }
+.guide-text {
+  font-size: 12px; color: #6B7280;
+  padding: 8px 0 12px;
+  border-bottom: 1px solid #F3F4F6;
+  margin-bottom: 8px;
+  line-height: 1.5;
 }
-.file-btns { display: flex; gap: 8px; flex-wrap: wrap; }
-.file-btns button {
-  padding: 6px 14px; border: 1px solid #cbd5e1; border-radius: 4px;
-  background: #fff; cursor: pointer; font-size: 13px; color: #334155;
-}
-.file-btns button:hover { background: #f8fafc; }
 .history-list { list-style: none; margin: 0; padding: 0; }
 .history-item {
   display: flex; align-items: center; justify-content: space-between;
-  padding: 8px 0; border-bottom: 1px solid #f5f5f5;
+  height: 40px; padding: 0 4px;
+  border-bottom: 1px solid #F9FAFB;
+  font-size: 13px; color: #374151;
+  transition: background .1s;
 }
+.history-item:hover { background: #F9FAFB; }
 .history-item:last-child { border-bottom: none; }
-.history-time { font-size: 12px; color: #64748b; }
+.history-time { font-size: 13px; color: #374151; }
 .restore-btn {
-  padding: 3px 10px; border: 1px solid #3b82f6; border-radius: 3px;
-  background: transparent; color: #3b82f6; cursor: pointer; font-size: 12px;
+  height: 28px; padding: 0 12px;
+  font-size: 12px;
+  background: #EFF6FF; color: #2563EB;
+  border: 1px solid #BFDBFE; border-radius: 4px;
+  cursor: pointer; font-family: inherit;
+  flex-shrink: 0;
+  transition: background .1s;
 }
-.restore-btn:hover { background: #eff6ff; }
-.empty-msg { color: #aaa; font-size: 13px; text-align: center; padding: 20px 0; }
+.restore-btn:hover { background: #DBEAFE; }
+.empty-msg {
+  color: #9CA3AF; font-size: 13px;
+  text-align: center; padding: 32px 0;
+}
+.footer {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 10px 20px 14px;
+  border-top: 1px solid #F3F4F6;
+  flex-shrink: 0;
+}
+.history-count {
+  font-size: 12px; color: #6B7280;
+}
 .clear-btn {
-  margin-top: 10px; padding: 5px 12px;
-  border: 1px solid #e2e8f0; border-radius: 3px;
-  background: #fff; cursor: pointer; font-size: 12px; color: #64748b;
+  height: 28px; padding: 0 12px;
+  border: 1px solid #FCA5A5; border-radius: 4px;
+  background: transparent; cursor: pointer;
+  font-size: 12px; color: #EF4444; font-family: inherit;
+  transition: background .1s;
 }
-.clear-btn:hover { background: #f8fafc; }
-`;function vs(e){return new Date(e).toLocaleString(`ko-KR`,{month:`2-digit`,day:`2-digit`,hour:`2-digit`,minute:`2-digit`,second:`2-digit`})}var ys=class extends HTMLElement{shadow;autoSave=null;constructor(){super(),this.shadow=this.attachShadow({mode:`open`})}connectedCallback(){this.shadow.innerHTML=`<style>${_s}</style>
+.clear-btn:hover { background: #FEF2F2; }
+`;function ys(e){return new Date(e).toLocaleString(`ko-KR`,{month:`2-digit`,day:`2-digit`,hour:`2-digit`,minute:`2-digit`,second:`2-digit`})}var bs=class extends HTMLElement{shadow;autoSave=null;constructor(){super(),this.shadow=this.attachShadow({mode:`open`})}connectedCallback(){this.shadow.innerHTML=`<style>${vs}</style>
 <div class="backdrop" id="backdrop">
-  <div class="dialog" role="dialog" aria-modal="true" aria-label="파일 관리">
+  <div class="dialog" role="dialog" aria-modal="true" aria-label="문서 이력">
     <div class="header">
-      <span>파일 관리 · 자동저장 이력</span>
-      <button class="close-btn" id="btn-close" title="닫기">×</button>
+      <span>문서 이력</span>
+      <button class="close-btn" id="btn-close" title="닫기">✕</button>
     </div>
     <div class="body">
-      <div class="section">
-        <p class="section-title">파일</p>
-        <div class="file-btns">
-          <button id="btn-new">새 문서</button>
-          <button id="btn-open">열기</button>
-          <button id="btn-save">저장</button>
-          <button id="btn-saveas">다른 이름으로 저장</button>
-        </div>
-      </div>
-      <div class="section">
-        <p class="section-title">자동저장 이력</p>
-        <ul class="history-list" id="history-list"></ul>
-        <button class="clear-btn" id="btn-clear">이력 전체 삭제</button>
-      </div>
+      <p class="guide-text">
+        자동저장된 문서 이력입니다.<br>
+        선택한 시점으로 복원할 수 있습니다.
+      </p>
+      <ul class="history-list" id="history-list"></ul>
+    </div>
+    <div class="footer">
+      <span class="history-count" id="history-count"></span>
+      <button class="clear-btn" id="btn-clear">이력 전체 삭제</button>
     </div>
   </div>
-</div>`,this.bindEvents()}setAutoSave(e){this.autoSave=e}setFileManager(e){}async show(){await this.loadHistory(),this.setAttribute(`open`,``),this.shadow.getElementById(`btn-close`)?.focus()}close(){this.removeAttribute(`open`)}bindEvents(){let e=this.shadow;e.getElementById(`backdrop`)?.addEventListener(`click`,t=>{t.target===e.getElementById(`backdrop`)&&this.close()}),e.getElementById(`btn-close`)?.addEventListener(`click`,()=>this.close());let t=e=>{this.dispatchEvent(new CustomEvent(`poa-file-${e}`,{bubbles:!0,composed:!0})),this.close()};e.getElementById(`btn-new`)?.addEventListener(`click`,()=>t(`new`)),e.getElementById(`btn-open`)?.addEventListener(`click`,()=>t(`open`)),e.getElementById(`btn-save`)?.addEventListener(`click`,()=>t(`save`)),e.getElementById(`btn-saveas`)?.addEventListener(`click`,()=>t(`saveas`)),e.getElementById(`btn-clear`)?.addEventListener(`click`,async()=>{await this.autoSave?.clearAll(),await this.loadHistory()})}async loadHistory(){let e=this.shadow.getElementById(`history-list`);if(!e)return;if(e.innerHTML=``,!this.autoSave){e.innerHTML=`<li class="empty-msg">자동저장 미설정</li>`;return}let t=await this.autoSave.listSnapshots();if(t.length===0){e.innerHTML=`<li class="empty-msg">저장된 이력이 없습니다</li>`;return}for(let n of t){let t=document.createElement(`li`);t.className=`history-item`,t.innerHTML=`
-        <span class="history-time">${vs(n.savedAt)}</span>
-        <button class="restore-btn" data-id="${String(n.id)}">복원</button>`,t.querySelector(`.restore-btn`).addEventListener(`click`,()=>{this.handleRestore(n)}),e.appendChild(t)}}handleRestore(e){this.dispatchEvent(new CustomEvent(`poa-autosave-restore`,{bubbles:!0,composed:!0,detail:{html:e.html}})),this.close()}},bs=[{id:`file`,label:`파일`},{id:`edit`,label:`편집`},{id:`insert`,label:`삽입`},{id:`view`,label:`보기`},{id:`table`,label:`표`},{id:`format`,label:`서식`},{id:`misc`,label:`기타`},{id:`help`,label:`도움말`}],xs=`
+</div>`,this.bindEvents()}setAutoSave(e){this.autoSave=e}setFileManager(e){}async show(){await this.loadHistory(),this.setAttribute(`open`,``),this.shadow.getElementById(`btn-close`)?.focus()}close(){this.removeAttribute(`open`)}bindEvents(){let e=this.shadow;e.getElementById(`backdrop`)?.addEventListener(`click`,t=>{t.target===e.getElementById(`backdrop`)&&this.close()}),e.getElementById(`btn-close`)?.addEventListener(`click`,()=>this.close()),e.getElementById(`btn-clear`)?.addEventListener(`click`,async()=>{await this.autoSave?.clearAll(),await this.loadHistory()})}async loadHistory(){let e=this.shadow.getElementById(`history-list`),t=this.shadow.getElementById(`history-count`);if(!e)return;if(e.innerHTML=``,!this.autoSave){e.innerHTML=`<li class="empty-msg">자동저장 미설정</li>`,t&&(t.textContent=``);return}let n=await this.autoSave.listSnapshots();if(n.length===0){e.innerHTML=`<li class="empty-msg">저장된 이력이 없습니다</li>`,t&&(t.textContent=``);return}t&&(t.textContent=`저장된 이력: ${n.length}개`);for(let t of n){let n=document.createElement(`li`);n.className=`history-item`,n.innerHTML=`
+        <span class="history-time">${ys(t.savedAt)}</span>
+        <button class="restore-btn" data-id="${String(t.id)}">복원</button>`,n.querySelector(`.restore-btn`).addEventListener(`click`,()=>{this.handleRestore(t)}),e.appendChild(n)}}handleRestore(e){this.dispatchEvent(new CustomEvent(`poa-autosave-restore`,{bubbles:!0,composed:!0,detail:{html:e.html}})),this.close()}},xs=[{id:`file`,label:`파일`},{id:`edit`,label:`편집`},{id:`insert`,label:`삽입`},{id:`view`,label:`보기`},{id:`table`,label:`표`},{id:`format`,label:`서식`},{id:`misc`,label:`기타`},{id:`help`,label:`도움말`}],Ss=`
 :host { display: block; }
 .menubar {
   display: flex; align-items: stretch;
@@ -3681,7 +3717,7 @@ input[type=text]:focus { border-color:#2563eb; }
 }
 .user-dropdown-btn:hover { background: #1d4ed8; }
 .user-dropdown.hidden { display: none; }
-`,Ss=new Set([`edit`,`insert`,`table`,`format`,`misc`]),Cs=class extends HTMLElement{shadow;_activeTab=`edit`;_userMode=!1;busHandler=({tab:e})=>{this._activeTab=e,this.updateActive()};constructor(){super(),this.shadow=this.attachShadow({mode:`open`})}connectedCallback(){let e=bs.map(e=>`<button class="tab${e.id===this._activeTab?` active`:``}" data-tab="${e.id}">${e.label}</button>`).join(``);this.shadow.innerHTML=`<style>${xs}</style><div class="menubar">${e}</div>`;let t=this.shadow.querySelector(`.menubar`),n=document.createElement(`div`);n.className=`user-area`,n.id=`user-area`;let r=document.createElement(`span`);r.style.cssText=`display:contents`,r.innerHTML=Q.userCircle,n.appendChild(r);let i=document.createElement(`span`);if(i.className=`user-name-text`,i.id=`user-name-text`,i.textContent=Re(),n.appendChild(i),Be()){let e=document.createElement(`span`);e.className=`admin-badge`,e.textContent=`관리자`,n.appendChild(e)}let a=document.createElement(`div`);a.className=`user-dropdown hidden`,a.id=`user-dropdown`;let o=document.createElement(`div`);o.className=`user-dropdown-label`,o.textContent=`사용자 이름`;let s=document.createElement(`input`);s.type=`text`,s.id=`user-name-input`,s.placeholder=`사용자 이름`;let c=document.createElement(`button`);c.className=`user-dropdown-btn`,c.id=`user-name-confirm`,c.textContent=`확인`,a.append(o,s,c),n.appendChild(a),t.appendChild(n),this.shadow.querySelectorAll(`.tab`).forEach(e=>{e.addEventListener(`mousedown`,t=>{t.preventDefault(),F.emit(I.MENUBAR_CHANGE,{tab:e.dataset.tab})})}),this._bindUserArea(),F.on(I.MENUBAR_CHANGE,this.busHandler)}disconnectedCallback(){F.off(I.MENUBAR_CHANGE,this.busHandler)}_bindUserArea(){let e=this.shadow.getElementById(`user-area`),t=this.shadow.getElementById(`user-dropdown`),n=this.shadow.getElementById(`user-name-input`),r=this.shadow.getElementById(`user-name-confirm`),i=this.shadow.getElementById(`user-name-text`);e.addEventListener(`mousedown`,e=>{if(e.preventDefault(),e.target.closest(`#user-dropdown`))return;let r=t.classList.contains(`hidden`);t.classList.toggle(`hidden`,!r),r&&(n.value=Re(),setTimeout(()=>{n.focus(),n.select()},50))});let a=()=>{let e=n.value.trim()||`사용자`;ze(e),i.textContent=e,t.classList.add(`hidden`)};r.addEventListener(`mousedown`,e=>{e.preventDefault(),a()}),n.addEventListener(`keydown`,e=>{e.key===`Enter`&&a()}),document.addEventListener(`click`,n=>{e.contains(n.target)||t.classList.add(`hidden`)})}applyUserMode(){this._userMode=!0,Ss.has(this._activeTab)&&F.emit(I.MENUBAR_CHANGE,{tab:`file`}),this._applyUserModeStyles()}_applyUserModeStyles(){if(!this._userMode)return;this.shadow.querySelectorAll(`.tab`).forEach(e=>{let t=e.dataset.tab;Ss.has(t)&&(e.dataset.userDisabled=`true`)});let e=this.shadow.querySelector(`.menubar`);if(!e.querySelector(`.user-mode-badge`)){let t=document.createElement(`span`);t.className=`user-mode-badge`,t.textContent=`사용자 모드`;let n=e.querySelector(`.user-area`);n?e.insertBefore(t,n):e.appendChild(t)}}updateActive(){this.shadow.querySelectorAll(`.tab`).forEach(e=>{e.classList.toggle(`active`,e.dataset.tab===this._activeTab)})}},ws={text:Q.fieldText,number:Q.fieldNumber,date:Q.fieldDate};function Ts(){let e=[`기본`,`계약`,`금액`,`보증`,`기타`],t=[],n=!0;for(let r of e){let e=Si.filter(e=>e.category===r);if(e.length!==0){n||t.push([``,`__sep__`]),t.push([r,`__cat__`]),n=!1;for(let n of e)t.push([n.label,`insert:field`,n.id,ws[n.type]])}}return t}var Es={file:[[[`새 문서`,`file:new`],[`열기`,`file:open`],[`저장`,`file:save`],[`다른 이름으로 저장`,`file:saveas`]],[[`인쇄`,`file:print`],[`환경설정`,`settings`],[`이력`,`file:history`]]],edit:[[[`잘라내기`,`edit:cut`],[`복사`,`edit:copy`],[`붙여넣기`,`edit:paste`],[`서식 없이 붙여넣기`,`edit:paste-plain`]],[[`찾기·바꾸기`,`find-replace`],[`이미지 편집`,`edit:image-edit`],[`전체 선택`,`edit:select-all`]]],insert:[[[`이미지`,`image`]],[[`하이퍼링크`,`insert:link`],[`책갈피`,`insert:bookmark`]],[[`서명`,`insert:signature`],[`이모지`,`insert:emoji`]],[[`툴팁`,`insert:tooltip`],[`툴팁 관리`,`insert:tooltip-list`]],[[`날짜·시간`,`insert:datetime`],[`가로줄`,`insert:hr`],[`기호`,`insert:symbol`],[`페이지 구분선`,`insert:pagebreak`],[`템플릿`,`misc:template`]],[{dropdown:!0,id:`doc-field`,label:`양식 필드`,iconKey:`formField`,items:Ts()}]],view:[[[`디자인`,`view:design`],[`HTML`,`view:html`],[`미리보기`,`view:preview`],[`텍스트`,`view:text`],[`페이지`,`view:page`]],[[`전체화면`,`view:fullscreen`],[`눈금자`,`view:ruler`],[`그리드`,`view:grid`],[`숨김 테두리`,`view:hidden-border`]]],table:[[[`표 삽입`,`table`],[`표 속성`,`table:table-props`],[`셀 속성`,`table:cell-props`]],[[`셀 병합`,`table:merge`],[`셀 나누기`,`table:split-cell`]],[[`위에 행 삽입`,`table:row-above`],[`아래에 행 삽입`,`table:row-below`],[`왼쪽에 열 삽입`,`table:col-left`],[`오른쪽에 열 삽입`,`table:col-right`]],[[`행 삭제`,`table:row-delete`],[`열 삭제`,`table:col-delete`],[`표 삭제`,`table:delete`]],[[`표 왼쪽 정렬`,`table:align-left`],[`표 가운데 정렬`,`table:align-center`],[`표 오른쪽 정렬`,`table:align-right`]]],format:[[[`서식 복사`,`format:painter-copy`],[`서식 붙여넣기`,`format:painter-paste`],[`서식 제거`,`format:clear`]],[[`글머리 기호`,`format:ul`],[`글머리 번호`,`format:ol`]],[[`위 첨자`,`format:sup`],[`아래 첨자`,`format:sub`]]],misc:[[[`웹 접근성 체크`,`misc:a11y`],[`개인정보 체크`,`misc:privacy`]],[[`폼 컨트롤`,`misc:form`],[`계산식`,`misc:calc`]],[[`사용자 모드로 보기`,`misc:user-mode`]]],help:[[[`단축키`,`help:shortcuts`],[`사용자 가이드`,`help:guide`],[`제품 정보`,`help:about`]]]},Ds=new Set([`view:design`,`view:html`,`view:preview`,`view:text`,`view:page`]),Os=`
+`,Cs=new Set([`edit`,`insert`,`table`,`format`,`misc`]),ws=class extends HTMLElement{shadow;_activeTab=`edit`;_userMode=!1;busHandler=({tab:e})=>{this._activeTab=e,this.updateActive()};constructor(){super(),this.shadow=this.attachShadow({mode:`open`})}connectedCallback(){let e=xs.map(e=>`<button class="tab${e.id===this._activeTab?` active`:``}" data-tab="${e.id}">${e.label}</button>`).join(``);this.shadow.innerHTML=`<style>${Ss}</style><div class="menubar">${e}</div>`;let t=this.shadow.querySelector(`.menubar`),n=document.createElement(`div`);n.className=`user-area`,n.id=`user-area`;let r=document.createElement(`span`);r.style.cssText=`display:contents`,r.innerHTML=Q.userCircle,n.appendChild(r);let i=document.createElement(`span`);if(i.className=`user-name-text`,i.id=`user-name-text`,i.textContent=Re(),n.appendChild(i),Be()){let e=document.createElement(`span`);e.className=`admin-badge`,e.textContent=`관리자`,n.appendChild(e)}let a=document.createElement(`div`);a.className=`user-dropdown hidden`,a.id=`user-dropdown`;let o=document.createElement(`div`);o.className=`user-dropdown-label`,o.textContent=`사용자 이름`;let s=document.createElement(`input`);s.type=`text`,s.id=`user-name-input`,s.placeholder=`사용자 이름`;let c=document.createElement(`button`);c.className=`user-dropdown-btn`,c.id=`user-name-confirm`,c.textContent=`확인`,a.append(o,s,c),n.appendChild(a),t.appendChild(n),this.shadow.querySelectorAll(`.tab`).forEach(e=>{e.addEventListener(`mousedown`,t=>{t.preventDefault(),F.emit(I.MENUBAR_CHANGE,{tab:e.dataset.tab})})}),this._bindUserArea(),F.on(I.MENUBAR_CHANGE,this.busHandler)}disconnectedCallback(){F.off(I.MENUBAR_CHANGE,this.busHandler)}_bindUserArea(){let e=this.shadow.getElementById(`user-area`),t=this.shadow.getElementById(`user-dropdown`),n=this.shadow.getElementById(`user-name-input`),r=this.shadow.getElementById(`user-name-confirm`),i=this.shadow.getElementById(`user-name-text`);e.addEventListener(`mousedown`,e=>{if(e.preventDefault(),e.target.closest(`#user-dropdown`))return;let r=t.classList.contains(`hidden`);t.classList.toggle(`hidden`,!r),r&&(n.value=Re(),setTimeout(()=>{n.focus(),n.select()},50))});let a=()=>{let e=n.value.trim()||`사용자`;ze(e),i.textContent=e,t.classList.add(`hidden`)};r.addEventListener(`mousedown`,e=>{e.preventDefault(),a()}),n.addEventListener(`keydown`,e=>{e.key===`Enter`&&a()}),document.addEventListener(`click`,n=>{e.contains(n.target)||t.classList.add(`hidden`)})}applyUserMode(){this._userMode=!0,Cs.has(this._activeTab)&&F.emit(I.MENUBAR_CHANGE,{tab:`file`}),this._applyUserModeStyles()}_applyUserModeStyles(){if(!this._userMode)return;this.shadow.querySelectorAll(`.tab`).forEach(e=>{let t=e.dataset.tab;Cs.has(t)&&(e.dataset.userDisabled=`true`)});let e=this.shadow.querySelector(`.menubar`);if(!e.querySelector(`.user-mode-badge`)){let t=document.createElement(`span`);t.className=`user-mode-badge`,t.textContent=`사용자 모드`;let n=e.querySelector(`.user-area`);n?e.insertBefore(t,n):e.appendChild(t)}}updateActive(){this.shadow.querySelectorAll(`.tab`).forEach(e=>{e.classList.toggle(`active`,e.dataset.tab===this._activeTab)})}},Ts={text:Q.fieldText,number:Q.fieldNumber,date:Q.fieldDate};function Es(){let e=[`기본`,`계약`,`금액`,`보증`,`기타`],t=[],n=!0;for(let r of e){let e=Si.filter(e=>e.category===r);if(e.length!==0){n||t.push([``,`__sep__`]),t.push([r,`__cat__`]),n=!1;for(let n of e)t.push([n.label,`insert:field`,n.id,Ts[n.type]])}}return t}var Ds={file:[[[`새 문서`,`file:new`],[`열기`,`file:open`],[`저장`,`file:save`],[`다른 이름으로 저장`,`file:saveas`]],[[`인쇄`,`file:print`],[`환경설정`,`settings`],[`문서 이력`,`file:history`]]],edit:[[[`잘라내기`,`edit:cut`],[`복사`,`edit:copy`],[`붙여넣기`,`edit:paste`],[`서식 없이 붙여넣기`,`edit:paste-plain`]],[[`찾기·바꾸기`,`find-replace`],[`이미지 편집`,`edit:image-edit`],[`전체 선택`,`edit:select-all`]]],insert:[[[`이미지`,`image`]],[[`하이퍼링크`,`insert:link`],[`책갈피`,`insert:bookmark`]],[[`서명`,`insert:signature`],[`이모지`,`insert:emoji`]],[[`툴팁`,`insert:tooltip`],[`툴팁 관리`,`insert:tooltip-list`]],[[`날짜·시간`,`insert:datetime`],[`가로줄`,`insert:hr`],[`기호`,`insert:symbol`],[`페이지 구분선`,`insert:pagebreak`],[`템플릿`,`misc:template`]],[{dropdown:!0,id:`doc-field`,label:`양식 필드`,iconKey:`formField`,items:Es()}]],view:[[[`디자인`,`view:design`],[`HTML`,`view:html`],[`미리보기`,`view:preview`],[`텍스트`,`view:text`],[`페이지`,`view:page`]],[[`전체화면`,`view:fullscreen`],[`눈금자`,`view:ruler`],[`그리드`,`view:grid`],[`숨김 테두리`,`view:hidden-border`]]],table:[[[`표 삽입`,`table`],[`표 속성`,`table:table-props`],[`셀 속성`,`table:cell-props`]],[[`셀 병합`,`table:merge`],[`셀 나누기`,`table:split-cell`]],[[`위에 행 삽입`,`table:row-above`],[`아래에 행 삽입`,`table:row-below`],[`왼쪽에 열 삽입`,`table:col-left`],[`오른쪽에 열 삽입`,`table:col-right`]],[[`행 삭제`,`table:row-delete`],[`열 삭제`,`table:col-delete`],[`표 삭제`,`table:delete`]],[[`표 왼쪽 정렬`,`table:align-left`],[`표 가운데 정렬`,`table:align-center`],[`표 오른쪽 정렬`,`table:align-right`]]],format:[[[`서식 복사`,`format:painter-copy`],[`서식 붙여넣기`,`format:painter-paste`],[`서식 제거`,`format:clear`]],[[`글머리 기호`,`format:ul`],[`글머리 번호`,`format:ol`]],[[`위 첨자`,`format:sup`],[`아래 첨자`,`format:sub`]]],misc:[[[`웹 접근성 체크`,`misc:a11y`],[`개인정보 체크`,`misc:privacy`]],[[`폼 컨트롤`,`misc:form`],[`계산식`,`misc:calc`]],[[`사용자 모드로 보기`,`misc:user-mode`]]],help:[[[`단축키`,`help:shortcuts`],[`사용자 가이드`,`help:guide`],[`제품 정보`,`help:about`]]]},Os=new Set([`view:design`,`view:html`,`view:preview`,`view:text`,`view:page`]),ks=`
 :host {
   display: block;
   --icon-color:         #374151;
@@ -3795,7 +3831,7 @@ input[type=text]:focus { border-color:#2563eb; }
   opacity: 1;
   transition-delay: 0.6s;
 }
-`,ks=new Set([`file:new`,`file:open`,`settings`]),As=class extends HTMLElement{shadow;activeTab=`edit`;activeViewMode=`design`;outsideHandler=null;userMode=!1;busHandler=({tab:e})=>{this.activeTab=e,this.render()};viewHandler=({mode:e})=>{this.activeViewMode=e,this.activeTab===`view`&&this.render()};constructor(){super(),this.shadow=this.attachShadow({mode:`open`})}connectedCallback(){this.render(),F.on(I.MENUBAR_CHANGE,this.busHandler),F.on(I.VIEW_CHANGE,this.viewHandler)}disconnectedCallback(){F.off(I.MENUBAR_CHANGE,this.busHandler),F.off(I.VIEW_CHANGE,this.viewHandler),this.closeAllDropdowns()}render(){this.closeAllDropdowns();let e=Es[this.activeTab]??[],t=[];for(let n=0;n<e.length;n++){n>0&&t.push(`<div class="sep"></div>`),t.push(`<div class="group">`);for(let r of e[n])if(r===null)t.push(`<div class="sep" style="margin:0 2px;"></div>`);else if(`dropdown`in r&&r.dropdown){let e=r.items.map(([e,t,n,r])=>t===`__sep__`?`<hr class="drop-sep">`:t===`__cat__`?`<div class="drop-cat">${e}</div>`:`<div class="drop-item" data-action="${t}"${n?` data-value="${n}"`:``}>${r?`<span class="type-icon">${r}</span>`:``}${e}</div>`).join(``),n=r.iconKey?Q[r.iconKey]??``:``,i=n?`${n}<span>${r.label}</span>`:r.label;t.push(`<div class="dropdown-wrap" id="dd-${r.id}"><button class="btn dropdown-toggle" data-dropdown-id="${r.id}">${i}</button><div class="dropdown-menu" id="menu-${r.id}">${e}</div></div>`)}else{let[e,n,i,a]=r,o=i?` data-value="${i}"`:``,s=Ds.has(n)&&n===`view:${this.activeViewMode}`?` active`:``,c=a??e,l=Jo[n],u=l?Q[l]:``,d=u?`${u}<span>${e}</span>`:e;t.push(`<button class="btn${s}" data-action="${n}"${o} data-tip="${c}">${d}</button>`)}t.push(`</div>`)}this.shadow.innerHTML=`<style>${Os}</style><div class="ctx-bar">${t.join(``)}</div>`,this.userMode&&this._applyUserModeButtons(),this.shadow.querySelector(`.ctx-bar`).addEventListener(`mousedown`,e=>{let t=e.target,n=t.closest(`.dropdown-toggle`);if(n){let t=n.dataset.dropdownId;if(!t)return;e.preventDefault();let r=this.shadow.getElementById(`menu-${t}`);if(!r)return;let i=r.classList.contains(`open`);this.closeAllDropdowns(),i||(r.classList.add(`open`),this.setupOutsideClick(t));return}let r=t.closest(`.drop-item`);if(r){let t=r.dataset.action,n=r.dataset.value;if(!t)return;e.preventDefault(),this.closeAllDropdowns(),this.dispatchEvent(new CustomEvent(`poa-action`,{bubbles:!0,composed:!0,detail:{type:t,value:n}}));return}let i=t.closest(`.btn`);if(!i||i.disabled)return;let a=i.dataset.action;if(!a)return;e.preventDefault();let o=i.dataset.value;this.dispatchEvent(new CustomEvent(`poa-action`,{bubbles:!0,composed:!0,detail:{type:a,value:o}}))})}closeAllDropdowns(){this.shadow.querySelectorAll(`.dropdown-menu.open`).forEach(e=>e.classList.remove(`open`)),this.outsideHandler&&=(document.removeEventListener(`mousedown`,this.outsideHandler),null)}setupOutsideClick(e){this.outsideHandler=t=>{let n=this.shadow.getElementById(`dd-${e}`);n&&(t.composedPath().includes(n)||this.closeAllDropdowns())},document.addEventListener(`mousedown`,this.outsideHandler)}applyUserMode(){this.userMode=!0,this._applyUserModeButtons()}_applyUserModeButtons(){this.shadow.querySelectorAll(`.btn[data-action]`).forEach(e=>{let t=e.dataset.action??``;ks.has(t)&&(e.disabled=!0,e.title=(e.title||e.textContent?.trim()||``)+` (사용자 모드에서 비활성화)`)})}},js=[{label:`기본`,value:`inherit`},{label:`Noto Sans KR`,value:`Noto Sans KR, Roboto, sans-serif`},{label:`맑은 고딕`,value:`맑은 고딕, sans-serif`},{label:`나눔고딕`,value:`나눔고딕, sans-serif`},{label:`나눔명조`,value:`나눔명조, serif`},{label:`굴림`,value:`굴림, sans-serif`},{label:`돋움`,value:`돋움, sans-serif`},{label:`바탕`,value:`바탕, serif`},{label:`궁서`,value:`궁서, serif`},{label:`Arial`,value:`Arial, sans-serif`},{label:`Times New Roman`,value:`Times New Roman, serif`},{label:`Courier New`,value:`Courier New, monospace`},{label:`Georgia`,value:`Georgia, serif`},{label:`Verdana`,value:`Verdana, sans-serif`},{label:`Tahoma`,value:`Tahoma, sans-serif`}],Ms=[`8`,`9`,`10`,`11`,`12`,`14`,`16`,`18`,`20`,`24`,`28`,`32`,`36`,`48`,`72`],Ns=[`1`,`1.2`,`1.4`,`1.5`,`1.6`,`1.8`,`2.0`,`2.5`],Ps=[`0px`,`0.5px`,`1px`,`1.5px`,`2px`,`3px`,`4px`],Fs=`
+`,As=new Set([`file:new`,`file:open`,`settings`]),js=class extends HTMLElement{shadow;activeTab=`edit`;activeViewMode=`design`;outsideHandler=null;userMode=!1;busHandler=({tab:e})=>{this.activeTab=e,this.render()};viewHandler=({mode:e})=>{this.activeViewMode=e,this.activeTab===`view`&&this.render()};constructor(){super(),this.shadow=this.attachShadow({mode:`open`})}connectedCallback(){this.render(),F.on(I.MENUBAR_CHANGE,this.busHandler),F.on(I.VIEW_CHANGE,this.viewHandler)}disconnectedCallback(){F.off(I.MENUBAR_CHANGE,this.busHandler),F.off(I.VIEW_CHANGE,this.viewHandler),this.closeAllDropdowns()}render(){this.closeAllDropdowns();let e=Ds[this.activeTab]??[],t=[];for(let n=0;n<e.length;n++){n>0&&t.push(`<div class="sep"></div>`),t.push(`<div class="group">`);for(let r of e[n])if(r===null)t.push(`<div class="sep" style="margin:0 2px;"></div>`);else if(`dropdown`in r&&r.dropdown){let e=r.items.map(([e,t,n,r])=>t===`__sep__`?`<hr class="drop-sep">`:t===`__cat__`?`<div class="drop-cat">${e}</div>`:`<div class="drop-item" data-action="${t}"${n?` data-value="${n}"`:``}>${r?`<span class="type-icon">${r}</span>`:``}${e}</div>`).join(``),n=r.iconKey?Q[r.iconKey]??``:``,i=n?`${n}<span>${r.label}</span>`:r.label;t.push(`<div class="dropdown-wrap" id="dd-${r.id}"><button class="btn dropdown-toggle" data-dropdown-id="${r.id}">${i}</button><div class="dropdown-menu" id="menu-${r.id}">${e}</div></div>`)}else{let[e,n,i,a]=r,o=i?` data-value="${i}"`:``,s=Os.has(n)&&n===`view:${this.activeViewMode}`?` active`:``,c=a??e,l=Yo[n],u=l?Q[l]:``,d=u?`${u}<span>${e}</span>`:e;t.push(`<button class="btn${s}" data-action="${n}"${o} data-tip="${c}">${d}</button>`)}t.push(`</div>`)}this.shadow.innerHTML=`<style>${ks}</style><div class="ctx-bar">${t.join(``)}</div>`,this.userMode&&this._applyUserModeButtons(),this.shadow.querySelector(`.ctx-bar`).addEventListener(`mousedown`,e=>{let t=e.target,n=t.closest(`.dropdown-toggle`);if(n){let t=n.dataset.dropdownId;if(!t)return;e.preventDefault();let r=this.shadow.getElementById(`menu-${t}`);if(!r)return;let i=r.classList.contains(`open`);this.closeAllDropdowns(),i||(r.classList.add(`open`),this.setupOutsideClick(t));return}let r=t.closest(`.drop-item`);if(r){let t=r.dataset.action,n=r.dataset.value;if(!t)return;e.preventDefault(),this.closeAllDropdowns(),this.dispatchEvent(new CustomEvent(`poa-action`,{bubbles:!0,composed:!0,detail:{type:t,value:n}}));return}let i=t.closest(`.btn`);if(!i||i.disabled)return;let a=i.dataset.action;if(!a)return;e.preventDefault();let o=i.dataset.value;this.dispatchEvent(new CustomEvent(`poa-action`,{bubbles:!0,composed:!0,detail:{type:a,value:o}}))})}closeAllDropdowns(){this.shadow.querySelectorAll(`.dropdown-menu.open`).forEach(e=>e.classList.remove(`open`)),this.outsideHandler&&=(document.removeEventListener(`mousedown`,this.outsideHandler),null)}setupOutsideClick(e){this.outsideHandler=t=>{let n=this.shadow.getElementById(`dd-${e}`);n&&(t.composedPath().includes(n)||this.closeAllDropdowns())},document.addEventListener(`mousedown`,this.outsideHandler)}applyUserMode(){this.userMode=!0,this._applyUserModeButtons()}_applyUserModeButtons(){this.shadow.querySelectorAll(`.btn[data-action]`).forEach(e=>{let t=e.dataset.action??``;As.has(t)&&(e.disabled=!0,e.title=(e.title||e.textContent?.trim()||``)+` (사용자 모드에서 비활성화)`)})}},Ms=[{label:`기본`,value:`inherit`},{label:`Noto Sans KR`,value:`Noto Sans KR, Roboto, sans-serif`},{label:`맑은 고딕`,value:`맑은 고딕, sans-serif`},{label:`나눔고딕`,value:`나눔고딕, sans-serif`},{label:`나눔명조`,value:`나눔명조, serif`},{label:`굴림`,value:`굴림, sans-serif`},{label:`돋움`,value:`돋움, sans-serif`},{label:`바탕`,value:`바탕, serif`},{label:`궁서`,value:`궁서, serif`},{label:`Arial`,value:`Arial, sans-serif`},{label:`Times New Roman`,value:`Times New Roman, serif`},{label:`Courier New`,value:`Courier New, monospace`},{label:`Georgia`,value:`Georgia, serif`},{label:`Verdana`,value:`Verdana, sans-serif`},{label:`Tahoma`,value:`Tahoma, sans-serif`}],Ns=[`8`,`9`,`10`,`11`,`12`,`14`,`16`,`18`,`20`,`24`,`28`,`32`,`36`,`48`,`72`],Ps=[`1`,`1.2`,`1.4`,`1.5`,`1.6`,`1.8`,`2.0`,`2.5`],Fs=[`0px`,`0.5px`,`1px`,`1.5px`,`2px`,`3px`,`4px`],Is=`
 :host {
   display: block;
   --icon-color:         #374151;
@@ -3896,7 +3932,7 @@ select:focus { border-color: var(--icon-active-color); }
   position: absolute; inset: 0; width: 100%; height: 100%;
   opacity: 0; cursor: pointer; border: none; padding: 0; margin: 0;
 }
-`,Is=`
+`,Ls=`
 <div class="toolbar">
   <div class="group">
     <select class="sel-family" id="sel-family" title="글꼴"></select>
@@ -3955,7 +3991,7 @@ select:focus { border-color: var(--icon-active-color); }
     <button class="btn" id="btn-redo" data-tip="다시 실행 (Ctrl+Y)">${Q.redo}</button>
   </div>
 </div>
-`,Ls=class extends HTMLElement{shadow;constructor(){super(),this.shadow=this.attachShadow({mode:`open`})}connectedCallback(){this.shadow.innerHTML=`<style>${Fs}</style>${Is}`,this.populateSelects(),this.bindEvents()}populateSelects(){let e=this.shadow,t=e.getElementById(`sel-family`);for(let{label:e,value:n}of js){let r=document.createElement(`option`);r.value=n,r.textContent=e,t.appendChild(r)}let n=e.getElementById(`sel-size`);for(let e of Ms){let t=document.createElement(`option`);t.value=`${e}pt`,t.textContent=e,n.appendChild(t)}n.value=`12pt`;let r=e.getElementById(`sel-lh`);for(let e of Ns){let t=document.createElement(`option`);t.value=e,t.textContent=`줄간 ${e}`,r.appendChild(t)}r.value=`1.5`;let i=e.getElementById(`sel-ls`);for(let e of Ps){let t=document.createElement(`option`);t.value=e,t.textContent=`자간 ${e}`,i.appendChild(t)}i.value=`0px`}bindEvents(){let e=this.shadow,t=(e,t)=>{this.dispatchEvent(new CustomEvent(`poa-action`,{bubbles:!0,composed:!0,detail:{type:e,value:t}}))},n=(n,r)=>{e.getElementById(n)?.addEventListener(`mousedown`,e=>{e.preventDefault(),t(`format`,r)})};n(`btn-bold`,`bold`),n(`btn-italic`,`italic`),n(`btn-underline`,`underline`),n(`btn-strike`,`strike`),e.getElementById(`fore-input`)?.addEventListener(`change`,n=>{let r=n.target.value;e.getElementById(`fore-bar`).style.background=r,t(`foreColor`,r)}),e.getElementById(`back-input`)?.addEventListener(`change`,n=>{let r=n.target.value;e.getElementById(`back-bar`).style.background=r,t(`backColor`,r)});let r=(n,r)=>{e.getElementById(n)?.addEventListener(`mousedown`,e=>{e.preventDefault(),t(`align`,r)})};r(`btn-al-left`,`left`),r(`btn-al-center`,`center`),r(`btn-al-right`,`right`),r(`btn-al-justify`,`justify`),e.getElementById(`btn-indent`)?.addEventListener(`mousedown`,e=>{e.preventDefault(),t(`indent`)}),e.getElementById(`btn-outdent`)?.addEventListener(`mousedown`,e=>{e.preventDefault(),t(`outdent`)}),e.getElementById(`btn-undo`)?.addEventListener(`mousedown`,e=>{e.preventDefault(),t(`undo`)}),e.getElementById(`btn-redo`)?.addEventListener(`mousedown`,e=>{e.preventDefault(),t(`redo`)}),e.getElementById(`sel-family`).addEventListener(`change`,e=>t(`fontFamily`,e.target.value)),e.getElementById(`sel-size`).addEventListener(`change`,e=>t(`fontSize`,e.target.value)),e.getElementById(`sel-lh`).addEventListener(`change`,e=>t(`lineHeight`,e.target.value)),e.getElementById(`sel-ls`).addEventListener(`change`,e=>t(`letterSpacing`,e.target.value))}setState(e){let t=this.shadow,n=(e,n)=>{t.getElementById(e)?.classList.toggle(`active`,n)},r=(e,n)=>{let r=t.getElementById(e);r&&(r.disabled=n)};if(n(`btn-bold`,e.bold),n(`btn-italic`,e.italic),n(`btn-underline`,e.underline),n(`btn-strike`,e.strike),n(`btn-al-left`,e.align===`left`),n(`btn-al-center`,e.align===`center`),n(`btn-al-right`,e.align===`right`),n(`btn-al-justify`,e.align===`justify`),r(`btn-undo`,!e.canUndo),r(`btn-redo`,!e.canRedo),e.fontFamily){let n=e.fontFamily.replace(/['"]/g,``).replace(/\s*,\s*/g,`, `).trim();t.getElementById(`sel-family`).value=n}e.fontSize&&(t.getElementById(`sel-size`).value=e.fontSize),e.lineHeight&&(t.getElementById(`sel-lh`).value=e.lineHeight),e.letterSpacing&&(t.getElementById(`sel-ls`).value=e.letterSpacing),e.foreColor&&(t.getElementById(`fore-bar`).style.background=e.foreColor,t.getElementById(`fore-input`).value=e.foreColor),e.backColor&&(t.getElementById(`back-bar`).style.background=e.backColor,t.getElementById(`back-input`).value=e.backColor)}setDefaults(e,t,n){let r=this.shadow,i=r.getElementById(`sel-family`);if(i){let t=Array.from(i.options).find(t=>t.value===e||t.value.split(`,`)[0].trim().replace(/['"]/g,``)===e);t&&(i.value=t.value)}let a=r.getElementById(`sel-size`);a&&(a.value=`${t}pt`);let o=r.getElementById(`sel-lh`);o&&(o.value=String(n))}setHistoryState(e,t){let n=this.shadow,r=n.getElementById(`btn-undo`),i=n.getElementById(`btn-redo`);r&&(r.disabled=!e),i&&(i.disabled=!t)}applyUserMode(){let e=this.shadow.querySelector(`.toolbar`);e&&(e.style.opacity=`0.5`),this.shadow.querySelectorAll(`button, select, input`).forEach(e=>{e.disabled=!0})}},Rs=class extends HTMLElement{shadow;docClickHandler=null;constructor(){super(),this.shadow=this.attachShadow({mode:`open`})}connectedCallback(){let e=wi.map(e=>`<option value="${e.id}">${e.id}</option>`).join(``),t=[50,60,70,80,90,100,110,120,130,140,150,175,200].map(e=>`<option value="${e}">${e}%</option>`).join(``),n=Ti;this.shadow.innerHTML=`
+`,Rs=class extends HTMLElement{shadow;constructor(){super(),this.shadow=this.attachShadow({mode:`open`})}connectedCallback(){this.shadow.innerHTML=`<style>${Is}</style>${Ls}`,this.populateSelects(),this.bindEvents()}populateSelects(){let e=this.shadow,t=e.getElementById(`sel-family`);for(let{label:e,value:n}of Ms){let r=document.createElement(`option`);r.value=n,r.textContent=e,t.appendChild(r)}let n=e.getElementById(`sel-size`);for(let e of Ns){let t=document.createElement(`option`);t.value=`${e}pt`,t.textContent=e,n.appendChild(t)}n.value=`12pt`;let r=e.getElementById(`sel-lh`);for(let e of Ps){let t=document.createElement(`option`);t.value=e,t.textContent=`줄간 ${e}`,r.appendChild(t)}r.value=`1.5`;let i=e.getElementById(`sel-ls`);for(let e of Fs){let t=document.createElement(`option`);t.value=e,t.textContent=`자간 ${e}`,i.appendChild(t)}i.value=`0px`}bindEvents(){let e=this.shadow,t=(e,t)=>{this.dispatchEvent(new CustomEvent(`poa-action`,{bubbles:!0,composed:!0,detail:{type:e,value:t}}))},n=(n,r)=>{e.getElementById(n)?.addEventListener(`mousedown`,e=>{e.preventDefault(),t(`format`,r)})};n(`btn-bold`,`bold`),n(`btn-italic`,`italic`),n(`btn-underline`,`underline`),n(`btn-strike`,`strike`),e.getElementById(`fore-input`)?.addEventListener(`change`,n=>{let r=n.target.value;e.getElementById(`fore-bar`).style.background=r,t(`foreColor`,r)}),e.getElementById(`back-input`)?.addEventListener(`change`,n=>{let r=n.target.value;e.getElementById(`back-bar`).style.background=r,t(`backColor`,r)});let r=(n,r)=>{e.getElementById(n)?.addEventListener(`mousedown`,e=>{e.preventDefault(),t(`align`,r)})};r(`btn-al-left`,`left`),r(`btn-al-center`,`center`),r(`btn-al-right`,`right`),r(`btn-al-justify`,`justify`),e.getElementById(`btn-indent`)?.addEventListener(`mousedown`,e=>{e.preventDefault(),t(`indent`)}),e.getElementById(`btn-outdent`)?.addEventListener(`mousedown`,e=>{e.preventDefault(),t(`outdent`)}),e.getElementById(`btn-undo`)?.addEventListener(`mousedown`,e=>{e.preventDefault(),t(`undo`)}),e.getElementById(`btn-redo`)?.addEventListener(`mousedown`,e=>{e.preventDefault(),t(`redo`)}),e.getElementById(`sel-family`).addEventListener(`change`,e=>t(`fontFamily`,e.target.value)),e.getElementById(`sel-size`).addEventListener(`change`,e=>t(`fontSize`,e.target.value)),e.getElementById(`sel-lh`).addEventListener(`change`,e=>t(`lineHeight`,e.target.value)),e.getElementById(`sel-ls`).addEventListener(`change`,e=>t(`letterSpacing`,e.target.value))}setState(e){let t=this.shadow,n=(e,n)=>{t.getElementById(e)?.classList.toggle(`active`,n)},r=(e,n)=>{let r=t.getElementById(e);r&&(r.disabled=n)};if(n(`btn-bold`,e.bold),n(`btn-italic`,e.italic),n(`btn-underline`,e.underline),n(`btn-strike`,e.strike),n(`btn-al-left`,e.align===`left`),n(`btn-al-center`,e.align===`center`),n(`btn-al-right`,e.align===`right`),n(`btn-al-justify`,e.align===`justify`),r(`btn-undo`,!e.canUndo),r(`btn-redo`,!e.canRedo),e.fontFamily){let n=e.fontFamily.replace(/['"]/g,``).replace(/\s*,\s*/g,`, `).trim();t.getElementById(`sel-family`).value=n}e.fontSize&&(t.getElementById(`sel-size`).value=e.fontSize),e.lineHeight&&(t.getElementById(`sel-lh`).value=e.lineHeight),e.letterSpacing&&(t.getElementById(`sel-ls`).value=e.letterSpacing),e.foreColor&&(t.getElementById(`fore-bar`).style.background=e.foreColor,t.getElementById(`fore-input`).value=e.foreColor),e.backColor&&(t.getElementById(`back-bar`).style.background=e.backColor,t.getElementById(`back-input`).value=e.backColor)}setDefaults(e,t,n){let r=this.shadow,i=r.getElementById(`sel-family`);if(i){let t=Array.from(i.options).find(t=>t.value===e||t.value.split(`,`)[0].trim().replace(/['"]/g,``)===e);t&&(i.value=t.value)}let a=r.getElementById(`sel-size`);a&&(a.value=`${t}pt`);let o=r.getElementById(`sel-lh`);o&&(o.value=String(n))}setHistoryState(e,t){let n=this.shadow,r=n.getElementById(`btn-undo`),i=n.getElementById(`btn-redo`);r&&(r.disabled=!e),i&&(i.disabled=!t)}applyUserMode(){let e=this.shadow.querySelector(`.toolbar`);e&&(e.style.opacity=`0.5`),this.shadow.querySelectorAll(`button, select, input`).forEach(e=>{e.disabled=!0})}},zs=class extends HTMLElement{shadow;docClickHandler=null;constructor(){super(),this.shadow=this.attachShadow({mode:`open`})}connectedCallback(){let e=wi.map(e=>`<option value="${e.id}">${e.id}</option>`).join(``),t=[50,60,70,80,90,100,110,120,130,140,150,175,200].map(e=>`<option value="${e}">${e}%</option>`).join(``),n=Ti;this.shadow.innerHTML=`
 <style>
 :host { display: block; box-sizing: border-box; }
 .bar {
@@ -4073,7 +4109,7 @@ select:focus { border-color: var(--icon-active-color); }
     ${t}
   </select>
   <button id="zoom-in" class="poa-zoom-btn" title="확대 (Ctrl+=)">+</button>
-</div>`;let r=this.shadow.getElementById(`paper-select`),i=this.shadow.getElementById(`zoom-select`),a=this.shadow.getElementById(`zoom-in`),o=this.shadow.getElementById(`zoom-out`),s=this.shadow.getElementById(`margin-btn`),c=this.shadow.getElementById(`margin-popup`),l=this.shadow.getElementById(`m-top`),u=this.shadow.getElementById(`m-bottom`),d=this.shadow.getElementById(`m-left`),f=this.shadow.getElementById(`m-right`),p=this.shadow.getElementById(`m-apply`);r.value=`A4`,i.value=`100`,r.addEventListener(`change`,()=>{this.dispatchAction(`paper:size`,r.value)}),i.addEventListener(`change`,()=>{this.dispatchAction(`paper:zoom`,i.value)}),a.addEventListener(`click`,()=>this.dispatchAction(`paper:zoom-in`)),o.addEventListener(`click`,()=>this.dispatchAction(`paper:zoom-out`)),s.addEventListener(`click`,e=>{e.stopPropagation(),c.classList.toggle(`hidden`)}),c.addEventListener(`click`,e=>e.stopPropagation());let m=()=>{let e={top:Math.max(0,parseFloat(l.value)||0),bottom:Math.max(0,parseFloat(u.value)||0),left:Math.max(0,parseFloat(d.value)||0),right:Math.max(0,parseFloat(f.value)||0)};this.dispatchAction(`paper:margin`,JSON.stringify(e)),c.classList.add(`hidden`)};p.addEventListener(`click`,m),[l,u,d,f].forEach(e=>{e.addEventListener(`keydown`,e=>{e.key===`Enter`&&(e.preventDefault(),m()),e.key===`Escape`&&c.classList.add(`hidden`)})}),this.docClickHandler=()=>{c.classList.add(`hidden`)},document.addEventListener(`click`,this.docClickHandler)}disconnectedCallback(){this.docClickHandler&&=(document.removeEventListener(`click`,this.docClickHandler),null)}update(e){let t=this.shadow.getElementById(`char-count`),n=this.shadow.getElementById(`word-count`);if(!t||!n)return;let r=new DOMParser().parseFromString(e,`text/html`).body.textContent??``,i=[...r.replace(/\s/g,``)].length,a=r.trim()===``?0:r.trim().split(/\s+/).length;t.textContent=`${i}자`,n.textContent=`${a}단어`}updatePage(e,t){let n=this.shadow.getElementById(`page-info`);n&&(n.textContent=`${e}/${t} 페이지`)}syncPaper(e){let{size:t,zoom:n,margin:r}=e.detail,i=this.shadow.getElementById(`paper-select`),a=this.shadow.getElementById(`zoom-select`);if(i&&(i.value=t.id),a&&(a.value=String(n)),r){let e=this.shadow.getElementById(`m-top`),t=this.shadow.getElementById(`m-bottom`),n=this.shadow.getElementById(`m-left`),i=this.shadow.getElementById(`m-right`);e&&(e.value=String(r.top)),t&&(t.value=String(r.bottom)),n&&(n.value=String(r.left)),i&&(i.value=String(r.right))}}dispatchAction(e,t){this.dispatchEvent(new CustomEvent(`poa-action`,{bubbles:!0,composed:!0,detail:{type:e,...t===void 0?{}:{value:t}}}))}},zs=`
+</div>`;let r=this.shadow.getElementById(`paper-select`),i=this.shadow.getElementById(`zoom-select`),a=this.shadow.getElementById(`zoom-in`),o=this.shadow.getElementById(`zoom-out`),s=this.shadow.getElementById(`margin-btn`),c=this.shadow.getElementById(`margin-popup`),l=this.shadow.getElementById(`m-top`),u=this.shadow.getElementById(`m-bottom`),d=this.shadow.getElementById(`m-left`),f=this.shadow.getElementById(`m-right`),p=this.shadow.getElementById(`m-apply`);r.value=`A4`,i.value=`100`,r.addEventListener(`change`,()=>{this.dispatchAction(`paper:size`,r.value)}),i.addEventListener(`change`,()=>{this.dispatchAction(`paper:zoom`,i.value)}),a.addEventListener(`click`,()=>this.dispatchAction(`paper:zoom-in`)),o.addEventListener(`click`,()=>this.dispatchAction(`paper:zoom-out`)),s.addEventListener(`click`,e=>{e.stopPropagation(),c.classList.toggle(`hidden`)}),c.addEventListener(`click`,e=>e.stopPropagation());let m=()=>{let e={top:Math.max(0,parseFloat(l.value)||0),bottom:Math.max(0,parseFloat(u.value)||0),left:Math.max(0,parseFloat(d.value)||0),right:Math.max(0,parseFloat(f.value)||0)};this.dispatchAction(`paper:margin`,JSON.stringify(e)),c.classList.add(`hidden`)};p.addEventListener(`click`,m),[l,u,d,f].forEach(e=>{e.addEventListener(`keydown`,e=>{e.key===`Enter`&&(e.preventDefault(),m()),e.key===`Escape`&&c.classList.add(`hidden`)})}),this.docClickHandler=()=>{c.classList.add(`hidden`)},document.addEventListener(`click`,this.docClickHandler)}disconnectedCallback(){this.docClickHandler&&=(document.removeEventListener(`click`,this.docClickHandler),null)}update(e){let t=this.shadow.getElementById(`char-count`),n=this.shadow.getElementById(`word-count`);if(!t||!n)return;let r=new DOMParser().parseFromString(e,`text/html`).body.textContent??``,i=[...r.replace(/\s/g,``)].length,a=r.trim()===``?0:r.trim().split(/\s+/).length;t.textContent=`${i}자`,n.textContent=`${a}단어`}updatePage(e,t){let n=this.shadow.getElementById(`page-info`);n&&(n.textContent=`${e}/${t} 페이지`)}syncPaper(e){let{size:t,zoom:n,margin:r}=e.detail,i=this.shadow.getElementById(`paper-select`),a=this.shadow.getElementById(`zoom-select`);if(i&&(i.value=t.id),a&&(a.value=String(n)),r){let e=this.shadow.getElementById(`m-top`),t=this.shadow.getElementById(`m-bottom`),n=this.shadow.getElementById(`m-left`),i=this.shadow.getElementById(`m-right`);e&&(e.value=String(r.top)),t&&(t.value=String(r.bottom)),n&&(n.value=String(r.left)),i&&(i.value=String(r.right))}}dispatchAction(e,t){this.dispatchEvent(new CustomEvent(`poa-action`,{bubbles:!0,composed:!0,detail:{type:e,...t===void 0?{}:{value:t}}}))}},Bs=`
 /* ── 호스트 슬라이드 애니메이션 ── */
 :host {
   display: block;
@@ -4257,7 +4293,7 @@ input[type=text].no-match {
   border-radius: 3px; cursor: pointer;
   accent-color: #3B82F6;
 }
-`,Bs=`
+`,Vs=`
 <div class="bar">
   <div class="tab-row">
     <button class="tab active" id="tab-find">찾기</button>
@@ -4288,7 +4324,7 @@ input[type=text].no-match {
     </div>
   </div>
 </div>
-`,Vs=class extends HTMLElement{shadow;debounceTimer=null;constructor(){super(),this.shadow=this.attachShadow({mode:`open`})}connectedCallback(){this.shadow.innerHTML=`<style>${zs}</style>${Bs}`,this.bindEvents()}open(e=`find`){this.setAttribute(`open`,``),this.setMode(e),setTimeout(()=>{this.shadow.getElementById(`inp-find`)?.focus()},50)}close(){this.removeAttribute(`open`),this.removeAttribute(`replace`),this.updateTabUI(!1),this.debounceTimer!==null&&(clearTimeout(this.debounceTimer),this.debounceTimer=null),this.clearInputState(),this.dispatch(`find-clear`,{})}updateResult(e,t){let n=this.shadow.getElementById(`count-label`),r=this.shadow.getElementById(`inp-find`);if(n){if(!((r?.value.trim().length??0)>0)){n.textContent=``,n.className=`count`,r?.classList.remove(`no-match`);return}e===0?(n.textContent=`0 / 0`,n.className=`count empty`,r?.classList.add(`no-match`)):(n.textContent=`${t+1} / ${e}`,n.className=`count`,r?.classList.remove(`no-match`))}}setMode(e){let t=e===`replace`;t?this.setAttribute(`replace`,``):this.removeAttribute(`replace`),this.updateTabUI(t)}updateTabUI(e){let t=this.shadow;t.getElementById(`tab-find`)?.classList.toggle(`active`,!e),t.getElementById(`tab-replace`)?.classList.toggle(`active`,e)}clearInputState(){let e=this.shadow.getElementById(`inp-find`),t=this.shadow.getElementById(`count-label`);e&&e.classList.remove(`no-match`),t&&(t.textContent=``,t.className=`count`)}bindEvents(){let e=this.shadow,t=e.getElementById(`inp-find`),n=e.getElementById(`inp-replace`),r=e.getElementById(`chk-case`),i=e.getElementById(`chk-word`),a=()=>({query:t.value,caseSensitive:r.checked,wholeWord:i.checked}),o=()=>{this.debounceTimer!==null&&clearTimeout(this.debounceTimer),this.debounceTimer=setTimeout(()=>{this.debounceTimer=null,this.dispatch(`find-search`,a())},300)},s=()=>{this.debounceTimer!==null&&(clearTimeout(this.debounceTimer),this.debounceTimer=null),this.dispatch(`find-search`,a())};e.getElementById(`tab-find`)?.addEventListener(`click`,()=>this.setMode(`find`)),e.getElementById(`tab-replace`)?.addEventListener(`click`,()=>this.setMode(`replace`)),e.getElementById(`btn-close`)?.addEventListener(`click`,()=>this.close()),t.addEventListener(`input`,o),t.addEventListener(`keydown`,e=>{if(e.key===`Enter`){e.preventDefault(),s(),e.shiftKey?this.dispatch(`find-prev`,{}):this.dispatch(`find-next`,{});return}e.key===`Escape`&&(e.preventDefault(),this.close())}),r.addEventListener(`change`,o),i.addEventListener(`change`,o),e.getElementById(`btn-prev`)?.addEventListener(`click`,()=>{s(),this.dispatch(`find-prev`,{})}),e.getElementById(`btn-next`)?.addEventListener(`click`,()=>{s(),this.dispatch(`find-next`,{})}),n.addEventListener(`keydown`,e=>{e.key===`Escape`&&(e.preventDefault(),this.close())}),e.getElementById(`btn-replace`)?.addEventListener(`click`,()=>this.dispatch(`find-replace`,{replacement:n.value})),e.getElementById(`btn-replace-all`)?.addEventListener(`click`,()=>this.dispatch(`find-replace-all`,{...a(),replacement:n.value}))}dispatch(e,t){this.dispatchEvent(new CustomEvent(`poa-${e}`,{bubbles:!0,composed:!0,detail:t}))}},Hs=`
+`,Hs=class extends HTMLElement{shadow;debounceTimer=null;constructor(){super(),this.shadow=this.attachShadow({mode:`open`})}connectedCallback(){this.shadow.innerHTML=`<style>${Bs}</style>${Vs}`,this.bindEvents()}open(e=`find`){this.setAttribute(`open`,``),this.setMode(e),setTimeout(()=>{this.shadow.getElementById(`inp-find`)?.focus()},50)}close(){this.removeAttribute(`open`),this.removeAttribute(`replace`),this.updateTabUI(!1),this.debounceTimer!==null&&(clearTimeout(this.debounceTimer),this.debounceTimer=null),this.clearInputState(),this.dispatch(`find-clear`,{})}updateResult(e,t){let n=this.shadow.getElementById(`count-label`),r=this.shadow.getElementById(`inp-find`);if(n){if(!((r?.value.trim().length??0)>0)){n.textContent=``,n.className=`count`,r?.classList.remove(`no-match`);return}e===0?(n.textContent=`0 / 0`,n.className=`count empty`,r?.classList.add(`no-match`)):(n.textContent=`${t+1} / ${e}`,n.className=`count`,r?.classList.remove(`no-match`))}}setMode(e){let t=e===`replace`;t?this.setAttribute(`replace`,``):this.removeAttribute(`replace`),this.updateTabUI(t)}updateTabUI(e){let t=this.shadow;t.getElementById(`tab-find`)?.classList.toggle(`active`,!e),t.getElementById(`tab-replace`)?.classList.toggle(`active`,e)}clearInputState(){let e=this.shadow.getElementById(`inp-find`),t=this.shadow.getElementById(`count-label`);e&&e.classList.remove(`no-match`),t&&(t.textContent=``,t.className=`count`)}bindEvents(){let e=this.shadow,t=e.getElementById(`inp-find`),n=e.getElementById(`inp-replace`),r=e.getElementById(`chk-case`),i=e.getElementById(`chk-word`),a=()=>({query:t.value,caseSensitive:r.checked,wholeWord:i.checked}),o=()=>{this.debounceTimer!==null&&clearTimeout(this.debounceTimer),this.debounceTimer=setTimeout(()=>{this.debounceTimer=null,this.dispatch(`find-search`,a())},300)},s=()=>{this.debounceTimer!==null&&(clearTimeout(this.debounceTimer),this.debounceTimer=null),this.dispatch(`find-search`,a())};e.getElementById(`tab-find`)?.addEventListener(`click`,()=>this.setMode(`find`)),e.getElementById(`tab-replace`)?.addEventListener(`click`,()=>this.setMode(`replace`)),e.getElementById(`btn-close`)?.addEventListener(`click`,()=>this.close()),t.addEventListener(`input`,o),t.addEventListener(`keydown`,e=>{if(e.key===`Enter`){e.preventDefault(),s(),e.shiftKey?this.dispatch(`find-prev`,{}):this.dispatch(`find-next`,{});return}e.key===`Escape`&&(e.preventDefault(),this.close())}),r.addEventListener(`change`,o),i.addEventListener(`change`,o),e.getElementById(`btn-prev`)?.addEventListener(`click`,()=>{s(),this.dispatch(`find-prev`,{})}),e.getElementById(`btn-next`)?.addEventListener(`click`,()=>{s(),this.dispatch(`find-next`,{})}),n.addEventListener(`keydown`,e=>{e.key===`Escape`&&(e.preventDefault(),this.close())}),e.getElementById(`btn-replace`)?.addEventListener(`click`,()=>this.dispatch(`find-replace`,{replacement:n.value})),e.getElementById(`btn-replace-all`)?.addEventListener(`click`,()=>this.dispatch(`find-replace-all`,{...a(),replacement:n.value}))}dispatch(e,t){this.dispatchEvent(new CustomEvent(`poa-${e}`,{bubbles:!0,composed:!0,detail:t}))}},Us=`
 :host { display: none; }
 :host([open]) { display: block; }
 .backdrop {
@@ -4366,7 +4402,7 @@ input[type=text].no-match {
 }
 .btn-apply:hover { background: #1565c0; }
 .btn-apply:disabled { opacity: .5; cursor: default; }
-`,Us=class extends HTMLElement{shadow;editor=new Ii;originalSrc=``;currentDataUrl=``;busy=!1;constructor(){super(),this.shadow=this.attachShadow({mode:`open`})}connectedCallback(){this.shadow.innerHTML=`<style>${Hs}</style>
+`,Ws=class extends HTMLElement{shadow;editor=new Ii;originalSrc=``;currentDataUrl=``;busy=!1;constructor(){super(),this.shadow=this.attachShadow({mode:`open`})}connectedCallback(){this.shadow.innerHTML=`<style>${Us}</style>
 <div class="backdrop" id="backdrop">
   <div class="dialog" role="dialog" aria-modal="true" aria-label="이미지 편집">
     <div class="header">
@@ -4443,7 +4479,7 @@ input[type=text].no-match {
       <button class="btn-apply" id="btn-apply">적용</button>
     </div>
   </div>
-</div>`,this.bindEvents()}async open(e,t){this.originalSrc=e,this.currentDataUrl=e,this.busy=!1,this.switchTab(`canvas`),t&&this.fillProps(t),this.setAttribute(`open`,``),await this.renderPreview(e),this.shadow.getElementById(`btn-close`)?.focus()}close(){this.removeAttribute(`open`),this.originalSrc=``,this.currentDataUrl=``}switchTab(e){let t=this.shadow;t.querySelectorAll(`.tab-btn`).forEach(t=>t.classList.toggle(`active`,t.dataset.tab===e)),t.getElementById(`tc-canvas`)?.classList.toggle(`active`,e===`canvas`),t.getElementById(`tc-props`)?.classList.toggle(`active`,e===`props`)}fillProps(e){let t=(e,t)=>{this.shadow.getElementById(e).value=t??``};t(`p-alt`,e.alt),t(`p-title`,e.title),t(`p-width`,e.width),t(`p-height`,e.height),t(`p-border`,e.border),t(`p-id`,e.id),t(`p-class`,e.className),this.shadow.getElementById(`p-align`).value=e.align??``,this.shadow.getElementById(`err-p-alt`)?.classList.remove(`show`)}bindEvents(){let e=this.shadow;e.getElementById(`backdrop`)?.addEventListener(`click`,t=>{t.target===e.getElementById(`backdrop`)&&this.onCancel()}),e.getElementById(`btn-close`)?.addEventListener(`click`,()=>this.onCancel()),e.getElementById(`btn-cancel`)?.addEventListener(`click`,()=>this.onCancel()),e.getElementById(`btn-apply`)?.addEventListener(`click`,()=>this.onApply()),e.querySelectorAll(`.tab-btn`).forEach(e=>{e.addEventListener(`click`,()=>this.switchTab(e.dataset.tab))}),e.getElementById(`btn-rotate90`)?.addEventListener(`click`,()=>void this.applyOp(()=>this.editor.rotate(this.currentDataUrl,90))),e.getElementById(`btn-flip-h`)?.addEventListener(`click`,()=>void this.applyOp(()=>this.editor.flip(this.currentDataUrl,`horizontal`))),e.getElementById(`btn-flip-v`)?.addEventListener(`click`,()=>void this.applyOp(()=>this.editor.flip(this.currentDataUrl,`vertical`))),e.getElementById(`btn-reset`)?.addEventListener(`click`,async()=>{this.currentDataUrl=this.originalSrc,await this.renderPreview(this.originalSrc)})}async applyOp(e){if(!this.busy){this.busy=!0,this.setControlsDisabled(!0);try{this.currentDataUrl=await e(),await this.renderPreview(this.currentDataUrl)}catch{}finally{this.busy=!1,this.setControlsDisabled(!1)}}}async renderPreview(e){let t=this.shadow.getElementById(`preview`);if(!t)return;t.innerHTML=`<span class="loading">처리 중...</span>`;let n=document.createElement(`img`);n.alt=`미리보기`,await new Promise(t=>{n.onload=()=>t(),n.onerror=()=>t(),n.src=e}),t.innerHTML=``,t.appendChild(n)}setControlsDisabled(e){this.shadow.querySelectorAll(`.controls button, .btn-apply`).forEach(t=>{t.disabled=e})}readProps(){let e=e=>this.shadow.getElementById(e).value.trim();return{alt:e(`p-alt`)||void 0,title:e(`p-title`)||void 0,width:e(`p-width`)||void 0,height:e(`p-height`)||void 0,border:e(`p-border`)||void 0,align:this.shadow.getElementById(`p-align`).value||void 0,id:e(`p-id`)||void 0,className:e(`p-class`)||void 0}}onApply(){let e=this.readProps();if(this.shadow.getElementById(`tc-props`)?.classList.contains(`active`)&&!e.alt){this.shadow.getElementById(`err-p-alt`).classList.add(`show`),this.shadow.getElementById(`p-alt`).focus();return}let t=this.originalSrc,n=this.currentDataUrl;this.close(),this.dispatchEvent(new CustomEvent(`poa-image-edit-confirm`,{bubbles:!0,composed:!0,detail:{original:t,edited:n,attrs:e}}))}onCancel(){this.close(),this.dispatchEvent(new CustomEvent(`poa-image-edit-cancel`,{bubbles:!0,composed:!0}))}},Ws=`
+</div>`,this.bindEvents()}async open(e,t){this.originalSrc=e,this.currentDataUrl=e,this.busy=!1,this.switchTab(`canvas`),t&&this.fillProps(t),this.setAttribute(`open`,``),await this.renderPreview(e),this.shadow.getElementById(`btn-close`)?.focus()}close(){this.removeAttribute(`open`),this.originalSrc=``,this.currentDataUrl=``}switchTab(e){let t=this.shadow;t.querySelectorAll(`.tab-btn`).forEach(t=>t.classList.toggle(`active`,t.dataset.tab===e)),t.getElementById(`tc-canvas`)?.classList.toggle(`active`,e===`canvas`),t.getElementById(`tc-props`)?.classList.toggle(`active`,e===`props`)}fillProps(e){let t=(e,t)=>{this.shadow.getElementById(e).value=t??``};t(`p-alt`,e.alt),t(`p-title`,e.title),t(`p-width`,e.width),t(`p-height`,e.height),t(`p-border`,e.border),t(`p-id`,e.id),t(`p-class`,e.className),this.shadow.getElementById(`p-align`).value=e.align??``,this.shadow.getElementById(`err-p-alt`)?.classList.remove(`show`)}bindEvents(){let e=this.shadow;e.getElementById(`backdrop`)?.addEventListener(`click`,t=>{t.target===e.getElementById(`backdrop`)&&this.onCancel()}),e.getElementById(`btn-close`)?.addEventListener(`click`,()=>this.onCancel()),e.getElementById(`btn-cancel`)?.addEventListener(`click`,()=>this.onCancel()),e.getElementById(`btn-apply`)?.addEventListener(`click`,()=>this.onApply()),e.querySelectorAll(`.tab-btn`).forEach(e=>{e.addEventListener(`click`,()=>this.switchTab(e.dataset.tab))}),e.getElementById(`btn-rotate90`)?.addEventListener(`click`,()=>void this.applyOp(()=>this.editor.rotate(this.currentDataUrl,90))),e.getElementById(`btn-flip-h`)?.addEventListener(`click`,()=>void this.applyOp(()=>this.editor.flip(this.currentDataUrl,`horizontal`))),e.getElementById(`btn-flip-v`)?.addEventListener(`click`,()=>void this.applyOp(()=>this.editor.flip(this.currentDataUrl,`vertical`))),e.getElementById(`btn-reset`)?.addEventListener(`click`,async()=>{this.currentDataUrl=this.originalSrc,await this.renderPreview(this.originalSrc)})}async applyOp(e){if(!this.busy){this.busy=!0,this.setControlsDisabled(!0);try{this.currentDataUrl=await e(),await this.renderPreview(this.currentDataUrl)}catch{}finally{this.busy=!1,this.setControlsDisabled(!1)}}}async renderPreview(e){let t=this.shadow.getElementById(`preview`);if(!t)return;t.innerHTML=`<span class="loading">처리 중...</span>`;let n=document.createElement(`img`);n.alt=`미리보기`,await new Promise(t=>{n.onload=()=>t(),n.onerror=()=>t(),n.src=e}),t.innerHTML=``,t.appendChild(n)}setControlsDisabled(e){this.shadow.querySelectorAll(`.controls button, .btn-apply`).forEach(t=>{t.disabled=e})}readProps(){let e=e=>this.shadow.getElementById(e).value.trim();return{alt:e(`p-alt`)||void 0,title:e(`p-title`)||void 0,width:e(`p-width`)||void 0,height:e(`p-height`)||void 0,border:e(`p-border`)||void 0,align:this.shadow.getElementById(`p-align`).value||void 0,id:e(`p-id`)||void 0,className:e(`p-class`)||void 0}}onApply(){let e=this.readProps();if(this.shadow.getElementById(`tc-props`)?.classList.contains(`active`)&&!e.alt){this.shadow.getElementById(`err-p-alt`).classList.add(`show`),this.shadow.getElementById(`p-alt`).focus();return}let t=this.originalSrc,n=this.currentDataUrl;this.close(),this.dispatchEvent(new CustomEvent(`poa-image-edit-confirm`,{bubbles:!0,composed:!0,detail:{original:t,edited:n,attrs:e}}))}onCancel(){this.close(),this.dispatchEvent(new CustomEvent(`poa-image-edit-cancel`,{bubbles:!0,composed:!0}))}},Gs=`
 :host { display: none; }
 :host([open]) { display: block; }
 .backdrop {
@@ -4527,7 +4563,7 @@ input[type=text].no-match {
 .btn:disabled { opacity: .45; cursor: default; }
 #single-attrs { display: none; }
 #multi-attrs  { display: none; }
-`;function Gs(e){return e<1024*1024?`${(e/1024).toFixed(1)}KB`:`${(e/1024/1024).toFixed(1)}MB`}var Ks=class extends HTMLElement{shadow;uploader=new zi;uploadConfig=null;selectedFiles=[];busy=!1;onErrorFn=null;setOnError(e){this.onErrorFn=e}constructor(){super(),this.shadow=this.attachShadow({mode:`open`})}connectedCallback(){this.shadow.innerHTML=`<style>${Ws}</style>
+`;function Ks(e){return e<1024*1024?`${(e/1024).toFixed(1)}KB`:`${(e/1024/1024).toFixed(1)}MB`}var qs=class extends HTMLElement{shadow;uploader=new zi;uploadConfig=null;selectedFiles=[];busy=!1;onErrorFn=null;setOnError(e){this.onErrorFn=e}constructor(){super(),this.shadow=this.attachShadow({mode:`open`})}connectedCallback(){this.shadow.innerHTML=`<style>${Gs}</style>
 <div class="backdrop" id="backdrop">
   <div class="dialog" role="dialog" aria-modal="true" aria-label="이미지 삽입">
     <div class="header">
@@ -4662,10 +4698,10 @@ input[type=text].no-match {
       <button class="btn primary" id="btn-confirm">삽입</button>
     </div>
   </div>
-</div>`,this.bindEvents()}setUploadConfig(e){this.uploadConfig=e}open(){this.reset(),this.setAttribute(`open`,``),this.shadow.getElementById(`inp-src`)?.focus()}close(){this.removeAttribute(`open`)}reset(){let e=this.shadow;e.getElementById(`inp-src`).value=``,e.getElementById(`inp-alt`).value=``,e.getElementById(`inp-title`).value=``,e.getElementById(`inp-width`).value=``,e.getElementById(`inp-height`).value=``,e.getElementById(`inp-border`).value=``,e.getElementById(`inp-id`).value=``,e.getElementById(`inp-class`).value=``,e.getElementById(`sel-align`).value=``,e.getElementById(`err-alt`)?.classList.remove(`show`),e.getElementById(`url-preview`)?.classList.remove(`show`),e.getElementById(`inp-single-alt`).value=``,e.getElementById(`inp-single-title`).value=``,e.getElementById(`inp-single-width`).value=``,e.getElementById(`inp-single-height`).value=``,e.getElementById(`inp-single-border`).value=``,e.getElementById(`sel-single-align`).value=``,e.getElementById(`single-preview-img`).src=``,e.getElementById(`err-single-alt`)?.classList.remove(`show`),e.getElementById(`inp-file-alt`).value=``,e.getElementById(`err-file-alt`)?.classList.remove(`show`),e.getElementById(`upload-list`).innerHTML=``,e.getElementById(`upload-summary`).textContent=``,e.getElementById(`upload-errors`).innerHTML=``,e.getElementById(`single-attrs`).style.display=`none`,e.getElementById(`multi-attrs`).style.display=`none`,this.selectedFiles=[],this.busy=!1,this.switchTab(`url`)}bindEvents(){let e=this.shadow;e.getElementById(`backdrop`)?.addEventListener(`click`,t=>{t.target===e.getElementById(`backdrop`)&&this.close()}),e.getElementById(`btn-close`)?.addEventListener(`click`,()=>this.close()),e.getElementById(`btn-cancel`)?.addEventListener(`click`,()=>this.close()),e.getElementById(`btn-confirm`)?.addEventListener(`click`,()=>void this.onConfirm()),e.querySelectorAll(`.tab-btn`).forEach(e=>{e.addEventListener(`click`,()=>this.switchTab(e.dataset.tab))}),e.getElementById(`inp-src`)?.addEventListener(`input`,()=>{this.updatePreview(),this.syncConfirmBtn()}),e.getElementById(`inp-alt`)?.addEventListener(`input`,()=>this.syncConfirmBtn());let t=e.getElementById(`file-drop`),n=e.getElementById(`inp-file`);t.addEventListener(`click`,()=>n.click()),t.addEventListener(`keydown`,e=>{(e.key===`Enter`||e.key===` `)&&n.click()}),t.addEventListener(`dragover`,e=>{e.preventDefault(),t.style.borderColor=`#1976d2`}),t.addEventListener(`dragleave`,()=>{t.style.borderColor=``}),t.addEventListener(`drop`,e=>{e.preventDefault(),t.style.borderColor=``;let n=Array.from(e.dataTransfer?.files??[]);this.handleFiles(n)}),n.addEventListener(`change`,()=>{this.handleFiles(Array.from(n.files??[])),n.value=``})}switchTab(e){let t=this.shadow;t.querySelectorAll(`.tab-btn`).forEach(t=>t.classList.toggle(`active`,t.dataset.tab===e)),t.querySelectorAll(`.panel`).forEach(t=>t.classList.toggle(`active`,t.id===`panel-${e}`)),this.syncConfirmBtn()}syncConfirmBtn(){let e=this.shadow,t=e.getElementById(`btn-confirm`);if(e.querySelector(`.panel.active`)?.id===`panel-url`){let n=e.getElementById(`inp-src`).value.trim(),r=e.getElementById(`inp-alt`).value.trim();t.disabled=!n||!r,t.textContent=`삽입`;return}t.textContent=e.getElementById(`single-attrs`).style.display===`none`?`업로드 · 삽입`:`삽입`,t.disabled=!1}updatePreview(){let e=this.shadow.getElementById(`inp-src`).value.trim(),t=this.shadow.getElementById(`url-preview`),n=this.shadow.getElementById(`preview-img`);e?(n.src=e,t.classList.add(`show`)):t.classList.remove(`show`)}handleFiles(e){let{valid:t,errors:n}=this.uploader.validateFiles(e);this.selectedFiles.push(...t),this.renderErrors(n);let r=this.shadow;if(this.selectedFiles.length===1){r.getElementById(`single-attrs`).style.display=`block`,r.getElementById(`multi-attrs`).style.display=`none`,r.getElementById(`upload-list`).innerHTML=``,r.getElementById(`upload-summary`).textContent=``;let e=new FileReader;e.onload=e=>{r.getElementById(`single-preview-img`).src=e.target?.result},e.readAsDataURL(this.selectedFiles[0])}else if(this.selectedFiles.length>1){r.getElementById(`single-attrs`).style.display=`none`,r.getElementById(`multi-attrs`).style.display=`block`,this.renderUploadList();let e=this.selectedFiles.reduce((e,t)=>e+t.size,0);r.getElementById(`upload-summary`).textContent=`${this.selectedFiles.length}개 파일 선택됨 (${Gs(e)} / 20MB)`}this.syncConfirmBtn()}renderUploadList(e){let t=this.shadow.getElementById(`upload-list`);t.innerHTML=(e??this.selectedFiles.map(e=>({file:e,status:`pending`,progress:0}))).map(e=>{let t={pending:`대기`,uploading:`업로드 중`,done:`완료`,error:`오류`},n=`status-${e.status}`,r=e.status===`error`?` — ${e.error??``}`:``;return`<li class="upload-item">
+</div>`,this.bindEvents()}setUploadConfig(e){this.uploadConfig=e}open(){this.reset(),this.setAttribute(`open`,``),this.shadow.getElementById(`inp-src`)?.focus()}close(){this.removeAttribute(`open`)}reset(){let e=this.shadow;e.getElementById(`inp-src`).value=``,e.getElementById(`inp-alt`).value=``,e.getElementById(`inp-title`).value=``,e.getElementById(`inp-width`).value=``,e.getElementById(`inp-height`).value=``,e.getElementById(`inp-border`).value=``,e.getElementById(`inp-id`).value=``,e.getElementById(`inp-class`).value=``,e.getElementById(`sel-align`).value=``,e.getElementById(`err-alt`)?.classList.remove(`show`),e.getElementById(`url-preview`)?.classList.remove(`show`),e.getElementById(`inp-single-alt`).value=``,e.getElementById(`inp-single-title`).value=``,e.getElementById(`inp-single-width`).value=``,e.getElementById(`inp-single-height`).value=``,e.getElementById(`inp-single-border`).value=``,e.getElementById(`sel-single-align`).value=``,e.getElementById(`single-preview-img`).src=``,e.getElementById(`err-single-alt`)?.classList.remove(`show`),e.getElementById(`inp-file-alt`).value=``,e.getElementById(`err-file-alt`)?.classList.remove(`show`),e.getElementById(`upload-list`).innerHTML=``,e.getElementById(`upload-summary`).textContent=``,e.getElementById(`upload-errors`).innerHTML=``,e.getElementById(`single-attrs`).style.display=`none`,e.getElementById(`multi-attrs`).style.display=`none`,this.selectedFiles=[],this.busy=!1,this.switchTab(`url`)}bindEvents(){let e=this.shadow;e.getElementById(`backdrop`)?.addEventListener(`click`,t=>{t.target===e.getElementById(`backdrop`)&&this.close()}),e.getElementById(`btn-close`)?.addEventListener(`click`,()=>this.close()),e.getElementById(`btn-cancel`)?.addEventListener(`click`,()=>this.close()),e.getElementById(`btn-confirm`)?.addEventListener(`click`,()=>void this.onConfirm()),e.querySelectorAll(`.tab-btn`).forEach(e=>{e.addEventListener(`click`,()=>this.switchTab(e.dataset.tab))}),e.getElementById(`inp-src`)?.addEventListener(`input`,()=>{this.updatePreview(),this.syncConfirmBtn()}),e.getElementById(`inp-alt`)?.addEventListener(`input`,()=>this.syncConfirmBtn());let t=e.getElementById(`file-drop`),n=e.getElementById(`inp-file`);t.addEventListener(`click`,()=>n.click()),t.addEventListener(`keydown`,e=>{(e.key===`Enter`||e.key===` `)&&n.click()}),t.addEventListener(`dragover`,e=>{e.preventDefault(),t.style.borderColor=`#1976d2`}),t.addEventListener(`dragleave`,()=>{t.style.borderColor=``}),t.addEventListener(`drop`,e=>{e.preventDefault(),t.style.borderColor=``;let n=Array.from(e.dataTransfer?.files??[]);this.handleFiles(n)}),n.addEventListener(`change`,()=>{this.handleFiles(Array.from(n.files??[])),n.value=``})}switchTab(e){let t=this.shadow;t.querySelectorAll(`.tab-btn`).forEach(t=>t.classList.toggle(`active`,t.dataset.tab===e)),t.querySelectorAll(`.panel`).forEach(t=>t.classList.toggle(`active`,t.id===`panel-${e}`)),this.syncConfirmBtn()}syncConfirmBtn(){let e=this.shadow,t=e.getElementById(`btn-confirm`);if(e.querySelector(`.panel.active`)?.id===`panel-url`){let n=e.getElementById(`inp-src`).value.trim(),r=e.getElementById(`inp-alt`).value.trim();t.disabled=!n||!r,t.textContent=`삽입`;return}t.textContent=e.getElementById(`single-attrs`).style.display===`none`?`업로드 · 삽입`:`삽입`,t.disabled=!1}updatePreview(){let e=this.shadow.getElementById(`inp-src`).value.trim(),t=this.shadow.getElementById(`url-preview`),n=this.shadow.getElementById(`preview-img`);e?(n.src=e,t.classList.add(`show`)):t.classList.remove(`show`)}handleFiles(e){let{valid:t,errors:n}=this.uploader.validateFiles(e);this.selectedFiles.push(...t),this.renderErrors(n);let r=this.shadow;if(this.selectedFiles.length===1){r.getElementById(`single-attrs`).style.display=`block`,r.getElementById(`multi-attrs`).style.display=`none`,r.getElementById(`upload-list`).innerHTML=``,r.getElementById(`upload-summary`).textContent=``;let e=new FileReader;e.onload=e=>{r.getElementById(`single-preview-img`).src=e.target?.result},e.readAsDataURL(this.selectedFiles[0])}else if(this.selectedFiles.length>1){r.getElementById(`single-attrs`).style.display=`none`,r.getElementById(`multi-attrs`).style.display=`block`,this.renderUploadList();let e=this.selectedFiles.reduce((e,t)=>e+t.size,0);r.getElementById(`upload-summary`).textContent=`${this.selectedFiles.length}개 파일 선택됨 (${Ks(e)} / 20MB)`}this.syncConfirmBtn()}renderUploadList(e){let t=this.shadow.getElementById(`upload-list`);t.innerHTML=(e??this.selectedFiles.map(e=>({file:e,status:`pending`,progress:0}))).map(e=>{let t={pending:`대기`,uploading:`업로드 중`,done:`완료`,error:`오류`},n=`status-${e.status}`,r=e.status===`error`?` — ${e.error??``}`:``;return`<li class="upload-item">
         <span class="upload-name">${e.file.name}</span>
         <span class="upload-status ${n}">${t[e.status]}${r}</span>
-      </li>`}).join(``)}renderErrors(e){let t=this.shadow.getElementById(`upload-errors`);t.innerHTML=e.map(e=>`<li>${e}</li>`).join(``)}async onConfirm(){this.busy||(this.shadow.querySelector(`.panel.active`)?.id===`panel-url`?this.confirmUrl():await this.confirmUpload())}confirmUrl(){let e=this.shadow,t=e.getElementById(`inp-src`).value.trim(),n=e.getElementById(`inp-alt`).value.trim();if(!n){e.getElementById(`err-alt`).classList.add(`show`),e.getElementById(`inp-alt`).focus();return}e.getElementById(`err-alt`).classList.remove(`show`);let r={src:t,alt:n,title:e.getElementById(`inp-title`).value.trim()||void 0,width:e.getElementById(`inp-width`).value.trim()||void 0,height:e.getElementById(`inp-height`).value.trim()||void 0,border:e.getElementById(`inp-border`).value.trim()||void 0,align:e.getElementById(`sel-align`).value||void 0,id:e.getElementById(`inp-id`).value.trim()||void 0,className:e.getElementById(`inp-class`).value.trim()||void 0};this.dispatch(`poa-image-insert`,{attrs:r}),this.close()}async confirmUpload(){if(this.selectedFiles.length===0)return;let e=this.shadow;if(e.getElementById(`single-attrs`).style.display!==`none`){let t=e.getElementById(`inp-single-alt`).value.trim();if(!t){e.getElementById(`err-single-alt`).classList.add(`show`),e.getElementById(`inp-single-alt`).focus();return}e.getElementById(`err-single-alt`).classList.remove(`show`);let n={alt:t,title:e.getElementById(`inp-single-title`).value.trim()||void 0,width:e.getElementById(`inp-single-width`).value.trim()||void 0,height:e.getElementById(`inp-single-height`).value.trim()||void 0,border:e.getElementById(`inp-single-border`).value.trim()||void 0,align:e.getElementById(`sel-single-align`).value||void 0,src:``};this.busy=!0,e.getElementById(`btn-confirm`).disabled=!0;try{let e=this.selectedFiles[0];if(this.uploadConfig){let t=(await this.uploader.upload([e],{...this.uploadConfig,onProgress:e=>this.renderUploadList(e)}))[0];t?.status===`done`&&t.url&&this.dispatch(`poa-image-insert`,{attrs:{...n,src:t.url}})}else{let t=await this.readAsDataUrl(e);this.dispatch(`poa-image-insert`,{attrs:{...n,src:t}})}this.busy=!1,this.close()}catch(e){(this.onErrorFn??(e=>console.error(e)))(e instanceof Error?e.message:`파일 읽기에 실패했습니다.`),this.busy=!1,this.syncConfirmBtn()}return}let t=e.getElementById(`inp-file-alt`).value.trim();if(!t){e.getElementById(`err-file-alt`).classList.add(`show`),e.getElementById(`inp-file-alt`).focus();return}if(e.getElementById(`err-file-alt`).classList.remove(`show`),this.busy=!0,e.getElementById(`btn-confirm`).disabled=!0,!this.uploadConfig){try{for(let e of this.selectedFiles){let n=await this.readAsDataUrl(e);this.dispatch(`poa-image-insert`,{attrs:{src:n,alt:t}})}this.busy=!1,this.close()}catch(e){(this.onErrorFn??(e=>console.error(e)))(e instanceof Error?e.message:`파일 읽기에 실패했습니다.`),this.busy=!1,this.syncConfirmBtn()}return}let n=await this.uploader.upload(this.selectedFiles,{...this.uploadConfig,onProgress:e=>this.renderUploadList(e)});n.forEach(e=>{e.status===`done`&&e.url&&this.dispatch(`poa-image-insert`,{attrs:{src:e.url,alt:t}})}),n.some(e=>e.status===`error`)?(this.busy=!1,this.syncConfirmBtn()):(this.busy=!1,this.close())}readAsDataUrl(e){return new Promise((t,n)=>{let r=new FileReader;r.onload=()=>t(r.result),r.onerror=()=>n(Error(`"${e.name}" 파일 읽기에 실패했습니다.`)),r.readAsDataURL(e)})}dispatch(e,t){this.dispatchEvent(new CustomEvent(e,{bubbles:!0,composed:!0,detail:t}))}},qs=10,Js=10,Ys=22,Xs=2,Zs=`
+      </li>`}).join(``)}renderErrors(e){let t=this.shadow.getElementById(`upload-errors`);t.innerHTML=e.map(e=>`<li>${e}</li>`).join(``)}async onConfirm(){this.busy||(this.shadow.querySelector(`.panel.active`)?.id===`panel-url`?this.confirmUrl():await this.confirmUpload())}confirmUrl(){let e=this.shadow,t=e.getElementById(`inp-src`).value.trim(),n=e.getElementById(`inp-alt`).value.trim();if(!n){e.getElementById(`err-alt`).classList.add(`show`),e.getElementById(`inp-alt`).focus();return}e.getElementById(`err-alt`).classList.remove(`show`);let r={src:t,alt:n,title:e.getElementById(`inp-title`).value.trim()||void 0,width:e.getElementById(`inp-width`).value.trim()||void 0,height:e.getElementById(`inp-height`).value.trim()||void 0,border:e.getElementById(`inp-border`).value.trim()||void 0,align:e.getElementById(`sel-align`).value||void 0,id:e.getElementById(`inp-id`).value.trim()||void 0,className:e.getElementById(`inp-class`).value.trim()||void 0};this.dispatch(`poa-image-insert`,{attrs:r}),this.close()}async confirmUpload(){if(this.selectedFiles.length===0)return;let e=this.shadow;if(e.getElementById(`single-attrs`).style.display!==`none`){let t=e.getElementById(`inp-single-alt`).value.trim();if(!t){e.getElementById(`err-single-alt`).classList.add(`show`),e.getElementById(`inp-single-alt`).focus();return}e.getElementById(`err-single-alt`).classList.remove(`show`);let n={alt:t,title:e.getElementById(`inp-single-title`).value.trim()||void 0,width:e.getElementById(`inp-single-width`).value.trim()||void 0,height:e.getElementById(`inp-single-height`).value.trim()||void 0,border:e.getElementById(`inp-single-border`).value.trim()||void 0,align:e.getElementById(`sel-single-align`).value||void 0,src:``};this.busy=!0,e.getElementById(`btn-confirm`).disabled=!0;try{let e=this.selectedFiles[0];if(this.uploadConfig){let t=(await this.uploader.upload([e],{...this.uploadConfig,onProgress:e=>this.renderUploadList(e)}))[0];t?.status===`done`&&t.url&&this.dispatch(`poa-image-insert`,{attrs:{...n,src:t.url}})}else{let t=await this.readAsDataUrl(e);this.dispatch(`poa-image-insert`,{attrs:{...n,src:t}})}this.busy=!1,this.close()}catch(e){(this.onErrorFn??(e=>console.error(e)))(e instanceof Error?e.message:`파일 읽기에 실패했습니다.`),this.busy=!1,this.syncConfirmBtn()}return}let t=e.getElementById(`inp-file-alt`).value.trim();if(!t){e.getElementById(`err-file-alt`).classList.add(`show`),e.getElementById(`inp-file-alt`).focus();return}if(e.getElementById(`err-file-alt`).classList.remove(`show`),this.busy=!0,e.getElementById(`btn-confirm`).disabled=!0,!this.uploadConfig){try{for(let e of this.selectedFiles){let n=await this.readAsDataUrl(e);this.dispatch(`poa-image-insert`,{attrs:{src:n,alt:t}})}this.busy=!1,this.close()}catch(e){(this.onErrorFn??(e=>console.error(e)))(e instanceof Error?e.message:`파일 읽기에 실패했습니다.`),this.busy=!1,this.syncConfirmBtn()}return}let n=await this.uploader.upload(this.selectedFiles,{...this.uploadConfig,onProgress:e=>this.renderUploadList(e)});n.forEach(e=>{e.status===`done`&&e.url&&this.dispatch(`poa-image-insert`,{attrs:{src:e.url,alt:t}})}),n.some(e=>e.status===`error`)?(this.busy=!1,this.syncConfirmBtn()):(this.busy=!1,this.close())}readAsDataUrl(e){return new Promise((t,n)=>{let r=new FileReader;r.onload=()=>t(r.result),r.onerror=()=>n(Error(`"${e.name}" 파일 읽기에 실패했습니다.`)),r.readAsDataURL(e)})}dispatch(e,t){this.dispatchEvent(new CustomEvent(e,{bubbles:!0,composed:!0,detail:t}))}},Js=10,Ys=10,Xs=22,Zs=2,Qs=`
 :host { display: none; }
 :host(.open) { display: block; }
 
@@ -4728,12 +4764,12 @@ input[type=text].no-match {
 .grid-wrap { display: flex; flex-direction: column; align-items: center; gap: 7px; }
 .grid-picker {
   display: grid;
-  grid-template-columns: repeat(${qs}, ${Ys}px);
-  gap: ${Xs}px;
+  grid-template-columns: repeat(${Js}, ${Xs}px);
+  gap: ${Zs}px;
   cursor: crosshair;
 }
 .gc {
-  width: ${Ys}px; height: ${Ys}px;
+  width: ${Xs}px; height: ${Xs}px;
   border: 1px solid #ddd; background: #fff;
   border-radius: 2px; box-sizing: border-box;
   pointer-events: none;
@@ -4786,7 +4822,7 @@ input[type=text].no-match {
   border-color: #1565c0; background: #e3f0ff; color: #1565c0; font-weight: 600;
 }
 .align-btn:hover:not(.active) { background: #f5f5f5; }
-`,Qs=class e extends HTMLElement{shadow;selectedPreset=`border-all`;gridCells=[];constructor(){super(),this.shadow=this.attachShadow({mode:`open`})}connectedCallback(){this.shadow.innerHTML=`<style>${Zs}</style>
+`,$s=class e extends HTMLElement{shadow;selectedPreset=`border-all`;gridCells=[];constructor(){super(),this.shadow=this.attachShadow({mode:`open`})}connectedCallback(){this.shadow.innerHTML=`<style>${Qs}</style>
 <div class="overlay" id="overlay">
   <div class="dialog" role="dialog" aria-modal="true">
     <div class="dlg-hd">
@@ -4795,7 +4831,7 @@ input[type=text].no-match {
     </div>
     <div class="dlg-body" id="dlg-body"></div>
   </div>
-</div>`,this.shadow.getElementById(`btn-close`).addEventListener(`click`,()=>this.close()),this.shadow.getElementById(`overlay`).addEventListener(`click`,e=>{e.target.id===`overlay`&&this.close()})}open(e){this.classList.add(`open`);let t=this.shadow.getElementById(`dlg-body`),n=this.shadow.getElementById(`dlg-title`);e?(n.textContent=`표 속성`,this.renderProps(t,e)):(n.textContent=`표`,this.renderInsert(t))}close(){this.classList.remove(`open`),this.gridCells=[]}renderInsert(e){let t=e.ownerDocument;e.innerHTML=``;let n=t.createElement(`div`);n.className=`preset-grid`;for(let e of Tn){let r=t.createElement(`div`);r.className=`preset-item`+(e.id===this.selectedPreset?` active`:``),r.dataset.pid=e.id,r.innerHTML=`${e.icon}<span class="preset-lbl">${e.label}</span>`,r.addEventListener(`click`,()=>this.selectPreset(e.id)),n.appendChild(r)}e.appendChild(n);let r=t.createElement(`hr`);r.className=`sep`,e.appendChild(r);let i=t.createElement(`div`);i.className=`grid-wrap`;let a=t.createElement(`div`);a.className=`grid-picker`,this.gridCells=[];for(let e=0;e<Js;e++)for(let n=0;n<qs;n++){let r=t.createElement(`div`);r.className=`gc`,r.dataset.r=String(e),r.dataset.c=String(n),a.appendChild(r),this.gridCells.push(r)}let o=t.createElement(`div`);o.className=`grid-size`,o.textContent=``,a.addEventListener(`mousemove`,e=>{if(!e.target.closest(`.grid-picker`))return;let t=a.getBoundingClientRect(),n=Ys+Xs,r=Math.min(Math.floor((e.clientX-t.left)/n),qs-1),i=Math.min(Math.floor((e.clientY-t.top)/n),Js-1);this.highlightGrid(i,r),o.textContent=`${r+1} × ${i+1}`}),a.addEventListener(`mouseleave`,()=>{this.highlightGrid(-1,-1),o.textContent=``}),a.addEventListener(`click`,e=>{let t=a.getBoundingClientRect(),n=Ys+Xs,r=Math.min(Math.floor((e.clientX-t.left)/n),qs-1),i=Math.min(Math.floor((e.clientY-t.top)/n),Js-1);this.insertTable(i+1,r+1)}),i.appendChild(a),i.appendChild(o),e.appendChild(i)}selectPreset(e){this.selectedPreset=e,this.shadow.querySelectorAll(`.preset-item`).forEach(t=>{t.classList.toggle(`active`,t.dataset.pid===e)})}highlightGrid(e,t){for(let n of this.gridCells){let r=parseInt(n.dataset.r??`0`),i=parseInt(n.dataset.c??`0`);n.classList.toggle(`hl`,r<=e&&i<=t)}}insertTable(e,t){let n=Tn.find(e=>e.id===this.selectedPreset)??Tn[0],r={rows:e,cols:t,width:`100%`,align:`center`,...n.baseOptions};this.dispatchEvent(new CustomEvent(`poa-table-insert`,{bubbles:!0,composed:!0,detail:{options:r,presetId:n.id}})),this.close()}renderProps(t,n){let r=n.style.width||`100%`,i=e.rgbToHex(n.style.backgroundColor)||`#ffffff`,a=n.querySelector(`td,th`)?.style.border.match(/solid\s+(#[\da-fA-F]{3,6}|[a-z]+)/i),o=a?a[1]:`#000000`,s=`left`;n.style.marginLeft===`auto`&&n.style.marginRight===`auto`?s=`center`:n.style.marginLeft===`auto`&&(s=`right`);let c=(e,t,n)=>`<button class="align-btn${s===e?` active`:``}" data-align="${e}">${t} ${n}</button>`;t.innerHTML=`
+</div>`,this.shadow.getElementById(`btn-close`).addEventListener(`click`,()=>this.close()),this.shadow.getElementById(`overlay`).addEventListener(`click`,e=>{e.target.id===`overlay`&&this.close()})}open(e){this.classList.add(`open`);let t=this.shadow.getElementById(`dlg-body`),n=this.shadow.getElementById(`dlg-title`);e?(n.textContent=`표 속성`,this.renderProps(t,e)):(n.textContent=`표`,this.renderInsert(t))}close(){this.classList.remove(`open`),this.gridCells=[]}renderInsert(e){let t=e.ownerDocument;e.innerHTML=``;let n=t.createElement(`div`);n.className=`preset-grid`;for(let e of Tn){let r=t.createElement(`div`);r.className=`preset-item`+(e.id===this.selectedPreset?` active`:``),r.dataset.pid=e.id,r.innerHTML=`${e.icon}<span class="preset-lbl">${e.label}</span>`,r.addEventListener(`click`,()=>this.selectPreset(e.id)),n.appendChild(r)}e.appendChild(n);let r=t.createElement(`hr`);r.className=`sep`,e.appendChild(r);let i=t.createElement(`div`);i.className=`grid-wrap`;let a=t.createElement(`div`);a.className=`grid-picker`,this.gridCells=[];for(let e=0;e<Ys;e++)for(let n=0;n<Js;n++){let r=t.createElement(`div`);r.className=`gc`,r.dataset.r=String(e),r.dataset.c=String(n),a.appendChild(r),this.gridCells.push(r)}let o=t.createElement(`div`);o.className=`grid-size`,o.textContent=``,a.addEventListener(`mousemove`,e=>{if(!e.target.closest(`.grid-picker`))return;let t=a.getBoundingClientRect(),n=Xs+Zs,r=Math.min(Math.floor((e.clientX-t.left)/n),Js-1),i=Math.min(Math.floor((e.clientY-t.top)/n),Ys-1);this.highlightGrid(i,r),o.textContent=`${r+1} × ${i+1}`}),a.addEventListener(`mouseleave`,()=>{this.highlightGrid(-1,-1),o.textContent=``}),a.addEventListener(`click`,e=>{let t=a.getBoundingClientRect(),n=Xs+Zs,r=Math.min(Math.floor((e.clientX-t.left)/n),Js-1),i=Math.min(Math.floor((e.clientY-t.top)/n),Ys-1);this.insertTable(i+1,r+1)}),i.appendChild(a),i.appendChild(o),e.appendChild(i)}selectPreset(e){this.selectedPreset=e,this.shadow.querySelectorAll(`.preset-item`).forEach(t=>{t.classList.toggle(`active`,t.dataset.pid===e)})}highlightGrid(e,t){for(let n of this.gridCells){let r=parseInt(n.dataset.r??`0`),i=parseInt(n.dataset.c??`0`);n.classList.toggle(`hl`,r<=e&&i<=t)}}insertTable(e,t){let n=Tn.find(e=>e.id===this.selectedPreset)??Tn[0],r={rows:e,cols:t,width:`100%`,align:`center`,...n.baseOptions};this.dispatchEvent(new CustomEvent(`poa-table-insert`,{bubbles:!0,composed:!0,detail:{options:r,presetId:n.id}})),this.close()}renderProps(t,n){let r=n.style.width||`100%`,i=e.rgbToHex(n.style.backgroundColor)||`#ffffff`,a=n.querySelector(`td,th`)?.style.border.match(/solid\s+(#[\da-fA-F]{3,6}|[a-z]+)/i),o=a?a[1]:`#000000`,s=`left`;n.style.marginLeft===`auto`&&n.style.marginRight===`auto`?s=`center`:n.style.marginLeft===`auto`&&(s=`right`);let c=(e,t,n)=>`<button class="align-btn${s===e?` active`:``}" data-align="${e}">${t} ${n}</button>`;t.innerHTML=`
 <div class="props-form">
   <label class="p-lbl">너비</label>
   <input  class="p-inp" id="pp-w"  type="text"  value="${r}">
@@ -4813,7 +4849,7 @@ input[type=text].no-match {
 <div class="props-actions">
   <button class="btn"             id="pp-cancel">취소</button>
   <button class="btn btn-primary" id="pp-ok">적용</button>
-</div>`;let l=s;t.querySelector(`#pp-align-btns`).addEventListener(`click`,e=>{let n=e.target.closest(`.align-btn`);n&&(l=n.dataset.align,t.querySelectorAll(`.align-btn`).forEach(e=>{e.classList.toggle(`active`,e.dataset.align===l)}))}),t.querySelector(`#pp-cancel`).addEventListener(`click`,()=>this.close()),t.querySelector(`#pp-ok`).addEventListener(`click`,()=>{let e={width:t.querySelector(`#pp-w`).value.trim(),borderColor:t.querySelector(`#pp-bc`).value,bgColor:t.querySelector(`#pp-bg`).value,align:l};this.dispatchEvent(new CustomEvent(`poa-table-update`,{bubbles:!0,composed:!0,detail:{options:e,table:n}})),this.close()})}static rgbToHex(e){let t=e.match(/\d+/g);return!t||t.length<3?``:`#`+t.slice(0,3).map(e=>parseInt(e).toString(16).padStart(2,`0`)).join(``)}static colorToHex(t){return e.rgbToHex(t)||`#ffffff`}},$s=[{label:`날짜 (2025-05-05)`,fn:()=>new Date().toISOString().slice(0,10)},{label:`시간 (14:30:05)`,fn:()=>new Intl.DateTimeFormat(`ko-KR`,{hour:`2-digit`,minute:`2-digit`,second:`2-digit`,hour12:!1}).format(new Date)},{label:`날짜·시간 (2025-05-05 14:30)`,fn:()=>{let e=new Date;return`${e.toISOString().slice(0,10)} ${new Intl.DateTimeFormat(`ko-KR`,{hour:`2-digit`,minute:`2-digit`,hour12:!1}).format(e)}`}},{label:`한국어 날짜 (2025년 5월 5일)`,fn:()=>new Intl.DateTimeFormat(`ko-KR`,{year:`numeric`,month:`long`,day:`numeric`}).format(new Date)},{label:`한국어 날짜·시간 (2025년 5월 5일 월요일 오후 2:30)`,fn:()=>new Intl.DateTimeFormat(`ko-KR`,{year:`numeric`,month:`long`,day:`numeric`,weekday:`long`,hour:`numeric`,minute:`2-digit`}).format(new Date)}],ec=`
+</div>`;let l=s;t.querySelector(`#pp-align-btns`).addEventListener(`click`,e=>{let n=e.target.closest(`.align-btn`);n&&(l=n.dataset.align,t.querySelectorAll(`.align-btn`).forEach(e=>{e.classList.toggle(`active`,e.dataset.align===l)}))}),t.querySelector(`#pp-cancel`).addEventListener(`click`,()=>this.close()),t.querySelector(`#pp-ok`).addEventListener(`click`,()=>{let e={width:t.querySelector(`#pp-w`).value.trim(),borderColor:t.querySelector(`#pp-bc`).value,bgColor:t.querySelector(`#pp-bg`).value,align:l};this.dispatchEvent(new CustomEvent(`poa-table-update`,{bubbles:!0,composed:!0,detail:{options:e,table:n}})),this.close()})}static rgbToHex(e){let t=e.match(/\d+/g);return!t||t.length<3?``:`#`+t.slice(0,3).map(e=>parseInt(e).toString(16).padStart(2,`0`)).join(``)}static colorToHex(t){return e.rgbToHex(t)||`#ffffff`}},ec=[{label:`날짜 (2025-05-05)`,fn:()=>new Date().toISOString().slice(0,10)},{label:`시간 (14:30:05)`,fn:()=>new Intl.DateTimeFormat(`ko-KR`,{hour:`2-digit`,minute:`2-digit`,second:`2-digit`,hour12:!1}).format(new Date)},{label:`날짜·시간 (2025-05-05 14:30)`,fn:()=>{let e=new Date;return`${e.toISOString().slice(0,10)} ${new Intl.DateTimeFormat(`ko-KR`,{hour:`2-digit`,minute:`2-digit`,hour12:!1}).format(e)}`}},{label:`한국어 날짜 (2025년 5월 5일)`,fn:()=>new Intl.DateTimeFormat(`ko-KR`,{year:`numeric`,month:`long`,day:`numeric`}).format(new Date)},{label:`한국어 날짜·시간 (2025년 5월 5일 월요일 오후 2:30)`,fn:()=>new Intl.DateTimeFormat(`ko-KR`,{year:`numeric`,month:`long`,day:`numeric`,weekday:`long`,hour:`numeric`,minute:`2-digit`}).format(new Date)}],tc=`
 :host { display: none; }
 :host([open]) { display: block; }
 .backdrop {
@@ -4902,7 +4938,7 @@ input[type=text].no-match {
 }
 .dt-preview { flex: 1; color: #333; }
 .dt-format { font-size: 11px; color: #999; margin-left: 8px; }
-`,tc=class extends HTMLElement{shadow;bookmarks=[];editingId=null;editingAnchor=null;constructor(){super(),this.shadow=this.attachShadow({mode:`open`})}connectedCallback(){this.shadow.innerHTML=`<style>${ec}</style>
+`,nc=class extends HTMLElement{shadow;bookmarks=[];editingId=null;editingAnchor=null;constructor(){super(),this.shadow=this.attachShadow({mode:`open`})}connectedCallback(){this.shadow.innerHTML=`<style>${tc}</style>
 <div class="backdrop" id="backdrop">
   <div class="dialog" role="dialog" aria-modal="true" aria-label="링크 삽입">
     <div class="header">
@@ -4987,13 +5023,13 @@ input[type=text].no-match {
           <button class="btn sm" data-action="cancel-edit">취소</button>
         </div>
       </li>`:``}
-    `).join(``),e.addEventListener(`click`,e=>{let t=e.target.closest(`[data-action]`);if(!t)return;let n=t.dataset.action,r=t.dataset.id??``;n===`link`?this.onBookmarkLink(r):n===`edit`?this.onBookmarkEditStart(r):n===`save`?this.onBookmarkSave(r):n===`delete`?this.onBookmarkDelete(r):n===`cancel-edit`&&(this.editingId=null,this.renderBookmarkList())},{once:!0})}}onBookmarkLink(e){let t=this.bookmarks.find(t=>t.id===e);t&&(this.dispatch(`poa-bookmark-link-insert`,{bookmarkId:e,text:t.label}),this.close())}onBookmarkEditStart(e){this.editingId=e,this.renderBookmarkList(),this.shadow.getElementById(`inp-bm-edit`)?.focus()}onBookmarkSave(e){let t=this.shadow.getElementById(`inp-bm-edit`),n=t?.value.trim()??``;if(!n){t?.focus();return}this.dispatch(`poa-bookmark-update`,{id:e,label:n}),this.editingId=null}onBookmarkDelete(e){this.dispatch(`poa-bookmark-delete`,{id:e})}buildDatetimePresets(){let e=this.shadow.getElementById(`dt-presets`);e&&(e.innerHTML=$s.map((e,t)=>`
+    `).join(``),e.addEventListener(`click`,e=>{let t=e.target.closest(`[data-action]`);if(!t)return;let n=t.dataset.action,r=t.dataset.id??``;n===`link`?this.onBookmarkLink(r):n===`edit`?this.onBookmarkEditStart(r):n===`save`?this.onBookmarkSave(r):n===`delete`?this.onBookmarkDelete(r):n===`cancel-edit`&&(this.editingId=null,this.renderBookmarkList())},{once:!0})}}onBookmarkLink(e){let t=this.bookmarks.find(t=>t.id===e);t&&(this.dispatch(`poa-bookmark-link-insert`,{bookmarkId:e,text:t.label}),this.close())}onBookmarkEditStart(e){this.editingId=e,this.renderBookmarkList(),this.shadow.getElementById(`inp-bm-edit`)?.focus()}onBookmarkSave(e){let t=this.shadow.getElementById(`inp-bm-edit`),n=t?.value.trim()??``;if(!n){t?.focus();return}this.dispatch(`poa-bookmark-update`,{id:e,label:n}),this.editingId=null}onBookmarkDelete(e){this.dispatch(`poa-bookmark-delete`,{id:e})}buildDatetimePresets(){let e=this.shadow.getElementById(`dt-presets`);e&&(e.innerHTML=ec.map((e,t)=>`
       <div class="dt-preset">
         <span class="dt-preview" id="dt-prev-${t}"></span>
         <span class="dt-format">${e.label}</span>
         <button class="btn sm primary" data-preset="${t}">삽입</button>
       </div>
-    `).join(``),this.refreshDatetimePreviews(),e.addEventListener(`click`,e=>{let t=e.target.closest(`[data-preset]`);if(!t)return;let n=$s[parseInt(t.dataset.preset??`0`)]?.fn()??``;this.dispatch(`poa-datetime-insert`,{text:n}),this.close()}))}refreshDatetimePreviews(){$s.forEach((e,t)=>{let n=this.shadow.getElementById(`dt-prev-${t}`);n&&(n.textContent=e.fn())})}dispatch(e,t){this.dispatchEvent(new CustomEvent(e,{bubbles:!0,composed:!0,detail:t}))}},nc=`
+    `).join(``),this.refreshDatetimePreviews(),e.addEventListener(`click`,e=>{let t=e.target.closest(`[data-preset]`);if(!t)return;let n=ec[parseInt(t.dataset.preset??`0`)]?.fn()??``;this.dispatch(`poa-datetime-insert`,{text:n}),this.close()}))}refreshDatetimePreviews(){ec.forEach((e,t)=>{let n=this.shadow.getElementById(`dt-prev-${t}`);n&&(n.textContent=e.fn())})}dispatch(e,t){this.dispatchEvent(new CustomEvent(e,{bubbles:!0,composed:!0,detail:t}))}},rc=`
 :host { display: none; }
 :host([open]) {
   display: flex; align-items: center; gap: 6px;
@@ -5025,7 +5061,7 @@ label { color: #555; }
   background: #f5f5f5; font-size: 12px; cursor: pointer;
 }
 .btn:hover { background: #e8e8e8; }
-`,rc=class extends HTMLElement{shadow;img=null;aspectLocked=!1;naturalW=0;naturalH=0;constructor(){super(),this.shadow=this.attachShadow({mode:`open`})}connectedCallback(){this.shadow.innerHTML=`<style>${nc}</style>
+`,ic=class extends HTMLElement{shadow;img=null;aspectLocked=!1;naturalW=0;naturalH=0;constructor(){super(),this.shadow=this.attachShadow({mode:`open`})}connectedCallback(){this.shadow.innerHTML=`<style>${rc}</style>
 <label>너비</label>
 <input class="inp" id="inp-w" type="number" min="20" max="9999">
 <span class="unit">px</span>
@@ -5037,7 +5073,7 @@ label { color: #555; }
   <input type="checkbox" id="cb-ratio">비율고정
 </label>
 <div class="sep"></div>
-<button class="btn" id="btn-reset">원본크기</button>`,this.bindEvents()}show(e){this.img=e,this.naturalW=e.naturalWidth||Math.round(e.getBoundingClientRect().width),this.naturalH=e.naturalHeight||Math.round(e.getBoundingClientRect().height),this.aspectLocked=!1,this.shadow.getElementById(`cb-ratio`).checked=!1,this.setAttribute(`open`,``),this.updateInputsFromImg(),this.positionNear(e)}update(e){this.img===e&&(this.updateInputsFromImg(),this.positionNear(e))}hide(){this.img=null,this.removeAttribute(`open`)}bindEvents(){let e=this.shadow,t=e.getElementById(`inp-w`),n=e.getElementById(`inp-h`),r=e.getElementById(`cb-ratio`),i=e.getElementById(`btn-reset`);r.addEventListener(`change`,()=>{this.aspectLocked=r.checked}),t.addEventListener(`change`,()=>this.onWidthChange(t)),n.addEventListener(`change`,()=>this.onHeightChange(n)),t.addEventListener(`keydown`,e=>{e.key===`Enter`&&this.onWidthChange(t)}),n.addEventListener(`keydown`,e=>{e.key===`Enter`&&this.onHeightChange(n)}),this.shadow.addEventListener(`mousedown`,e=>e.stopPropagation()),i.addEventListener(`click`,()=>{this.dispatchEvent(new CustomEvent(`poa-img-reset-size`,{bubbles:!0,composed:!0}))})}onWidthChange(e){if(!this.img)return;let t=parseInt(e.value,10);(isNaN(t)||t<20)&&(t=20,e.value=`20`);let n;if(this.aspectLocked&&this.naturalW>0&&this.naturalH>0){let e=Math.round(parseFloat(this.img.style.height)||this.img.getBoundingClientRect().height),r=Math.round(parseFloat(this.img.style.width)||this.img.getBoundingClientRect().width),i=r>0?e/r:this.naturalH/this.naturalW;n=Math.max(20,Math.round(t*i)),this.shadow.getElementById(`inp-h`).value=String(n)}else n=Math.round(parseFloat(this.img.style.height)||this.img.getBoundingClientRect().height);this.dispatchEvent(new CustomEvent(`poa-img-size-change`,{bubbles:!0,composed:!0,detail:{width:t,height:n}}))}onHeightChange(e){if(!this.img)return;let t=parseInt(e.value,10);(isNaN(t)||t<20)&&(t=20,e.value=`20`);let n;if(this.aspectLocked&&this.naturalW>0&&this.naturalH>0){let e=Math.round(parseFloat(this.img.style.height)||this.img.getBoundingClientRect().height),r=Math.round(parseFloat(this.img.style.width)||this.img.getBoundingClientRect().width),i=e>0?r/e:this.naturalW/this.naturalH;n=Math.max(20,Math.round(t*i)),this.shadow.getElementById(`inp-w`).value=String(n)}else n=Math.round(parseFloat(this.img.style.width)||this.img.getBoundingClientRect().width);this.dispatchEvent(new CustomEvent(`poa-img-size-change`,{bubbles:!0,composed:!0,detail:{width:n,height:t}}))}updateInputsFromImg(){if(!this.img)return;let e=this.img.getBoundingClientRect(),t=Math.round(parseFloat(this.img.style.width)||e.width),n=Math.round(parseFloat(this.img.style.height)||e.height);this.shadow.getElementById(`inp-w`).value=String(t),this.shadow.getElementById(`inp-h`).value=String(n)}positionNear(e){let t=e.getBoundingClientRect(),n=window.innerHeight-t.bottom>46?t.bottom+6:t.top-36-6;this.style.top=`${Math.max(0,n)}px`,this.style.left=`${Math.max(0,t.left)}px`}},ic=`
+<button class="btn" id="btn-reset">원본크기</button>`,this.bindEvents()}show(e){this.img=e,this.naturalW=e.naturalWidth||Math.round(e.getBoundingClientRect().width),this.naturalH=e.naturalHeight||Math.round(e.getBoundingClientRect().height),this.aspectLocked=!1,this.shadow.getElementById(`cb-ratio`).checked=!1,this.setAttribute(`open`,``),this.updateInputsFromImg(),this.positionNear(e)}update(e){this.img===e&&(this.updateInputsFromImg(),this.positionNear(e))}hide(){this.img=null,this.removeAttribute(`open`)}bindEvents(){let e=this.shadow,t=e.getElementById(`inp-w`),n=e.getElementById(`inp-h`),r=e.getElementById(`cb-ratio`),i=e.getElementById(`btn-reset`);r.addEventListener(`change`,()=>{this.aspectLocked=r.checked}),t.addEventListener(`change`,()=>this.onWidthChange(t)),n.addEventListener(`change`,()=>this.onHeightChange(n)),t.addEventListener(`keydown`,e=>{e.key===`Enter`&&this.onWidthChange(t)}),n.addEventListener(`keydown`,e=>{e.key===`Enter`&&this.onHeightChange(n)}),this.shadow.addEventListener(`mousedown`,e=>e.stopPropagation()),i.addEventListener(`click`,()=>{this.dispatchEvent(new CustomEvent(`poa-img-reset-size`,{bubbles:!0,composed:!0}))})}onWidthChange(e){if(!this.img)return;let t=parseInt(e.value,10);(isNaN(t)||t<20)&&(t=20,e.value=`20`);let n;if(this.aspectLocked&&this.naturalW>0&&this.naturalH>0){let e=Math.round(parseFloat(this.img.style.height)||this.img.getBoundingClientRect().height),r=Math.round(parseFloat(this.img.style.width)||this.img.getBoundingClientRect().width),i=r>0?e/r:this.naturalH/this.naturalW;n=Math.max(20,Math.round(t*i)),this.shadow.getElementById(`inp-h`).value=String(n)}else n=Math.round(parseFloat(this.img.style.height)||this.img.getBoundingClientRect().height);this.dispatchEvent(new CustomEvent(`poa-img-size-change`,{bubbles:!0,composed:!0,detail:{width:t,height:n}}))}onHeightChange(e){if(!this.img)return;let t=parseInt(e.value,10);(isNaN(t)||t<20)&&(t=20,e.value=`20`);let n;if(this.aspectLocked&&this.naturalW>0&&this.naturalH>0){let e=Math.round(parseFloat(this.img.style.height)||this.img.getBoundingClientRect().height),r=Math.round(parseFloat(this.img.style.width)||this.img.getBoundingClientRect().width),i=e>0?r/e:this.naturalW/this.naturalH;n=Math.max(20,Math.round(t*i)),this.shadow.getElementById(`inp-w`).value=String(n)}else n=Math.round(parseFloat(this.img.style.width)||this.img.getBoundingClientRect().width);this.dispatchEvent(new CustomEvent(`poa-img-size-change`,{bubbles:!0,composed:!0,detail:{width:n,height:t}}))}updateInputsFromImg(){if(!this.img)return;let e=this.img.getBoundingClientRect(),t=Math.round(parseFloat(this.img.style.width)||e.width),n=Math.round(parseFloat(this.img.style.height)||e.height);this.shadow.getElementById(`inp-w`).value=String(t),this.shadow.getElementById(`inp-h`).value=String(n)}positionNear(e){let t=e.getBoundingClientRect(),n=window.innerHeight-t.bottom>46?t.bottom+6:t.top-36-6;this.style.top=`${Math.max(0,n)}px`,this.style.left=`${Math.max(0,t.left)}px`}},ac=`
 :host { display: none; }
 :host([open]) { display: block; }
 
@@ -5116,7 +5152,7 @@ label { color: #555; }
   transition: background 0.1s;
 }
 .btn-ok:hover { background: #374151; }
-`,ac=`
+`,oc=`
 <div class="overlay" id="overlay">
   <div class="dialog">
     <p class="title">
@@ -5130,7 +5166,7 @@ label { color: #555; }
     </div>
   </div>
 </div>
-`,oc=class extends HTMLElement{shadow;resolvePromise=null;constructor(){super(),this.shadow=this.attachShadow({mode:`open`})}connectedCallback(){this.shadow.innerHTML=`<style>${ic}</style>${ac}`,this.bindEvents()}show(e,t=`확인`){let n=this.shadow.getElementById(`dlg-title`),r=this.shadow.getElementById(`dlg-message`);return n&&(n.textContent=t),r&&(r.textContent=e),this.setAttribute(`open`,``),new Promise(e=>{this.resolvePromise=e})}close(e){this.removeAttribute(`open`),this.resolvePromise?.(e),this.resolvePromise=null}bindEvents(){this.shadow.getElementById(`btn-ok`)?.addEventListener(`click`,()=>this.close(!0)),this.shadow.getElementById(`btn-cancel`)?.addEventListener(`click`,()=>this.close(!1)),this.shadow.getElementById(`overlay`)?.addEventListener(`click`,e=>{e.target.id===`overlay`&&this.close(!1)}),this.addEventListener(`keydown`,e=>{e.key===`Escape`&&(e.preventDefault(),this.close(!1))})}},sc={error:`●`,warning:`▲`,info:`ℹ`},cc={error:`#DC2626`,warning:`#D97706`,info:`#2563EB`},lc=`
+`,sc=class extends HTMLElement{shadow;resolvePromise=null;constructor(){super(),this.shadow=this.attachShadow({mode:`open`})}connectedCallback(){this.shadow.innerHTML=`<style>${ac}</style>${oc}`,this.bindEvents()}show(e,t=`확인`){let n=this.shadow.getElementById(`dlg-title`),r=this.shadow.getElementById(`dlg-message`);return n&&(n.textContent=t),r&&(r.textContent=e),this.setAttribute(`open`,``),new Promise(e=>{this.resolvePromise=e})}close(e){this.removeAttribute(`open`),this.resolvePromise?.(e),this.resolvePromise=null}bindEvents(){this.shadow.getElementById(`btn-ok`)?.addEventListener(`click`,()=>this.close(!0)),this.shadow.getElementById(`btn-cancel`)?.addEventListener(`click`,()=>this.close(!1)),this.shadow.getElementById(`overlay`)?.addEventListener(`click`,e=>{e.target.id===`overlay`&&this.close(!1)}),this.addEventListener(`keydown`,e=>{e.key===`Escape`&&(e.preventDefault(),this.close(!1))})}},cc={error:`●`,warning:`▲`,info:`ℹ`},lc={error:`#DC2626`,warning:`#D97706`,info:`#2563EB`},uc=`
 :host { display: none; }
 :host([open]) { display: block; }
 
@@ -5306,7 +5342,7 @@ label { color: #555; }
   color: #6B7280; font-size: 14px;
 }
 .empty-icon { font-size: 32px; margin-bottom: 8px; }
-`,uc=class extends HTMLElement{shadow;issues=[];contentEl=null;rerunFn=null;currentFilter=`all`;constructor(){super(),this.shadow=this.attachShadow({mode:`open`})}connectedCallback(){this.shadow.innerHTML=`<style>${lc}</style>
+`,dc=class extends HTMLElement{shadow;issues=[];contentEl=null;rerunFn=null;currentFilter=`all`;constructor(){super(),this.shadow=this.attachShadow({mode:`open`})}connectedCallback(){this.shadow.innerHTML=`<style>${uc}</style>
 <div class="overlay" id="overlay">
   <div class="dialog">
     <div class="header">
@@ -5329,18 +5365,18 @@ label { color: #555; }
     </div>
     <div class="issue-list" id="issue-list"></div>
   </div>
-</div>`,this.bindEvents()}setup(e,t){this.contentEl=e,this.rerunFn=t}startLoading(){this.setAttribute(`open`,``),this.setAttribute(`loading`,``)}show(e){this.issues=e.issues,this.currentFilter=`all`,this.setAttribute(`open`,``),this.removeAttribute(`loading`),this.renderSummary(e),this.renderIssues(),this.syncFilterSelect()}close(){this.removeAttribute(`open`),this.removeAttribute(`loading`)}renderSummary(e){let t=this.shadow.getElementById(`summary-bar`);if(t){if(e.errorCount===0&&e.warningCount===0&&e.infoCount===0){t.innerHTML=`<span class="badge badge-pass">✓ 문제 없음</span>`;return}t.innerHTML=[e.errorCount>0?`<span class="badge badge-error">   ${sc.error}   오류 ${e.errorCount}개</span>`:``,e.warningCount>0?`<span class="badge badge-warning">${sc.warning} 경고 ${e.warningCount}개</span>`:``,e.infoCount>0?`<span class="badge badge-info">   ${sc.info}   정보 ${e.infoCount}개</span>`:``].join(``)}}renderIssues(){let e=this.shadow.getElementById(`issue-list`);if(!e)return;let t=this.shadow.getElementById(`btn-fix-all`),n=this.issues.some(e=>e.autoFix);if(t&&(t.disabled=!n),this.issues.length===0){e.innerHTML=`<div class="empty" style="display:block">
+</div>`,this.bindEvents()}setup(e,t){this.contentEl=e,this.rerunFn=t}startLoading(){this.setAttribute(`open`,``),this.setAttribute(`loading`,``)}show(e){this.issues=e.issues,this.currentFilter=`all`,this.setAttribute(`open`,``),this.removeAttribute(`loading`),this.renderSummary(e),this.renderIssues(),this.syncFilterSelect()}close(){this.removeAttribute(`open`),this.removeAttribute(`loading`)}renderSummary(e){let t=this.shadow.getElementById(`summary-bar`);if(t){if(e.errorCount===0&&e.warningCount===0&&e.infoCount===0){t.innerHTML=`<span class="badge badge-pass">✓ 문제 없음</span>`;return}t.innerHTML=[e.errorCount>0?`<span class="badge badge-error">   ${cc.error}   오류 ${e.errorCount}개</span>`:``,e.warningCount>0?`<span class="badge badge-warning">${cc.warning} 경고 ${e.warningCount}개</span>`:``,e.infoCount>0?`<span class="badge badge-info">   ${cc.info}   정보 ${e.infoCount}개</span>`:``].join(``)}}renderIssues(){let e=this.shadow.getElementById(`issue-list`);if(!e)return;let t=this.shadow.getElementById(`btn-fix-all`),n=this.issues.some(e=>e.autoFix);if(t&&(t.disabled=!n),this.issues.length===0){e.innerHTML=`<div class="empty" style="display:block">
         <div class="empty-icon">✅</div>
         <div>접근성 문제가 없습니다!</div>
-      </div>`;return}e.innerHTML=this.issues.map((e,t)=>this.renderCard(e,t)).join(``),this.applyFilter(),this.bindCardEvents()}renderCard(e,t){let n=cc[e.level],r=sc[e.level],i=this.buildFixPanelHTML(e,t);return`
+      </div>`;return}e.innerHTML=this.issues.map((e,t)=>this.renderCard(e,t)).join(``),this.applyFilter(),this.bindCardEvents()}renderCard(e,t){let n=lc[e.level],r=cc[e.level],i=this.buildFixPanelHTML(e,t);return`
 <div class="issue-card" data-level="${e.level}" data-idx="${t}">
   <div class="issue-header">
     <span class="issue-icon" style="color:${n}">${r}</span>
-    <span class="issue-title">${dc(e.title)}</span>
+    <span class="issue-title">${fc(e.title)}</span>
     <span class="issue-arrow">∨</span>
   </div>
   <div class="issue-body">
-    <p class="issue-message">${dc(e.message)}</p>
+    <p class="issue-message">${fc(e.message)}</p>
     <div class="issue-actions">
       ${e.element?`<button class="btn btn-nav" data-idx="${t}">해당 요소로 이동</button>`:``}
       <button class="btn btn-fix" data-idx="${t}">직접 수정</button>
@@ -5359,7 +5395,7 @@ label { color: #555; }
         <div class="fix-row">
           <input type="text" class="fix-input" id="fi-${t}" placeholder="링크 설명 입력">
           <button class="btn-apply" data-idx="${t}" data-action="set-link-text">적용</button>
-        </div>`:e.autoFix?`<button class="btn-auto-fix" data-idx="${t}" data-action="auto-fix">자동 수정</button>`:`<span class="no-fix-msg">자동 수정을 지원하지 않습니다.</span>`}bindEvents(){this.shadow.getElementById(`btn-close`)?.addEventListener(`click`,()=>this.close()),this.shadow.getElementById(`overlay`)?.addEventListener(`click`,e=>{e.target.id===`overlay`&&this.close()}),this.shadow.getElementById(`filter-select`)?.addEventListener(`change`,e=>{this.currentFilter=e.target.value,this.applyFilter()}),this.shadow.getElementById(`btn-fix-all`)?.addEventListener(`click`,()=>this.doFixAll()),this.addEventListener(`keydown`,e=>{e.key===`Escape`&&(e.preventDefault(),this.close())})}bindCardEvents(){let e=this.shadow.getElementById(`issue-list`);e&&e.addEventListener(`click`,e=>{let t=e.target,n=t.closest(`.issue-header`);if(n){n.closest(`.issue-card`)?.classList.toggle(`expanded`);return}let r=t.closest(`.btn-nav`);if(r){let e=parseInt(r.dataset.idx??`-1`);this.navigateTo(this.issues[e]?.element??null);return}let i=t.closest(`.btn-fix`);if(i){let e=i.dataset.idx;this.shadow.getElementById(`fp-${e}`)?.classList.toggle(`open`);return}let a=t.closest(`.btn-apply`);if(a){let e=parseInt(a.dataset.idx??`-1`),t=a.dataset.action??``,n=this.shadow.getElementById(`fi-${e}`)?.value.trim()??``;this.applyFix(e,t,n);return}let o=t.closest(`[data-action="auto-fix"]`);if(o){let e=parseInt(o.dataset.idx??`-1`);this.applyFix(e,`auto-fix`,``)}})}navigateTo(e){!e||!this.contentEl||(e.scrollIntoView({behavior:`smooth`,block:`center`}),e.style.outline=`3px solid #F59E0B`,e.style.outlineOffset=`2px`,setTimeout(()=>{e.style.outline=``,e.style.outlineOffset=``},2e3))}applyFix(e,t,n){let r=this.issues[e];if(r){switch(t){case`set-alt`:r.element?.setAttribute(`alt`,n||`이미지`);break;case`set-caption`:{let e=r.element;if(e){let t=e.querySelector(`caption`);t||(t=e.ownerDocument.createElement(`caption`),e.prepend(t)),t.textContent=n||`표`}break}case`set-link-text`:r.element&&(r.element.textContent=n);break;case`auto-fix`:r.autoFix?.();break}this.rerunFn?.()}}doFixAll(){(this.currentFilter===`all`?this.issues:this.issues.filter(e=>e.level===this.currentFilter)).forEach(e=>e.autoFix?.()),this.rerunFn?.()}applyFilter(){this.shadow.querySelectorAll(`.issue-card`).forEach(e=>{let t=e.dataset.level;e.hidden=this.currentFilter!==`all`&&t!==this.currentFilter})}syncFilterSelect(){let e=this.shadow.getElementById(`filter-select`);e&&(e.value=`all`)}};function dc(e){return e.replace(/&/g,`&amp;`).replace(/</g,`&lt;`).replace(/>/g,`&gt;`).replace(/"/g,`&quot;`)}var fc={"very-high":`🔴`,high:`🟠`,medium:`🟡`},pc={"very-high":`매우높음`,high:`높음`,medium:`중간`},mc=`
+        </div>`:e.autoFix?`<button class="btn-auto-fix" data-idx="${t}" data-action="auto-fix">자동 수정</button>`:`<span class="no-fix-msg">자동 수정을 지원하지 않습니다.</span>`}bindEvents(){this.shadow.getElementById(`btn-close`)?.addEventListener(`click`,()=>this.close()),this.shadow.getElementById(`overlay`)?.addEventListener(`click`,e=>{e.target.id===`overlay`&&this.close()}),this.shadow.getElementById(`filter-select`)?.addEventListener(`change`,e=>{this.currentFilter=e.target.value,this.applyFilter()}),this.shadow.getElementById(`btn-fix-all`)?.addEventListener(`click`,()=>this.doFixAll()),this.addEventListener(`keydown`,e=>{e.key===`Escape`&&(e.preventDefault(),this.close())})}bindCardEvents(){let e=this.shadow.getElementById(`issue-list`);e&&e.addEventListener(`click`,e=>{let t=e.target,n=t.closest(`.issue-header`);if(n){n.closest(`.issue-card`)?.classList.toggle(`expanded`);return}let r=t.closest(`.btn-nav`);if(r){let e=parseInt(r.dataset.idx??`-1`);this.navigateTo(this.issues[e]?.element??null);return}let i=t.closest(`.btn-fix`);if(i){let e=i.dataset.idx;this.shadow.getElementById(`fp-${e}`)?.classList.toggle(`open`);return}let a=t.closest(`.btn-apply`);if(a){let e=parseInt(a.dataset.idx??`-1`),t=a.dataset.action??``,n=this.shadow.getElementById(`fi-${e}`)?.value.trim()??``;this.applyFix(e,t,n);return}let o=t.closest(`[data-action="auto-fix"]`);if(o){let e=parseInt(o.dataset.idx??`-1`);this.applyFix(e,`auto-fix`,``)}})}navigateTo(e){!e||!this.contentEl||(e.scrollIntoView({behavior:`smooth`,block:`center`}),e.style.outline=`3px solid #F59E0B`,e.style.outlineOffset=`2px`,setTimeout(()=>{e.style.outline=``,e.style.outlineOffset=``},2e3))}applyFix(e,t,n){let r=this.issues[e];if(r){switch(t){case`set-alt`:r.element?.setAttribute(`alt`,n||`이미지`);break;case`set-caption`:{let e=r.element;if(e){let t=e.querySelector(`caption`);t||(t=e.ownerDocument.createElement(`caption`),e.prepend(t)),t.textContent=n||`표`}break}case`set-link-text`:r.element&&(r.element.textContent=n);break;case`auto-fix`:r.autoFix?.();break}this.rerunFn?.()}}doFixAll(){(this.currentFilter===`all`?this.issues:this.issues.filter(e=>e.level===this.currentFilter)).forEach(e=>e.autoFix?.()),this.rerunFn?.()}applyFilter(){this.shadow.querySelectorAll(`.issue-card`).forEach(e=>{let t=e.dataset.level;e.hidden=this.currentFilter!==`all`&&t!==this.currentFilter})}syncFilterSelect(){let e=this.shadow.getElementById(`filter-select`);e&&(e.value=`all`)}};function fc(e){return e.replace(/&/g,`&amp;`).replace(/</g,`&lt;`).replace(/>/g,`&gt;`).replace(/"/g,`&quot;`)}var pc={"very-high":`🔴`,high:`🟠`,medium:`🟡`},mc={"very-high":`매우높음`,high:`높음`,medium:`중간`},hc=`
 :host { display: none; }
 :host([open]) { display: block; }
 
@@ -5508,7 +5544,7 @@ label { color: #555; }
   animation: spin 0.7s linear infinite;
 }
 @keyframes spin { to { transform: rotate(360deg); } }
-`,hc=class extends HTMLElement{shadow;items=[];filteredType=`all`;onModified=null;onConfirmFn=null;constructor(){super(),this.shadow=this.attachShadow({mode:`open`}),this.shadow.innerHTML=`<style>${mc}</style><slot></slot>`}setup(e,t){this.onModified=e,this.onConfirmFn=t}startLoading(){this.setAttribute(`open`,``),this.shadow.innerHTML=`<style>${mc}</style>
+`,gc=class extends HTMLElement{shadow;items=[];filteredType=`all`;onModified=null;onConfirmFn=null;constructor(){super(),this.shadow=this.attachShadow({mode:`open`}),this.shadow.innerHTML=`<style>${hc}</style><slot></slot>`}setup(e,t){this.onModified=e,this.onConfirmFn=t}startLoading(){this.setAttribute(`open`,``),this.shadow.innerHTML=`<style>${hc}</style>
 <div class="overlay">
   <div class="dialog">
     <div class="header">
@@ -5517,7 +5553,7 @@ label { color: #555; }
     </div>
     <div class="loading"><div class="spinner"></div>검사 중…</div>
   </div>
-</div>`,this.shadow.getElementById(`btn-close`)?.addEventListener(`click`,()=>this.close())}show(e){this.items=e,this.filteredType=`all`,this.setAttribute(`open`,``),this.render()}close(){this.removeAttribute(`open`),this.items=[]}render(){let e=this.buildTypeOptions(),t=this.visibleMatches(),n=this.items.length;this.shadow.innerHTML=`<style>${mc}</style>
+</div>`,this.shadow.getElementById(`btn-close`)?.addEventListener(`click`,()=>this.close())}show(e){this.items=e,this.filteredType=`all`,this.setAttribute(`open`,``),this.render()}close(){this.removeAttribute(`open`),this.items=[]}render(){let e=this.buildTypeOptions(),t=this.visibleMatches(),n=this.items.length;this.shadow.innerHTML=`<style>${hc}</style>
 <div class="overlay" id="overlay">
   <div class="dialog" id="dialog">
     <div class="header">
@@ -5547,21 +5583,21 @@ label { color: #555; }
 </div>`,this.bindEvents()}buildTypeOptions(){let e=new Map;for(let t of this.items)e.set(t.label,(e.get(t.label)??0)+1);return Array.from(e.entries()).map(([e,t])=>`<option value="${e}">${e} (${t})</option>`).join(``)}buildCard(e){return`
 <div class="card" data-level="${e.riskLevel}" data-id="${e.id}">
   <div class="card-header" data-toggle="${e.id}">
-    <span class="card-icon">${fc[e.riskLevel]}</span>
+    <span class="card-icon">${pc[e.riskLevel]}</span>
     <span class="card-label">${e.label}</span>
-    <span class="card-risk">${pc[e.riskLevel]}</span>
+    <span class="card-risk">${mc[e.riskLevel]}</span>
     <span class="card-toggle">∨</span>
   </div>
   <div class="card-body" id="body-${e.id}">
-    <div class="raw-text">"${gc(e.raw)}"</div>
+    <div class="raw-text">"${_c(e.raw)}"</div>
     <div class="location">위치: ${e.locationLabel}</div>
     <div class="card-actions">
       <button class="btn" data-action="navigate" data-id="${e.id}">이동</button>
       <button class="btn danger" data-action="delete" data-id="${e.id}">삭제</button>
-      <button class="btn mask"   data-action="mask"   data-id="${e.id}">마스킹 (${gc(e.masked)})</button>
+      <button class="btn mask"   data-action="mask"   data-id="${e.id}">마스킹 (${_c(e.masked)})</button>
     </div>
   </div>
-</div>`}visibleMatches(){return this.filteredType===`all`?this.items:this.items.filter(e=>e.label===this.filteredType)}bindEvents(){let e=this.shadow;e.getElementById(`btn-close`)?.addEventListener(`click`,()=>this.close()),e.getElementById(`overlay`)?.addEventListener(`click`,()=>this.close()),e.getElementById(`dialog`)?.addEventListener(`click`,e=>e.stopPropagation()),e.getElementById(`filter-type`)?.addEventListener(`change`,e=>{this.filteredType=e.target.value,this.renderList()}),e.getElementById(`btn-delete-all`)?.addEventListener(`click`,async()=>{await(this.onConfirmFn?.(`탐지된 ${this.visibleMatches().length}개 항목을 모두 삭제할까요?`)??Promise.resolve(!0))&&(Cr.deleteAll(this.visibleMatches()),this.items=this.items.filter(e=>e.highlightEl!==null),this.onModified?.(),this.render())}),e.getElementById(`btn-mask-all`)?.addEventListener(`click`,()=>{Cr.maskAll(this.visibleMatches()),this.items=this.items.filter(e=>e.highlightEl!==null),this.onModified?.(),this.render()}),e.querySelectorAll(`[data-toggle]`).forEach(t=>{t.addEventListener(`click`,()=>{let n=t.dataset.toggle,r=e.getElementById(`body-${n}`),i=t.querySelector(`.card-toggle`);if(!r)return;let a=!r.classList.contains(`hidden`);r.classList.toggle(`hidden`,a),i&&(i.textContent=a?`›`:`∨`)})}),e.getElementById(`list`)?.addEventListener(`click`,e=>{let t=e.target.closest(`[data-action]`);if(!t)return;let n=t.dataset.id,r=this.items.find(e=>e.id===n);if(!r)return;let i=t.dataset.action;i===`navigate`?this.navigateTo(r):i===`delete`?(Cr.deleteMatch(r),this.items=this.items.filter(e=>e.id!==n),this.onModified?.(),this.render()):i===`mask`&&(Cr.maskMatch(r),this.items=this.items.filter(e=>e.id!==n),this.onModified?.(),this.render())})}renderList(){let e=this.shadow.getElementById(`list`);if(!e)return;let t=this.visibleMatches();e.innerHTML=t.length===0?`<div class="empty">해당 유형의 항목이 없습니다.</div>`:t.map(e=>this.buildCard(e)).join(``),e.querySelectorAll(`[data-toggle]`).forEach(e=>{e.addEventListener(`click`,()=>{let t=e.dataset.toggle,n=this.shadow.getElementById(`body-${t}`),r=e.querySelector(`.card-toggle`);if(!n)return;let i=!n.classList.contains(`hidden`);n.classList.toggle(`hidden`,i),r&&(r.textContent=i?`›`:`∨`)})})}navigateTo(e){let t=e.highlightEl;if(!t)return;t.scrollIntoView({behavior:`smooth`,block:`center`});let n=t.style.outline;t.style.outline=`2px solid #F59E0B`,t.style.outlineOffset=`2px`,setTimeout(()=>{t.style.outline=n,t.style.outlineOffset=``},2e3)}};function gc(e){return e.replace(/&/g,`&amp;`).replace(/</g,`&lt;`).replace(/>/g,`&gt;`).replace(/"/g,`&quot;`)}var _c=`
+</div>`}visibleMatches(){return this.filteredType===`all`?this.items:this.items.filter(e=>e.label===this.filteredType)}bindEvents(){let e=this.shadow;e.getElementById(`btn-close`)?.addEventListener(`click`,()=>this.close()),e.getElementById(`overlay`)?.addEventListener(`click`,()=>this.close()),e.getElementById(`dialog`)?.addEventListener(`click`,e=>e.stopPropagation()),e.getElementById(`filter-type`)?.addEventListener(`change`,e=>{this.filteredType=e.target.value,this.renderList()}),e.getElementById(`btn-delete-all`)?.addEventListener(`click`,async()=>{await(this.onConfirmFn?.(`탐지된 ${this.visibleMatches().length}개 항목을 모두 삭제할까요?`)??Promise.resolve(!0))&&(Cr.deleteAll(this.visibleMatches()),this.items=this.items.filter(e=>e.highlightEl!==null),this.onModified?.(),this.render())}),e.getElementById(`btn-mask-all`)?.addEventListener(`click`,()=>{Cr.maskAll(this.visibleMatches()),this.items=this.items.filter(e=>e.highlightEl!==null),this.onModified?.(),this.render()}),e.querySelectorAll(`[data-toggle]`).forEach(t=>{t.addEventListener(`click`,()=>{let n=t.dataset.toggle,r=e.getElementById(`body-${n}`),i=t.querySelector(`.card-toggle`);if(!r)return;let a=!r.classList.contains(`hidden`);r.classList.toggle(`hidden`,a),i&&(i.textContent=a?`›`:`∨`)})}),e.getElementById(`list`)?.addEventListener(`click`,e=>{let t=e.target.closest(`[data-action]`);if(!t)return;let n=t.dataset.id,r=this.items.find(e=>e.id===n);if(!r)return;let i=t.dataset.action;i===`navigate`?this.navigateTo(r):i===`delete`?(Cr.deleteMatch(r),this.items=this.items.filter(e=>e.id!==n),this.onModified?.(),this.render()):i===`mask`&&(Cr.maskMatch(r),this.items=this.items.filter(e=>e.id!==n),this.onModified?.(),this.render())})}renderList(){let e=this.shadow.getElementById(`list`);if(!e)return;let t=this.visibleMatches();e.innerHTML=t.length===0?`<div class="empty">해당 유형의 항목이 없습니다.</div>`:t.map(e=>this.buildCard(e)).join(``),e.querySelectorAll(`[data-toggle]`).forEach(e=>{e.addEventListener(`click`,()=>{let t=e.dataset.toggle,n=this.shadow.getElementById(`body-${t}`),r=e.querySelector(`.card-toggle`);if(!n)return;let i=!n.classList.contains(`hidden`);n.classList.toggle(`hidden`,i),r&&(r.textContent=i?`›`:`∨`)})})}navigateTo(e){let t=e.highlightEl;if(!t)return;t.scrollIntoView({behavior:`smooth`,block:`center`});let n=t.style.outline;t.style.outline=`2px solid #F59E0B`,t.style.outlineOffset=`2px`,setTimeout(()=>{t.style.outline=n,t.style.outlineOffset=``},2e3)}};function _c(e){return e.replace(/&/g,`&amp;`).replace(/</g,`&lt;`).replace(/>/g,`&gt;`).replace(/"/g,`&quot;`)}var vc=`
 :host { display: none; }
 :host([open]) { display: block; }
 
@@ -5676,7 +5712,7 @@ input[type="color"] {
   display: inline-flex; align-items: center; gap: 4px; font-size: 12px;
 }
 .decimal-places-wrap input { width: 44px; }
-`,vc=class extends HTMLElement{shadow;currentTable=null;currentRow=1;currentCol=1;pickBar=null;constructor(){super(),this.shadow=this.attachShadow({mode:`open`}),this.shadow.innerHTML=`<style>${_c}</style>`}open(e){this.currentTable=e.table,this.currentRow=e.cellRow,this.currentCol=e.cellCol,this.setAttribute(`open`,``),this.render(e.existingFormula,e.initialRange)}close(){this.removeAttribute(`open`),this.exitPickMode(),this.currentTable=null}applyRange(e,t,n,r){this.exitPickMode();let i=e=>this.shadow.getElementById(e),a=(e,t)=>{let n=i(e);n&&(n.value=String(t))};a(`sr`,e),a(`sc`,t),a(`er`,n),a(`ec`,r)}render(e,t){let n=e?.fn??`SUM`,r=e?.format??`integer`,i=e?.decimalPlaces??2,[a,o,s,c]=e?.range??t??[1,1,1,1],l=e?.targetRow??this.currentRow,u=e?.targetCol??this.currentCol,d=!e||e.targetRow===this.currentRow&&e.targetCol===this.currentCol,f=e?.style?.backgroundColor??`#ffffff`,p=e?.style?.color??`#000000`,m=(e,t)=>`<label><input type="radio" name="fn" value="${e}"${n===e?` checked`:``}> ${e} (${t})</label>`,h=(e,t)=>`<label><input type="radio" name="format" value="${e}"${r===e?` checked`:``}> ${t}</label>`;this.shadow.innerHTML=`<style>${_c}</style>
+`,yc=class extends HTMLElement{shadow;currentTable=null;currentRow=1;currentCol=1;pickBar=null;constructor(){super(),this.shadow=this.attachShadow({mode:`open`}),this.shadow.innerHTML=`<style>${vc}</style>`}open(e){this.currentTable=e.table,this.currentRow=e.cellRow,this.currentCol=e.cellCol,this.setAttribute(`open`,``),this.render(e.existingFormula,e.initialRange)}close(){this.removeAttribute(`open`),this.exitPickMode(),this.currentTable=null}applyRange(e,t,n,r){this.exitPickMode();let i=e=>this.shadow.getElementById(e),a=(e,t)=>{let n=i(e);n&&(n.value=String(t))};a(`sr`,e),a(`sc`,t),a(`er`,n),a(`ec`,r)}render(e,t){let n=e?.fn??`SUM`,r=e?.format??`integer`,i=e?.decimalPlaces??2,[a,o,s,c]=e?.range??t??[1,1,1,1],l=e?.targetRow??this.currentRow,u=e?.targetCol??this.currentCol,d=!e||e.targetRow===this.currentRow&&e.targetCol===this.currentCol,f=e?.style?.backgroundColor??`#ffffff`,p=e?.style?.color??`#000000`,m=(e,t)=>`<label><input type="radio" name="fn" value="${e}"${n===e?` checked`:``}> ${e} (${t})</label>`,h=(e,t)=>`<label><input type="radio" name="format" value="${e}"${r===e?` checked`:``}> ${t}</label>`;this.shadow.innerHTML=`<style>${vc}</style>
 <div class="overlay" id="overlay">
   <div class="dialog" id="dialog">
     <div class="header">
@@ -5769,7 +5805,7 @@ input[type="color"] {
       <button id="cancel-pick" style="
         background:#374151;border:none;color:#fff;padding:4px 10px;
         border-radius:4px;cursor:pointer;font-size:12px;
-      ">취소</button>`,document.body.appendChild(e),this.pickBar=e,e.querySelector(`#cancel-pick`)?.addEventListener(`click`,()=>this.exitPickMode()),this.dispatchEvent(new CustomEvent(`poa-formula-start-pick`,{bubbles:!0}))}exitPickMode(){this.shadow.getElementById(`overlay`)?.classList.remove(`pick-mode`),this.pickBar?.remove(),this.pickBar=null}};customElements.get(`poa-menubar`)||customElements.define(`poa-menubar`,Cs),customElements.get(`poa-context-toolbar`)||customElements.define(`poa-context-toolbar`,As),customElements.get(`poa-toolbar`)||customElements.define(`poa-toolbar`,Ls),customElements.get(`poa-status-bar`)||customElements.define(`poa-status-bar`,Rs),customElements.get(`poa-settings-dialog`)||customElements.define(`poa-settings-dialog`,an),customElements.get(`poa-file-manager-dialog`)||customElements.define(`poa-file-manager-dialog`,ys),customElements.get(`poa-find-replace-dialog`)||customElements.define(`poa-find-replace-dialog`,Vs),customElements.get(`poa-image-edit-dialog`)||customElements.define(`poa-image-edit-dialog`,Us),customElements.get(`poa-image-dialog`)||customElements.define(`poa-image-dialog`,Ks),customElements.get(`poa-table-dialog`)||customElements.define(`poa-table-dialog`,Qs),customElements.get(`poa-cell-split-dialog`)||customElements.define(`poa-cell-split-dialog`,Vi),customElements.get(`poa-link-dialog`)||customElements.define(`poa-link-dialog`,tc),customElements.get(`poa-image-toolbar`)||customElements.define(`poa-image-toolbar`,rc),customElements.get(`poa-confirm-dialog`)||customElements.define(`poa-confirm-dialog`,oc),customElements.get(`poa-accessibility-dialog`)||customElements.define(`poa-accessibility-dialog`,uc),customElements.get(`poa-privacy-dialog`)||customElements.define(`poa-privacy-dialog`,hc),customElements.get(`poa-formula-dialog`)||customElements.define(`poa-formula-dialog`,vc),customElements.get(`poa-video-dialog`)||customElements.define(`poa-video-dialog`,Ui),customElements.get(`poa-form-control-dialog`)||customElements.define(`poa-form-control-dialog`,Yi),customElements.get(`poa-template-tree`)||customElements.define(`poa-template-tree`,Zo),customElements.get(`poa-template-dialog`)||customElements.define(`poa-template-dialog`,ts),customElements.get(`poa-signature-dialog`)||customElements.define(`poa-signature-dialog`,us),customElements.get(`poa-emoji-dialog`)||customElements.define(`poa-emoji-dialog`,fs),customElements.get(`poa-tooltip-dialog`)||customElements.define(`poa-tooltip-dialog`,ms),customElements.get(`poa-input-property-dialog`)||customElements.define(`poa-input-property-dialog`,gs),customElements.get(`poa-editor`)||customElements.define(`poa-editor`,Fi);var yc=Go(Aa,36),bc=Go(Wo,14),xc=Go(Uo,14);function Sc(e){return j.sanitize(e,{USE_PROFILES:{svg:!0,svgFilters:!0}})}function Cc(e){return e.type===`template`&&!e.isTemp&&!e.name.startsWith(`임시_`)&&!e.name.startsWith(`preview_`)}var wc=class{container;mgr;publicGrid;privateGrid;constructor(e){this.container=e,this.mgr=new aa}renderTemplateSelector(){this.container.innerHTML=``;let e=document.createElement(`div`);e.className=`user-mode-page`;let t=document.createElement(`h2`);t.className=`user-mode-title`,t.textContent=`양식 선택`,e.appendChild(t);let[n,r]=this._buildSection(`공용 양식`,bc);this.publicGrid=r,e.appendChild(n);let[i,a]=this._buildSection(`내 양식`,xc);this.privateGrid=a,e.appendChild(i),this.container.appendChild(e),this._renderSections(this.mgr.getAll().filter(Cc)),this._refreshFromServer()}_buildSection(e,t){let n=document.createElement(`section`);n.className=`user-mode-section`;let r=document.createElement(`h3`);r.className=`user-mode-section-header`;let i=document.createElement(`span`);i.className=`section-header-icon`,i.innerHTML=Sc(t);let a=document.createElement(`span`);a.textContent=e,r.appendChild(i),r.appendChild(a),n.appendChild(r);let o=document.createElement(`div`);return o.className=`user-mode-card-grid`,n.appendChild(o),[n,o]}async _refreshFromServer(){try{let e=await X.getTemplates();this._renderSections(e.filter(Cc))}catch{}}_renderSections(e){let t=new Set,n=e.filter(e=>t.has(e.id)?!1:(t.add(e.id),!0)),r=n.filter(e=>e.isPublic),i=n.filter(e=>!e.isPublic);this._renderCards(this.publicGrid,r,`public`,`등록된 공용 양식이 없습니다.`),this._renderCards(this.privateGrid,i,`private`,`저장된 개인 양식이 없습니다.`)}_renderCards(e,t,n,r){if(e.innerHTML=``,t.length===0){let t=document.createElement(`p`);t.className=`user-mode-empty`,t.textContent=r,e.appendChild(t)}else for(let r of t)e.appendChild(this._buildCard(r,n))}_buildCard(e,t){let n=document.createElement(`div`);n.className=`user-mode-card user-mode-card--${t}`;let r=document.createElement(`div`);r.className=`user-mode-card-icon`,r.innerHTML=Sc(yc);let i=document.createElement(`div`);return i.className=`user-mode-card-name`,i.textContent=e.name,n.appendChild(r),n.appendChild(i),n.addEventListener(`click`,()=>{window.location.href=ji(e.id)}),n}static async loadTemplateById(e){if(e===`__preview__`){let e=sessionStorage.getItem(`poa-preview-html`);return e?{id:`__preview__`,type:`template`,name:`미리보기`,parentId:null,content:e,isPublic:!1,createdAt:Date.now(),updatedAt:Date.now(),order:0}:null}let t=Qi(e);if(t!==null)try{return await X.getTemplate(t)}catch{}return new aa().getById(e)??null}};if(Oi()===`user`){let e=ki();if(e){let t=await wc.loadTemplateById(e),n=document.getElementById(`editor`);t?.content&&n.setHTML(t.content),n.enterUserMode(t?.name??`문서`)}else document.getElementById(`editor-root`).classList.add(`hidden`),document.body.classList.add(`user-mode`),new wc(document.getElementById(`user-mode-root`)).renderTemplateSelector()}var Tc=document.getElementById(`editor`),Ec=document.getElementById(`output`),Dc=`<h2>poa-editor v1.0.0</h2>
+      ">취소</button>`,document.body.appendChild(e),this.pickBar=e,e.querySelector(`#cancel-pick`)?.addEventListener(`click`,()=>this.exitPickMode()),this.dispatchEvent(new CustomEvent(`poa-formula-start-pick`,{bubbles:!0}))}exitPickMode(){this.shadow.getElementById(`overlay`)?.classList.remove(`pick-mode`),this.pickBar?.remove(),this.pickBar=null}};customElements.get(`poa-menubar`)||customElements.define(`poa-menubar`,ws),customElements.get(`poa-context-toolbar`)||customElements.define(`poa-context-toolbar`,js),customElements.get(`poa-toolbar`)||customElements.define(`poa-toolbar`,Rs),customElements.get(`poa-status-bar`)||customElements.define(`poa-status-bar`,zs),customElements.get(`poa-settings-dialog`)||customElements.define(`poa-settings-dialog`,an),customElements.get(`poa-file-manager-dialog`)||customElements.define(`poa-file-manager-dialog`,bs),customElements.get(`poa-find-replace-dialog`)||customElements.define(`poa-find-replace-dialog`,Hs),customElements.get(`poa-image-edit-dialog`)||customElements.define(`poa-image-edit-dialog`,Ws),customElements.get(`poa-image-dialog`)||customElements.define(`poa-image-dialog`,qs),customElements.get(`poa-table-dialog`)||customElements.define(`poa-table-dialog`,$s),customElements.get(`poa-cell-split-dialog`)||customElements.define(`poa-cell-split-dialog`,Vi),customElements.get(`poa-link-dialog`)||customElements.define(`poa-link-dialog`,nc),customElements.get(`poa-image-toolbar`)||customElements.define(`poa-image-toolbar`,ic),customElements.get(`poa-confirm-dialog`)||customElements.define(`poa-confirm-dialog`,sc),customElements.get(`poa-accessibility-dialog`)||customElements.define(`poa-accessibility-dialog`,dc),customElements.get(`poa-privacy-dialog`)||customElements.define(`poa-privacy-dialog`,gc),customElements.get(`poa-formula-dialog`)||customElements.define(`poa-formula-dialog`,yc),customElements.get(`poa-video-dialog`)||customElements.define(`poa-video-dialog`,Ui),customElements.get(`poa-form-control-dialog`)||customElements.define(`poa-form-control-dialog`,Yi),customElements.get(`poa-template-tree`)||customElements.define(`poa-template-tree`,Qo),customElements.get(`poa-template-dialog`)||customElements.define(`poa-template-dialog`,ns),customElements.get(`poa-signature-dialog`)||customElements.define(`poa-signature-dialog`,ds),customElements.get(`poa-emoji-dialog`)||customElements.define(`poa-emoji-dialog`,ps),customElements.get(`poa-tooltip-dialog`)||customElements.define(`poa-tooltip-dialog`,hs),customElements.get(`poa-input-property-dialog`)||customElements.define(`poa-input-property-dialog`,_s),customElements.get(`poa-editor`)||customElements.define(`poa-editor`,Fi);var bc=Ko(Aa,36),xc=Ko(Go,14),Sc=Ko(Wo,14);function Cc(e){return j.sanitize(e,{USE_PROFILES:{svg:!0,svgFilters:!0}})}function wc(e){return e.type===`template`&&!e.isTemp&&!e.name.startsWith(`임시_`)&&!e.name.startsWith(`preview_`)}var Tc=class{container;mgr;publicGrid;privateGrid;constructor(e){this.container=e,this.mgr=new aa}renderTemplateSelector(){this.container.innerHTML=``;let e=document.createElement(`div`);e.className=`user-mode-page`;let t=document.createElement(`h2`);t.className=`user-mode-title`,t.textContent=`양식 선택`,e.appendChild(t);let[n,r]=this._buildSection(`공용 양식`,xc);this.publicGrid=r,e.appendChild(n);let[i,a]=this._buildSection(`내 양식`,Sc);this.privateGrid=a,e.appendChild(i),this.container.appendChild(e),this._renderSections(this.mgr.getAll().filter(wc)),this._refreshFromServer()}_buildSection(e,t){let n=document.createElement(`section`);n.className=`user-mode-section`;let r=document.createElement(`h3`);r.className=`user-mode-section-header`;let i=document.createElement(`span`);i.className=`section-header-icon`,i.innerHTML=Cc(t);let a=document.createElement(`span`);a.textContent=e,r.appendChild(i),r.appendChild(a),n.appendChild(r);let o=document.createElement(`div`);return o.className=`user-mode-card-grid`,n.appendChild(o),[n,o]}async _refreshFromServer(){try{let e=await X.getTemplates();this._renderSections(e.filter(wc))}catch{}}_renderSections(e){let t=new Set,n=e.filter(e=>t.has(e.id)?!1:(t.add(e.id),!0)),r=n.filter(e=>e.isPublic),i=n.filter(e=>!e.isPublic);this._renderCards(this.publicGrid,r,`public`,`등록된 공용 양식이 없습니다.`),this._renderCards(this.privateGrid,i,`private`,`저장된 개인 양식이 없습니다.`)}_renderCards(e,t,n,r){if(e.innerHTML=``,t.length===0){let t=document.createElement(`p`);t.className=`user-mode-empty`,t.textContent=r,e.appendChild(t)}else for(let r of t)e.appendChild(this._buildCard(r,n))}_buildCard(e,t){let n=document.createElement(`div`);n.className=`user-mode-card user-mode-card--${t}`;let r=document.createElement(`div`);r.className=`user-mode-card-icon`,r.innerHTML=Cc(bc);let i=document.createElement(`div`);return i.className=`user-mode-card-name`,i.textContent=e.name,n.appendChild(r),n.appendChild(i),n.addEventListener(`click`,()=>{window.location.href=ji(e.id)}),n}static async loadTemplateById(e){if(e===`__preview__`){let e=sessionStorage.getItem(`poa-preview-html`);return e?{id:`__preview__`,type:`template`,name:`미리보기`,parentId:null,content:e,isPublic:!1,createdAt:Date.now(),updatedAt:Date.now(),order:0}:null}let t=Qi(e);if(t!==null)try{return await X.getTemplate(t)}catch{}return new aa().getById(e)??null}};if(Oi()===`user`){let e=ki();if(e){let t=await Tc.loadTemplateById(e),n=document.getElementById(`editor`);t?.content&&n.setHTML(t.content),n.enterUserMode(t?.name??`문서`)}else document.getElementById(`editor-root`).classList.add(`hidden`),document.body.classList.add(`user-mode`),new Tc(document.getElementById(`user-mode-root`)).renderTemplateSelector()}var Ec=document.getElementById(`editor`),Dc=document.getElementById(`output`),Oc=`<h2>poa-editor v1.0.0</h2>
 <p>안녕하세요! <strong>poa-editor</strong>에 오신 것을 환영합니다.</p>
 <p>텍스트를 선택하고 <em>툴바 버튼</em>으로 서식을 적용해보세요.</p>
 <ul>
@@ -5777,4 +5813,4 @@ input[type="color"] {
   <li><strong>굵게</strong>, <em>기울임</em>, <u>밑줄</u></li>
   <li>글자색 · 배경색 · 글꼴 변경</li>
 </ul>
-<p>표 삽입 → 삽입 메뉴 → 표를 사용해보세요.</p>`;document.getElementById(`btn-get-html`).addEventListener(`click`,()=>{Ec.style.display=`block`,Ec.textContent=Tc.getHTML()}),document.getElementById(`btn-set-html`).addEventListener(`click`,()=>{Tc.setHTML(Dc),Ec.style.display=`none`}),document.getElementById(`btn-clear`).addEventListener(`click`,()=>{Tc.setHTML(``),Ec.style.display=`none`}),document.getElementById(`btn-find`).addEventListener(`click`,()=>{Tc.querySelector(`.poa-editor-content`)?.focus(),Tc.dispatchEvent(new KeyboardEvent(`keydown`,{key:`f`,ctrlKey:!0,bubbles:!0}))}),document.getElementById(`btn-replace`).addEventListener(`click`,()=>{Tc.querySelector(`.poa-editor-content`)?.focus(),Tc.dispatchEvent(new KeyboardEvent(`keydown`,{key:`h`,ctrlKey:!0,bubbles:!0}))}),document.getElementById(`btn-undo`).addEventListener(`click`,()=>{Tc.querySelector(`.poa-editor-content`)?.focus(),document.execCommand(`undo`)}),document.getElementById(`btn-redo`).addEventListener(`click`,()=>{Tc.querySelector(`.poa-editor-content`)?.focus(),document.execCommand(`redo`)}),Oi()!==`user`&&setTimeout(()=>Tc.setHTML(Dc),100);
+<p>표 삽입 → 삽입 메뉴 → 표를 사용해보세요.</p>`;document.getElementById(`btn-get-html`).addEventListener(`click`,()=>{Dc.style.display=`block`,Dc.textContent=Ec.getHTML()}),document.getElementById(`btn-set-html`).addEventListener(`click`,()=>{Ec.setHTML(Oc),Dc.style.display=`none`}),document.getElementById(`btn-clear`).addEventListener(`click`,()=>{Ec.setHTML(``),Dc.style.display=`none`}),document.getElementById(`btn-find`).addEventListener(`click`,()=>{Ec.querySelector(`.poa-editor-content`)?.focus(),Ec.dispatchEvent(new KeyboardEvent(`keydown`,{key:`f`,ctrlKey:!0,bubbles:!0}))}),document.getElementById(`btn-replace`).addEventListener(`click`,()=>{Ec.querySelector(`.poa-editor-content`)?.focus(),Ec.dispatchEvent(new KeyboardEvent(`keydown`,{key:`h`,ctrlKey:!0,bubbles:!0}))}),document.getElementById(`btn-undo`).addEventListener(`click`,()=>{Ec.querySelector(`.poa-editor-content`)?.focus(),document.execCommand(`undo`)}),document.getElementById(`btn-redo`).addEventListener(`click`,()=>{Ec.querySelector(`.poa-editor-content`)?.focus(),document.execCommand(`redo`)}),Oi()!==`user`&&setTimeout(()=>Ec.setHTML(Oc),100);
