@@ -50,7 +50,20 @@ export class TemplateManager {
       this.nodes = [];
     }
     this._cleanTemp();
+    this._deduplicateById();
     this._cleanDuplicates();
+  }
+
+  /** id 기준 단순 중복 제거 (localStorage 폴백 시 동일 id가 두 번 들어온 경우 방어) */
+  private _deduplicateById(): void {
+    const seen = new Set<string>();
+    const before = this.nodes.length;
+    this.nodes = this.nodes.filter(n => {
+      if (seen.has(n.id)) return false;
+      seen.add(n.id);
+      return true;
+    });
+    if (this.nodes.length !== before) this._persist();
   }
 
   /** 같은 (type, parentId, name) 조합의 중복 노드 제거 — 가장 오래된 항목 유지, 자식 재귀 재연결 */
@@ -270,6 +283,66 @@ export class TemplateManager {
     this._persist();
 
     const serverId = toServerId(id);
+    if (serverId !== null) {
+      const serverParent = newParentId ? (toServerId(newParentId) ?? null) : null;
+      if (node.type === 'folder') {
+        void TemplateApiClient.updateFolder(serverId, {
+          parentId: serverParent,
+          name: node.name,
+          isPublic: node.isPublic,
+          orderIndex: node.order,
+        }).catch(() => {});
+      } else {
+        void TemplateApiClient.updateTemplate(serverId, {
+          folderId: serverParent,
+          name: node.name,
+          isPublic: node.isPublic,
+          orderIndex: node.order,
+        }).catch(() => {});
+      }
+    }
+
+    return true;
+  }
+
+  moveNode(nodeId: string, newParentId: string | null, position: 'before' | 'inside' | 'after', targetId: string | null): boolean {
+    const node = this.nodes.find(n => n.id === nodeId);
+    if (!node) return false;
+    if (node.type === 'folder' && this._isDescendant(newParentId, nodeId)) return false;
+
+    const oldParentId = node.parentId;
+    node.parentId = newParentId;
+
+    // 새 위치의 형제 목록 (이동 노드 제외) 정렬
+    const siblings = this.nodes
+      .filter(n => n.parentId === newParentId && n.id !== nodeId)
+      .sort((a, b) => a.order - b.order || a.name.localeCompare(b.name));
+
+    // 삽입 위치 계산
+    let insertIdx: number;
+    if (targetId === null || position === 'inside') {
+      insertIdx = siblings.length;
+    } else {
+      const ti = siblings.findIndex(n => n.id === targetId);
+      insertIdx = ti < 0 ? siblings.length : (position === 'before' ? ti : ti + 1);
+    }
+
+    siblings.splice(insertIdx, 0, node);
+    siblings.forEach((n, i) => { n.order = i; });
+
+    // 이전 부모 형제 재정렬
+    if (oldParentId !== newParentId) {
+      this.nodes
+        .filter(n => n.parentId === oldParentId)
+        .sort((a, b) => a.order - b.order || a.name.localeCompare(b.name))
+        .forEach((n, i) => { n.order = i; });
+    }
+
+    node.updatedAt = Date.now();
+    this._persist();
+
+    // 서버 동기화 (이동된 노드만)
+    const serverId = toServerId(nodeId);
     if (serverId !== null) {
       const serverParent = newParentId ? (toServerId(newParentId) ?? null) : null;
       if (node.type === 'folder') {

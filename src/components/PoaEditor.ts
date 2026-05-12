@@ -77,7 +77,8 @@ import { TooltipManager }              from '../modules/insert/TooltipManager.js
 import { FieldInserter }               from '../modules/insert/FieldInserter.js';
 import { getActiveFieldMap }           from '../modules/insert/DocumentFields.js';
 import { PaperSizeManager }            from '../modules/view/PaperSizeManager.js';
-import { buildUserModeUrl }            from '../core/AppMode.js';
+import { buildUserModeUrl, getAppMode } from '../core/AppMode.js';
+import { TemplateApiClient }           from '../modules/template/TemplateApiClient.js';
 
 const INDENT_STEP_EM = 2;
 const BLOCK_TAGS = new Set(['p', 'div', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'li', 'blockquote', 'pre']);
@@ -1092,6 +1093,16 @@ slot[name="content"] { display: contents; }
 
     this.statusBar.update(this.contentEl.innerHTML);
     this.syncToolbar();
+
+    // admin 모드: 앱 시작 시 DB cleanup 1회 자동 실행 (sessionStorage 플래그로 중복 방지)
+    if (getAppMode() === 'admin') {
+      const flagKey = 'poa-cleanup-done';
+      if (!sessionStorage.getItem(flagKey)) {
+        TemplateApiClient.adminCleanup()
+          .then(() => sessionStorage.setItem(flagKey, 'true'))
+          .catch(() => {});
+      }
+    }
   }
 
   disconnectedCallback(): void {

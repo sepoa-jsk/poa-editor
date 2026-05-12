@@ -18,8 +18,11 @@ function isValidTemplate(n: TemplateNode): boolean {
   return (
     n.type === 'template' &&
     !n.isTemp &&
-    !n.name.startsWith('임시_') &&
-    !n.name.startsWith('preview_')
+    !n.name?.startsWith('임시_') &&
+    !n.name?.startsWith('preview_') &&
+    !n.name?.startsWith('__') &&
+    (n.name?.trim().length ?? 0) > 0 &&
+    n.content != null
   );
 }
 
@@ -100,13 +103,22 @@ export class UserModePage {
   }
 
   private _renderSections(templates: TemplateNode[]): void {
-    // 중복 제거 (동일 id)
-    const seen = new Set<string>();
-    const unique = templates.filter(t => {
-      if (seen.has(t.id)) return false;
-      seen.add(t.id);
+    // id 기준 중복 제거
+    const seenId = new Set<string>();
+    const uniqueById = templates.filter(t => {
+      if (seenId.has(t.id)) return false;
+      seenId.add(t.id);
       return true;
     });
+
+    // 동일 이름 중복 제거 — 가장 최근 updatedAt 유지
+    const byName = new Map<string, TemplateNode>();
+    for (const t of uniqueById) {
+      const key = `${t.isPublic ? 'pub' : 'pri'}|${t.name}`;
+      const existing = byName.get(key);
+      if (!existing || t.updatedAt > existing.updatedAt) byName.set(key, t);
+    }
+    const unique = Array.from(byName.values());
 
     const publicTemplates  = unique.filter(t => t.isPublic);
     const privateTemplates = unique.filter(t => !t.isPublic);

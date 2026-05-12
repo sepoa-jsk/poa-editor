@@ -5,9 +5,11 @@ import { Icons } from '../utils/icons.js';
 
 function isVisible(n: TemplateNode): boolean {
   if (n.isTemp) return false;
+  if (!n.name || n.name.trim().length === 0) return false;
   if (n.name.startsWith('임시_')) return false;
   if (n.name.startsWith('preview_')) return false;
   if (n.name.startsWith('__')) return false;
+  if (n.type === 'template' && n.content == null) return false;
   return true;
 }
 
@@ -29,12 +31,31 @@ const STYLE = `
   display: flex; align-items: center; gap: 4px;
   padding: 0 8px; cursor: pointer;
   border-radius: 6px; user-select: none;
-  white-space: nowrap; overflow: hidden; position: relative;
+  white-space: nowrap; position: relative;
 }
 .node-row.folder-row  { height: 34px; font-size: 13px; font-weight: 600; color: #374151; }
 .node-row.tmpl-row    { height: 32px; font-size: 13px; color: #4b5563; }
 .node-row:hover       { background: #f1f5f9; }
 .node-row.selected    { background: #eff6ff; color: #2563eb; }
+
+.drag-handle {
+  width: 14px; height: 14px; flex-shrink: 0;
+  display: flex; align-items: center; justify-content: center;
+  color: #d1d5db; cursor: grab; opacity: 0;
+}
+.node-row:hover .drag-handle { opacity: 1; }
+.node-row.dragging { opacity: .4; }
+.node-row.drop-before::before {
+  content: ''; position: absolute;
+  left: 0; right: 0; top: -1px; height: 2px;
+  background: #2563eb; z-index: 1; pointer-events: none;
+}
+.node-row.drop-after::after {
+  content: ''; position: absolute;
+  left: 0; right: 0; bottom: -1px; height: 2px;
+  background: #2563eb; z-index: 1; pointer-events: none;
+}
+.node-row.drop-inside { box-shadow: inset 0 0 0 2px #93c5fd; background: #eff6ff; }
 
 .chevron { width: 12px; flex-shrink: 0; display: flex; align-items: center; color: #9ca3af; }
 .chevron-spacer { width: 12px; flex-shrink: 0; }
@@ -86,6 +107,10 @@ export class PoaTemplateTree extends HTMLElement {
   private editingId:  string | null = null;
   private ctxMenu:    HTMLElement | null = null;
   private filterQuery = '';
+  private dragId:     string | null = null;
+  private dragOverId: string | null = null;
+  private dropPos:    'before' | 'inside' | 'after' | null = null;
+  private rowMap = new Map<string, HTMLElement>();
 
   connectedCallback(): void {
     this.shadow = this.attachShadow({ mode: 'open' });
@@ -107,6 +132,7 @@ export class PoaTemplateTree extends HTMLElement {
     if (!this.mgr) return;
     const tree = this.shadow.getElementById('tree')!;
     tree.innerHTML = '';
+    this.rowMap.clear();
 
     const allNodes = this.mgr.getAll().filter(isVisible);
     const q = this.filterQuery;
@@ -189,6 +215,14 @@ export class PoaTemplateTree extends HTMLElement {
 
     row.className = `node-row ${isFolder ? 'folder-row' : 'tmpl-row'}${this.selectedId === node.id ? ' selected' : ''}`;
     row.style.paddingLeft = `${(depth * 20) + 8}px`;
+    row.draggable = true;
+    this.rowMap.set(node.id, row);
+
+    // 드래그 핸들
+    const handle = document.createElement('span');
+    handle.className = 'drag-handle';
+    handle.innerHTML = Icons.grip14;
+    row.appendChild(handle);
 
     // 화살표
     const chevron = document.createElement('span');
@@ -243,6 +277,62 @@ export class PoaTemplateTree extends HTMLElement {
     row.addEventListener('contextmenu', e => {
       e.preventDefault(); e.stopPropagation();
       this._showCtx(node, e.clientX, e.clientY);
+    });
+
+    row.addEventListener('dragstart', e => {
+      e.stopPropagation();
+      this.dragId = node.id;
+      row.classList.add('dragging');
+      e.dataTransfer!.effectAllowed = 'move';
+      e.dataTransfer!.setData('text/plain', node.id);
+    });
+
+    row.addEventListener('dragend', () => {
+      if (this.dragId === null) return; // drop already handled
+      this.dragId = null;
+      this.dragOverId = null;
+      this.dropPos = null;
+      this.render();
+    });
+
+    row.addEventListener('dragover', e => {
+      if (!this.dragId || this.dragId === node.id) return;
+      if (this._wouldCreateCycle(this.dragId, node.id)) return;
+      e.preventDefault();
+      e.stopPropagation();
+      const rect = row.getBoundingClientRect();
+      const ratio = (e.clientY - rect.top) / rect.height;
+      const pos: 'before' | 'inside' | 'after' =
+        node.type === 'folder'
+          ? ratio < 0.33 ? 'before' : ratio > 0.67 ? 'after' : 'inside'
+          : ratio < 0.5  ? 'before' : 'after';
+      if (this.dragOverId !== node.id || this.dropPos !== pos) {
+        this.dragOverId = node.id;
+        this.dropPos = pos;
+        this._updateDropIndicators();
+      }
+      e.dataTransfer!.dropEffect = 'move';
+    });
+
+    row.addEventListener('drop', e => {
+      e.preventDefault();
+      e.stopPropagation();
+      if (!this.dragId || !this.dragOverId || !this.dropPos) return;
+      const targetNode = this.mgr.getById(this.dragOverId);
+      if (!targetNode) return;
+
+      const draggedId   = this.dragId;
+      const pos         = this.dropPos;
+      const newParentId = pos === 'inside' ? this.dragOverId : targetNode.parentId;
+      const targetId    = pos === 'inside' ? null : this.dragOverId;
+
+      this.dragId = null;
+      this.dragOverId = null;
+      this.dropPos = null;
+
+      this.mgr.moveNode(draggedId, newParentId, pos, targetId);
+      this.render();
+      this._emit('poa-tmpl-moved', { id: draggedId });
     });
 
     wrap.appendChild(row);
@@ -339,5 +429,26 @@ export class PoaTemplateTree extends HTMLElement {
 
   private _emit(name: string, detail: Record<string, unknown>): void {
     this.dispatchEvent(new CustomEvent(name, { bubbles: true, composed: true, detail }));
+  }
+
+  // ── 드래그 앤 드롭 ─────────────────────────────────────────────────────────
+
+  private _updateDropIndicators(): void {
+    this.rowMap.forEach(r => r.classList.remove('drop-before', 'drop-inside', 'drop-after'));
+    if (this.dragOverId && this.dropPos) {
+      const r = this.rowMap.get(this.dragOverId);
+      if (r) r.classList.add(`drop-${this.dropPos}`);
+    }
+  }
+
+  private _wouldCreateCycle(draggedId: string, targetId: string): boolean {
+    const dragged = this.mgr.getById(draggedId);
+    if (!dragged || dragged.type !== 'folder') return false;
+    let current = this.mgr.getById(targetId);
+    while (current) {
+      if (current.id === draggedId) return true;
+      current = current.parentId ? this.mgr.getById(current.parentId) : null;
+    }
+    return false;
   }
 }
