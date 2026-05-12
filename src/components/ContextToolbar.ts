@@ -63,6 +63,7 @@ const TABS: Record<MenuTab, ReadonlyArray<GroupDef>> = {
     [['서명','insert:signature'],['이모지','insert:emoji']],
     [['툴팁','insert:tooltip'],['툴팁 관리','insert:tooltip-list']],
     [['날짜·시간','insert:datetime'],['가로줄','insert:hr'],['기호','insert:symbol'],['페이지 구분선','insert:pagebreak'],['템플릿','misc:template']],
+    [['폼 컨트롤','misc:form']],
     [{ dropdown: true, id: 'doc-field', label: '양식 필드', iconKey: 'formField',
        items: buildFieldDropdownItems() }],
   ],
@@ -84,7 +85,7 @@ const TABS: Record<MenuTab, ReadonlyArray<GroupDef>> = {
   ],
   misc: [
     [['웹 접근성 체크','misc:a11y'],['개인정보 체크','misc:privacy']],
-    [['폼 컨트롤','misc:form'],['계산식','misc:calc']],
+    [['계산식','misc:calc']],
     [['사용자 모드로 보기','misc:user-mode']],
   ],
   help: [
