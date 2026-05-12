@@ -1,6 +1,7 @@
 import { eventBus, BusEvent } from '../utils/eventBus.js';
 import type { MenuTab } from '../core/types.js';
-import { getUserName, setUserName, isAdmin } from '../core/UserSession.js';
+import { getUserName, setUserName } from '../core/UserSession.js';
+import { getAppMode } from '../core/AppMode.js';
 import { Icons } from '../utils/icons.js';
 
 const TABS: ReadonlyArray<{ id: MenuTab; label: string }> = [
@@ -139,11 +140,17 @@ export class PoaMenuBar extends HTMLElement {
     nameSpan.textContent = getUserName();
     userArea.appendChild(nameSpan);
 
-    if (isAdmin()) {
+    const mode = getAppMode();
+    if (mode === 'admin') {
       const badge = document.createElement('span');
       badge.className = 'admin-badge';
       badge.textContent = '관리자';
       userArea.appendChild(badge);
+    }
+
+    // 신규작성 모드: 기타 탭 숨김
+    if (mode === 'write') {
+      this._applyWriteMode();
     }
 
     const dropdown = document.createElement('div');
@@ -213,7 +220,7 @@ export class PoaMenuBar extends HTMLElement {
     });
   }
 
-  /** 사용자 모드 적용: 편집·삽입·표·서식·기타 탭 비활성화, 뱃지 표시 */
+  /** 사용자(템플릿) 모드 적용: 편집·삽입·표·서식·기타 탭 비활성화 */
   applyUserMode(): void {
     this._userMode = true;
     if (USER_DISABLED_TABS.has(this._activeTab)) {
@@ -228,15 +235,16 @@ export class PoaMenuBar extends HTMLElement {
       const tab = btn.dataset.tab as MenuTab;
       if (USER_DISABLED_TABS.has(tab)) btn.dataset.userDisabled = 'true';
     });
-    const bar = this.shadow.querySelector('.menubar')!;
-    if (!bar.querySelector('.user-mode-badge')) {
-      const badge = document.createElement('span');
-      badge.className = 'user-mode-badge';
-      badge.textContent = '사용자 모드';
-      // user-area 앞에 삽입
-      const userArea = bar.querySelector('.user-area');
-      if (userArea) bar.insertBefore(badge, userArea);
-      else bar.appendChild(badge);
+  }
+
+  /** 신규작성 모드 적용: 기타 탭 숨김 */
+  private _applyWriteMode(): void {
+    this.shadow.querySelectorAll<HTMLButtonElement>('.tab').forEach(btn => {
+      if (btn.dataset.tab === 'misc') btn.style.display = 'none';
+    });
+    // 기타 탭이 활성화되어 있었다면 편집 탭으로 전환
+    if (this._activeTab === 'misc') {
+      eventBus.emit(BusEvent.MENUBAR_CHANGE, { tab: 'edit' as MenuTab });
     }
   }
 

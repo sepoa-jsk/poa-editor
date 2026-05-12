@@ -1,9 +1,17 @@
-export type AppMode = 'admin' | 'user';
+export type AppMode = 'admin' | 'user' | 'write';
 
 export function getAppMode(): AppMode {
   const params = new URLSearchParams(window.location.search);
-  return params.get('mode') === 'user' ? 'user' : 'admin';
+  if (params.get('role') === 'admin') return 'admin';
+  const mode = params.get('mode');
+  if (mode === 'user')  return 'user';
+  if (mode === 'write') return 'write';
+  return 'write'; // 기본값: 신규작성 모드
 }
+
+export function isAdmin(): boolean     { return getAppMode() === 'admin'; }
+export function isWriteMode(): boolean { return getAppMode() === 'write'; }
+export function isUserMode(): boolean  { return getAppMode() === 'user'; }
 
 export function getTemplateId(): string | null {
   const params = new URLSearchParams(window.location.search);

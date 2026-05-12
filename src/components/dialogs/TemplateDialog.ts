@@ -10,7 +10,7 @@ function isTempNode(n: TemplateNode): boolean {
   return false;
 }
 import type { PoaTemplateTree } from '../TemplateTree.js';
-import { isAdmin } from '../../core/UserSession.js';
+import { isAdmin } from '../../core/AppMode.js';
 import { Icons } from '../../utils/icons.js';
 import { TemplateApiClient, toServerId } from '../../modules/template/TemplateApiClient.js';
 

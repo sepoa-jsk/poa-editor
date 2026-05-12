@@ -1,6 +1,5 @@
 import type { TemplateManager, TemplateNode } from '../modules/template/TemplateManager.js';
-import { buildUserModeUrl } from '../core/AppMode.js';
-import { isAdmin } from '../core/UserSession.js';
+import { buildUserModeUrl, isAdmin } from '../core/AppMode.js';
 import { Icons } from '../utils/icons.js';
 
 function isVisible(n: TemplateNode): boolean {

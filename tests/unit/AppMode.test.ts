@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach } from 'vitest';
-import { getAppMode, getTemplateId, buildUserModeUrl } from '../../src/core/AppMode.js';
+import { getAppMode, getTemplateId, buildUserModeUrl, isAdmin, isWriteMode, isUserMode } from '../../src/core/AppMode.js';
 
 function setLocation(search: string, origin = 'http://localhost', pathname = '/'): void {
   Object.defineProperty(window, 'location', {
@@ -17,19 +17,51 @@ describe('getAppMode', () => {
     expect(getAppMode()).toBe('user');
   });
 
-  it('returns admin when mode=admin', () => {
-    setLocation('?mode=admin');
+  it('returns admin when role=admin', () => {
+    setLocation('?role=admin');
     expect(getAppMode()).toBe('admin');
   });
 
-  it('returns admin when mode param is absent', () => {
+  it('returns write when mode param is absent (default)', () => {
     setLocation('');
-    expect(getAppMode()).toBe('admin');
+    expect(getAppMode()).toBe('write');
   });
 
-  it('returns admin for unknown mode value', () => {
+  it('returns write for unknown mode value', () => {
     setLocation('?mode=superuser');
+    expect(getAppMode()).toBe('write');
+  });
+
+  it('returns write when mode=write', () => {
+    setLocation('?mode=write');
+    expect(getAppMode()).toBe('write');
+  });
+
+  it('role=admin takes priority over mode=user', () => {
+    setLocation('?role=admin&mode=user');
     expect(getAppMode()).toBe('admin');
+  });
+});
+
+describe('isAdmin / isWriteMode / isUserMode', () => {
+  it('isAdmin returns true for role=admin', () => {
+    setLocation('?role=admin');
+    expect(isAdmin()).toBe(true);
+  });
+
+  it('isAdmin returns false for mode=write', () => {
+    setLocation('?mode=write');
+    expect(isAdmin()).toBe(false);
+  });
+
+  it('isWriteMode returns true for default (no params)', () => {
+    setLocation('');
+    expect(isWriteMode()).toBe(true);
+  });
+
+  it('isUserMode returns true for mode=user', () => {
+    setLocation('?mode=user');
+    expect(isUserMode()).toBe(true);
   });
 });
 

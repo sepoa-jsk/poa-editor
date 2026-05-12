@@ -1,5 +1,6 @@
 import { PAPER_SIZES, DEFAULT_MARGIN } from '../modules/view/PaperSizeManager.js';
 import type { PageMargin } from '../modules/view/PaperSizeManager.js';
+import { isUserMode } from '../core/AppMode.js';
 
 export class PoaStatusBar extends HTMLElement {
   private shadow: ShadowRoot;
@@ -99,11 +100,17 @@ export class PoaStatusBar extends HTMLElement {
   cursor: pointer;
 }
 .margin-apply-btn:hover { background: #1d4ed8; }
+.mode-label {
+  margin-left: auto;
+  font-size: 11px; color: #6B7280; padding: 0 8px;
+  white-space: nowrap;
+}
 </style>
 <div class="bar">
   <span id="char-count">0자</span>
   <span id="word-count">0단어</span>
   <span id="page-info">1/1 페이지</span>
+  ${isUserMode() ? '<span class="mode-label">양식 입력 모드</span>' : ''}
   <div class="sep"></div>
   <select id="paper-select" class="poa-paper-select" title="용지 크기">
     ${paperOptions}

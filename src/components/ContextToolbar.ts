@@ -4,6 +4,7 @@ import type { ViewMode } from '../modules/view/ViewManager.js';
 import { Icons, ACTION_ICON } from '../utils/icons.js';
 import { getActiveDocumentFields } from '../modules/insert/DocumentFields.js';
 import type { DocumentField } from '../modules/insert/DocumentFields.js';
+import { getAppMode } from '../core/AppMode.js';
 
 /** [label, action, value?, title?] */
 type BDef = readonly [string, string, string?, string?];
@@ -252,7 +253,22 @@ export class PoaContextToolbar extends HTMLElement {
 
   private render(): void {
     this.closeAllDropdowns();
-    const groups = TABS[this.activeTab] ?? [];
+    const isWrite = getAppMode() === 'write';
+    let rawGroups = TABS[this.activeTab] ?? [];
+
+    // 신규작성 모드: 삽입 탭에서 양식 필드 드롭다운과 템플릿 버튼 제거
+    if (isWrite && this.activeTab === 'insert') {
+      rawGroups = rawGroups.map(group =>
+        group.filter(item => {
+          if (item === null) return true;
+          if ('dropdown' in item && item.dropdown) return item.id !== 'doc-field';
+          const action = (item as readonly [string, string, string?, string?])[1];
+          return action !== 'misc:template';
+        })
+      ).filter(group => group.length > 0) as typeof rawGroups;
+    }
+
+    const groups = rawGroups;
     const parts: string[] = [];
 
     for (let gi = 0; gi < groups.length; gi++) {

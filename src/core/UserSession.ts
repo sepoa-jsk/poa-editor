@@ -39,8 +39,12 @@ export function setRole(role: string): void {
   localStorage.setItem(ROLE_KEY, role);
 }
 
-/** URL에 ?role=admin 파라미터가 있으면 자동으로 admin 역할 설정 */
+/** URL role 파라미터로 역할 설정; 파라미터 없으면 localStorage 역할 초기화 (URL이 권위 원천) */
 export function initRoleFromUrl(): void {
   const role = new URLSearchParams(window.location.search).get('role');
-  if (role) setRole(role);
+  if (role) {
+    setRole(role);
+  } else {
+    localStorage.removeItem(ROLE_KEY);
+  }
 }
