@@ -162,6 +162,8 @@ export class PoaEditor extends HTMLElement {
   private paperSizeManager!:      PaperSizeManager;
   private pageGuide:              PageGuide | undefined;
   private scrollContainer:        HTMLElement | null = null;
+  private _resizeObs:             ResizeObserver | null = null;
+  private _fullscreenHandler:     (() => void) | null = null;
   /** 현재 선택(파란 outline)된 표 — null이면 미선택 */
   private selectedTable: HTMLTableElement | null = null;
   /** 표 컨텍스트 진입 직전 탭 — 표에서 벗어날 때 복귀에 사용 */
@@ -206,6 +208,10 @@ export class PoaEditor extends HTMLElement {
   border-radius: 4px; overflow: hidden;
 }
 slot[name="content"] { display: contents; }
+poa-menubar,
+poa-context-toolbar,
+poa-toolbar,
+poa-status-bar { flex-shrink: 0; }
 </style>
 <poa-menubar></poa-menubar>
 <poa-context-toolbar></poa-context-toolbar>
@@ -1103,9 +1109,17 @@ slot[name="content"] { display: contents; }
           .catch(() => {});
       }
     }
+
+    this.initResponsiveLayout();
   }
 
   disconnectedCallback(): void {
+    this._resizeObs?.disconnect();
+    this._resizeObs = null;
+    if (this._fullscreenHandler) {
+      document.removeEventListener('fullscreenchange', this._fullscreenHandler);
+      this._fullscreenHandler = null;
+    }
     document.removeEventListener('selectionchange', this.selectionHandler);
     this.clipboardHandler.unregister();
     this.findReplace.clearMarks();
@@ -1146,6 +1160,31 @@ slot[name="content"] { display: contents; }
     }
     this.toolbar.setDefaults(s.fontFamily, s.fontSize, s.lineHeight);
     eventBus.emit(BusEvent.SETTINGS_CHANGED, s);
+  }
+
+  // ── 반응형 레이아웃 ────────────────────────────────────────────────────────
+
+  private initResponsiveLayout(): void {
+    const applyAutoZoom = (): void => {
+      if (!this.paperSizeManager) return;
+      const w = this.offsetWidth;
+      if (w <= 0 || w >= 900) return;
+      // 사용자가 기본 zoom(100%)을 유지 중일 때만 자동 축소
+      if (this.paperSizeManager.getZoom() !== 100) return;
+      const zoom = Math.max(
+        PaperSizeManager.ZOOM_MIN,
+        Math.round(((w - 40) / 794) * 10) * 10,
+      );
+      if (zoom < 100) this.paperSizeManager.setZoom(zoom);
+    };
+
+    if (typeof ResizeObserver !== 'undefined') {
+      this._resizeObs = new ResizeObserver(applyAutoZoom);
+      this._resizeObs.observe(this);
+    }
+
+    this._fullscreenHandler = (): void => { setTimeout(applyAutoZoom, 100); };
+    document.addEventListener('fullscreenchange', this._fullscreenHandler);
   }
 
   // ── Public API ──────────────────────────────────────────────────────────
