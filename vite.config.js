@@ -12,7 +12,8 @@ export default defineConfig({
     },
     base: '/poa-editor/',
     build: {
-        outDir: 'dist',
+        outDir: 'E:/Project/poa-editor-server/src/main/webapp/poa-editor',
+        emptyOutDir: true,
         rollupOptions: {
             input: {
                 main: './index.html',
