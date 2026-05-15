@@ -5,7 +5,7 @@ export default defineConfig({
         port: 5173,
         proxy: {
             '/poa/api': {
-                target: 'http://localhost:8080',
+                target: 'http://localhost:8080/poa-editor',
                 changeOrigin: true,
             },
         },

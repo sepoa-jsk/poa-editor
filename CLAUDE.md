@@ -160,6 +160,26 @@ poa-editor/
 - 주의사항: [특이 사항]
 ```
 
+## 백엔드 서버 (poa-editor-server)
+
+**개발 서버 실행:**
+```powershell
+cd e:\Project\poa-editor-server
+mvn tomcat7:run
+```
+- 접속: http://localhost:8080/poa-editor/
+- API: http://localhost:8080/poa-editor/poa/api/v1/templates
+- 컨텍스트 경로 `/poa-editor` (tomcat7-maven-plugin 2.2)
+
+**WAR 빌드:**
+```powershell
+mvn clean package -DskipTests
+```
+결과물: `target/poa-editor-server-1.0.0.war`
+
+**프론트 dev 프록시:**
+`vite.config.js` 의 `/poa/api` 프록시가 `http://localhost:8080/poa-editor` 로 포워딩하므로, 프론트엔드 코드의 `BASE_URL = '/poa/api/v1'` 그대로 사용 가능.
+
 ## 브랜치 전략
 - `main`: 배포 브랜치 (직접 push 금지)
 - `develop`: 통합 브랜치
