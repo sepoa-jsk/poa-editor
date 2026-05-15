@@ -9,54 +9,36 @@
   <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;600;700&family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
   <style>
     *, *::before, *::after { box-sizing: border-box; }
+    html { height: 100%; }
     body {
-      margin: 0; padding: 24px;
+      margin: 0; padding: 0;
       font-family: '맑은 고딕', 'Malgun Gothic', sans-serif;
-      background: #f0f2f5; min-height: 100vh;
+      background: #f0f2f5;
+      height: 100%;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
     }
     .hidden { display: none !important; }
     .header {
-      max-width: 900px; margin: 0 auto 16px;
-      display: flex; align-items: baseline; gap: 12px;
+      flex-shrink: 0;
+      display: flex; align-items: center; gap: 12px;
+      padding: 0 12px; height: 36px;
+      background: #f0f2f5;
+      border-bottom: 1px solid #e5e7eb;
     }
-    .header h1 { font-size: 18px; margin: 0; color: #1F2937; font-weight: 700; }
-    .header span { font-size: 13px; color: #6B7280; }
+    .header h1 { font-size: 15px; margin: 0; color: #1F2937; font-weight: 700; }
+    .header span { font-size: 12px; color: #6B7280; }
     poa-editor {
-      display: flex;
-      width: 100%; max-width: 900px; height: 580px;
-      box-shadow: 0 2px 12px rgba(0,0,0,.12);
-      border-radius: 6px;
-      --poa-editor-border: #ccc;
+      flex: 1;
+      min-height: 0;
+      width: var(--poa-editor-width, 100%);
+      border-radius: 0;
+      --poa-editor-border: transparent;
       --poa-editor-bg: #fff;
     }
-    .actions {
-      margin-top: 12px; display: flex; flex-wrap: wrap; gap: 8px; max-width: 900px;
-    }
-    button {
-      padding: 6px 14px; border: 1px solid #D1D5DB; border-radius: 5px;
-      background: #fff; cursor: pointer; font-size: 13px; color: #374151;
-      transition: background 0.1s;
-    }
-    button:hover { background: #F3F4F6; }
-    button.primary {
-      background: #1F2937; color: #fff; border-color: #1F2937;
-    }
-    button.primary:hover { background: #374151; }
-    pre#output {
-      margin-top: 12px; max-width: 900px; padding: 12px;
-      background: #fff; border: 1px solid #E5E7EB; border-radius: 6px;
-      font-size: 12px; white-space: pre-wrap; word-break: break-all;
-      max-height: 200px; overflow-y: auto; display: none;
-      font-family: 'Courier New', monospace;
-    }
-    .section-label {
-      margin-top: 16px; max-width: 900px;
-      font-size: 11px; font-weight: 600; color: #9CA3AF;
-      letter-spacing: 0.05em; text-transform: uppercase;
-      margin-bottom: 6px;
-    }
   </style>
-  <script type="module" crossorigin src="/poa-editor/assets/main-C9Gpwvk3.js"></script>
+  <script type="module" crossorigin src="/poa-editor/assets/main-B1P-rUiv.js"></script>
   <link rel="stylesheet" crossorigin href="/poa-editor/assets/main-Cim276J9.css">
 </head>
 <body>
@@ -67,23 +49,6 @@
 
   <div id="editor-root" style="display:contents">
   <poa-editor id="editor" placeholder="여기에 입력하세요..."></poa-editor>
-
-  <p class="section-label">콘텐츠</p>
-  <div class="actions">
-    <button id="btn-get-html">HTML 가져오기</button>
-    <button id="btn-set-html" class="primary">샘플 HTML 설정</button>
-    <button id="btn-clear">내용 지우기</button>
-  </div>
-
-  <p class="section-label">기능 테스트</p>
-  <div class="actions">
-    <button id="btn-find">찾기 열기 (Ctrl+F)</button>
-    <button id="btn-replace">바꾸기 열기 (Ctrl+H)</button>
-    <button id="btn-undo">실행 취소</button>
-    <button id="btn-redo">다시 실행</button>
-  </div>
-
-  <pre id="output"></pre>
   </div><!-- #editor-root -->
 
   <div id="user-mode-root"></div>
