@@ -5,12 +5,10 @@
   "type": "module",
   "main": "./dist/poa-editor.cjs.js",
   "module": "./dist/poa-editor.es.js",
-  "types": "./dist/index.d.ts",
   "exports": {
     ".": {
       "import": "./dist/poa-editor.es.js",
-      "require": "./dist/poa-editor.cjs.js",
-      "types": "./dist/index.d.ts"
+      "require": "./dist/poa-editor.cjs.js"
     },
     "./style": "./dist/poa-editor.css"
   },
@@ -19,12 +17,12 @@
   ],
   "scripts": {
     "dev": "vite",
-    "build": "tsc -b && vite build",
-    "build:demo": "vite build --config vite.demo.config.ts",
-    "build:ghpages": "vite build --config vite.ghpages.config.ts",
+    "build": "vite build",
+    "build:demo": "vite build --config vite.demo.config.js",
+    "build:ghpages": "vite build --config vite.ghpages.config.js",
     "build:watch": "vite build --watch",
     "preview": "vite preview",
-    "preview:demo": "vite preview --config vite.demo.config.ts",
+    "preview:demo": "vite preview --config vite.demo.config.js",
     "test": "vitest run",
     "test:watch": "vitest",
     "coverage": "vitest run --coverage",
@@ -35,7 +33,7 @@
     "rich-text",
     "web-components",
     "wysiwyg",
-    "typescript"
+    "javascript"
   ],
   "author": "JSK <claude@sepoasoft.co.kr>",
   "license": "MIT",
@@ -48,13 +46,9 @@
     "lucide-static": "^1.14.0"
   },
   "devDependencies": {
-    "@types/dompurify": "^3.0.5",
-    "@types/jsdom": "^28.0.1",
     "fake-indexeddb": "^6.2.5",
     "jsdom": "^25.0.0",
-    "typescript": "^5.4.5",
     "vite": "^8.0.10",
-    "vite-plugin-dts": "^4.0.0",
     "vitest": "^4.1.5"
   },
   "peerDependencies": {

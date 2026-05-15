@@ -1,11 +1,11 @@
 # CLAUDE.md — poa-editor Phase 1 개발 지침
-# TypeScript + Vanilla Web Components 기반 웹 에디터
+# JavaScript + Vanilla Web Components 기반 웹 에디터
 
 ## 프로젝트 개요
 - **목표**: X-Free Editor 5 기능을 IE 없이 현대 브라우저에서 완전 재현
-- **언어**: TypeScript 5.x (strict: true)
+- **언어**: JavaScript (ES2022, JSDoc 타입)
 - **컴포넌트**: Vanilla Web Components (Custom Elements v1)
-- **빌드**: Vite 5 + vite-plugin-dts
+- **빌드**: Vite 5
 - **테스트**: Vitest (unit) + Playwright (E2E)
 - **패키지 관리**: pnpm
 - **prefix**: `poa-` (예: `<poa-editor>`, `<poa-toolbar>`)
@@ -22,20 +22,20 @@
 | 뷰 | CodeMirror 6 | HTML 모드 구문 강조 (선택적) |
 
 ## 아키텍처 규칙
-1. **Core Engine은 DOM에 직접 접근 금지** — 순수 TypeScript 클래스만 허용
+1. **Core Engine은 DOM에 직접 접근 금지** — 순수 JavaScript 클래스만 허용
 2. **모든 DOM 조작은 Module Layer에서 수행** — Core의 Command를 받아 실행
-3. **모듈 간 통신은 `eventBus.ts`를 통해서만 수행** (직접 import 금지)
+3. **모듈 간 통신은 `eventBus.js`를 통해서만 수행** (직접 import 금지)
 4. **Web Component는 Shadow DOM 사용**, 스타일 누출 방지
 5. **외부 사용자 입력(클립보드/파일/URL)은 반드시 DOMPurify 정제 후 삽입**
 6. **상위 레이어는 하위 레이어에만 의존** — 역방향 의존 금지
 
 ## 레이어 구조
 ```
-Public API Layer  src/index.ts              외부 소비자 진입점 (타입 + 팩토리만 노출)
+Public API Layer  src/index.js              외부 소비자 진입점 (타입 + 팩토리만 노출)
 Component Layer   src/components/           <poa-editor>, <poa-toolbar>, dialogs
 Module Layer      src/modules/              edit / insert / table / format / file / view
 Core Engine       src/core/                 EditorCore, CommandManager, HistoryManager, SelectionManager
-Utils             src/utils/                dom.ts, color.ts, eventBus.ts
+Utils             src/utils/                dom.js, color.js, eventBus.js
 ```
 
 ## 폴더 구조
@@ -44,62 +44,62 @@ poa-editor/
 ├── src/
 │   ├── core/
 │   │   ├── commands/
-│   │   │   ├── BaseCommand.ts        추상 커맨드 인터페이스
-│   │   │   ├── FormatCommand.ts      Bold/Italic/Underline/Strike
-│   │   │   ├── InsertCommand.ts      이미지/링크/표/기호 삽입
-│   │   │   └── TableCommand.ts       셀 병합/분할/행열 CRUD
+│   │   │   ├── BaseCommand.js        추상 커맨드 인터페이스
+│   │   │   ├── FormatCommand.js      Bold/Italic/Underline/Strike
+│   │   │   ├── InsertCommand.js      이미지/링크/표/기호 삽입
+│   │   │   └── TableCommand.js       셀 병합/분할/행열 CRUD
 │   │   ├── history/
-│   │   │   ├── HistoryManager.ts     100스텝 스택 관리
-│   │   │   └── Snapshot.ts           DOM 직렬화/복원
+│   │   │   ├── HistoryManager.js     100스텝 스택 관리
+│   │   │   └── Snapshot.js           DOM 직렬화/복원
 │   │   ├── selection/
-│   │   │   └── SelectionManager.ts
-│   │   ├── EditorCore.ts
-│   │   └── types.ts                  공용 타입 정의
+│   │   │   └── SelectionManager.js
+│   │   ├── EditorCore.js
+│   │   └── types.js                  공용 타입 정의
 │   ├── components/
-│   │   ├── PoaEditor.ts              <poa-editor> 루트
-│   │   ├── Toolbar.ts                <poa-toolbar>
-│   │   ├── StatusBar.ts              글자수·페이지 상태
+│   │   ├── PoaEditor.js              <poa-editor> 루트
+│   │   ├── Toolbar.js                <poa-toolbar>
+│   │   ├── StatusBar.js              글자수·페이지 상태
 │   │   └── dialogs/
-│   │       ├── ImageDialog.ts
-│   │       ├── LinkDialog.ts
-│   │       ├── TableDialog.ts
-│   │       ├── FindReplaceDialog.ts
-│   │       └── ImageEditDialog.ts
+│   │       ├── ImageDialog.js
+│   │       ├── LinkDialog.js
+│   │       ├── TableDialog.js
+│   │       ├── FindReplaceDialog.js
+│   │       └── ImageEditDialog.js
 │   ├── modules/
 │   │   ├── edit/
-│   │   │   ├── ClipboardHandler.ts
-│   │   │   ├── FindReplace.ts
-│   │   │   └── ImageEditor.ts        Canvas 기반
+│   │   │   ├── ClipboardHandler.js
+│   │   │   ├── FindReplace.js
+│   │   │   └── ImageEditor.js        Canvas 기반
 │   │   ├── insert/
-│   │   │   ├── ImageInserter.ts
-│   │   │   ├── MultiImageUploader.ts
-│   │   │   ├── LinkInserter.ts
-│   │   │   └── BookmarkManager.ts
+│   │   │   ├── ImageInserter.js
+│   │   │   ├── MultiImageUploader.js
+│   │   │   ├── LinkInserter.js
+│   │   │   └── BookmarkManager.js
 │   │   ├── table/
-│   │   │   ├── TableBuilder.ts
-│   │   │   ├── CellMerger.ts
-│   │   │   └── TableNavigator.ts
+│   │   │   ├── TableBuilder.js
+│   │   │   ├── CellMerger.js
+│   │   │   └── TableNavigator.js
 │   │   ├── format/
-│   │   │   ├── FormatPainter.ts
-│   │   │   └── ListManager.ts
+│   │   │   ├── FormatPainter.js
+│   │   │   └── ListManager.js
 │   │   ├── file/
-│   │   │   ├── FileManager.ts
-│   │   │   └── AutoSave.ts           IndexedDB
+│   │   │   ├── FileManager.js
+│   │   │   └── AutoSave.js           IndexedDB
 │   │   └── view/
-│   │       ├── ViewManager.ts
-│   │       └── PageView.ts
+│   │       ├── ViewManager.js
+│   │       └── PageView.js
 │   ├── utils/
-│   │   ├── dom.ts                    DOMPurify 래퍼, 타입 가드
-│   │   ├── color.ts                  색상 대비율 계산 (WCAG)
-│   │   └── eventBus.ts               모듈 간 이벤트 통신
-│   └── index.ts                      Public API 진입점
+│   │   ├── dom.js                    DOMPurify 래퍼, 타입 가드
+│   │   ├── color.js                  색상 대비율 계산 (WCAG)
+│   │   └── eventBus.js               모듈 간 이벤트 통신
+│   └── index.js                      Public API 진입점
 ├── tests/
 │   ├── unit/                         Vitest
 │   └── e2e/                          Playwright
 ├── demo/                             개발용 데모 페이지
 ├── CLAUDE.md
-├── vite.config.ts
-├── tsconfig.json
+├── vite.config.js
+├── jsconfig.json
 ├── .eslintrc.json
 └── package.json
 ```
@@ -108,7 +108,7 @@ poa-editor/
 - **단일 책임**: 1파일 = 1클래스 또는 1함수 그룹
 - **파일 크기 상한**: 300줄 초과 시 분리 검토
 - **export**: named export만 사용 (`default export` 금지)
-- **타입**: `any` 사용 금지 — `unknown` 또는 구체 타입 사용
+- **타입**: JSDoc `@typedef` / `@param` / `@returns` 로 표기 (필요 시)
 - **주석**: JSDoc 형식, 한국어 허용
 
 ## 구현 우선순위 (Phase 1 스프린트)
@@ -179,24 +179,25 @@ refactor(scope): 설명       # 리팩터링
 ## 핵심 코드 패턴 레퍼런스
 
 ### Command 패턴
-```typescript
-// src/core/commands/BaseCommand.ts
-export interface Command {
-  readonly name: string;
-  execute(): void;
-  undo(): void;
-}
+```javascript
+// src/core/commands/BaseCommand.js
+/**
+ * @typedef {Object} Command
+ * @property {string} name
+ * @property {() => void} execute
+ * @property {() => void} undo
+ */
 ```
 
 ### HistoryManager
-```typescript
-// src/core/history/HistoryManager.ts
+```javascript
+// src/core/history/HistoryManager.js
 export class HistoryManager {
-  private stack: Command[] = [];
-  private pointer = -1;
-  private readonly maxSize = 100;
+  stack = [];
+  pointer = -1;
+  maxSize = 100;
 
-  push(cmd: Command): void {
+  push(cmd) {
     this.stack.splice(this.pointer + 1); // 분기 제거
     this.stack.push(cmd);
     if (this.stack.length > this.maxSize) this.stack.shift();
@@ -210,15 +211,15 @@ export class HistoryManager {
 ```
 
 ### AutoSave (IndexedDB + idb)
-```typescript
-// src/modules/file/AutoSave.ts
+```javascript
+// src/modules/file/AutoSave.js
 import { openDB } from 'idb';
 
 const DB_NAME = 'poa-editor-autosave';
 const STORE = 'snapshots';
 const MAX_ENTRIES = 10;
 
-export async function saveSnapshot(html: string): Promise<void> {
+export async function saveSnapshot(html) {
   const db = await openDB(DB_NAME, 1, {
     upgrade(db) { db.createObjectStore(STORE, { autoIncrement: true }); }
   });
@@ -231,11 +232,11 @@ export async function saveSnapshot(html: string): Promise<void> {
 ```
 
 ### ClipboardHandler (DOMPurify 정제)
-```typescript
-// src/modules/edit/ClipboardHandler.ts
+```javascript
+// src/modules/edit/ClipboardHandler.js
 import DOMPurify from 'dompurify';
 
-export function registerPasteHandler(root: HTMLElement): void {
+export function registerPasteHandler(root) {
   root.addEventListener('paste', async (e) => {
     e.preventDefault();
     const html = e.clipboardData?.getData('text/html');

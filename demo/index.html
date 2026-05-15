@@ -58,7 +58,7 @@
 <body>
   <div class="header">
     <h1>poa-editor</h1>
-    <span>v1.0.0 Demo · Vanilla Web Components Rich Text Editor</span>
+    <span id="doc-title-bar">v1.0.0 Demo</span>
   </div>
 
   <poa-editor id="editor" placeholder="여기에 입력하세요..."></poa-editor>
@@ -80,10 +80,16 @@
 
   <pre id="output"></pre>
 
-  <script type="module" src="/src/index.ts"></script>
+  <script type="module" src="/src/index.js"></script>
   <script type="module">
     const editor = document.getElementById('editor');
     const output = document.getElementById('output');
+    const titleBar = document.getElementById('doc-title-bar');
+
+    editor.addEventListener('poa-doc-title-change', ({ detail }) => {
+      const { title, dirty } = detail;
+      titleBar.textContent = `|  ${dirty ? '• ' : ''}${title}`;
+    });
 
     const SAMPLE_HTML = `
 <h2>poa-editor v1.0.0</h2>

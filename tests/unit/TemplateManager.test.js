@@ -1,0 +1,183 @@
+import { describe, it, expect, vi } from 'vitest';
+import { TemplateManager } from '../../src/modules/template/TemplateManager.js';
+// localStorage mock
+const store = {};
+vi.stubGlobal('localStorage', {
+    getItem: (k) => store[k] ?? null,
+    setItem: (k, v) => { store[k] = v; },
+    removeItem: (k) => { delete store[k]; },
+    clear: () => { Object.keys(store).forEach(k => delete store[k]); },
+});
+// DOMPurify mock — return input unchanged for tests
+vi.mock('dompurify', () => ({
+    default: { sanitize: (html) => html },
+}));
+function fresh() {
+    localStorage.clear();
+    return new TemplateManager();
+}
+describe('TemplateManager — 초기 상태', () => {
+    it('빈 localStorage에서 생성 시 노드가 없다', () => {
+        const mgr = fresh();
+        expect(mgr.getRoots()).toHaveLength(0);
+        expect(mgr.getAll()).toHaveLength(0);
+    });
+});
+describe('TemplateManager — addFolder', () => {
+    it('adds a root folder', () => {
+        const mgr = fresh();
+        const before = mgr.getRoots().length;
+        mgr.addFolder('테스트 폴더', null);
+        expect(mgr.getRoots()).toHaveLength(before + 1);
+    });
+    it('adds a nested folder', () => {
+        const mgr = fresh();
+        const parent = mgr.addFolder('부모 폴더', null, true);
+        const sub = mgr.addFolder('하위 폴더', parent.id);
+        expect(sub.parentId).toBe(parent.id);
+        expect(sub.type).toBe('folder');
+    });
+    it('returned node has correct properties', () => {
+        const mgr = fresh();
+        const node = mgr.addFolder('폴더', null, true);
+        expect(node.name).toBe('폴더');
+        expect(node.isPublic).toBe(true);
+        expect(node.type).toBe('folder');
+        expect(node.id).toBeTruthy();
+    });
+});
+describe('TemplateManager — addTemplate', () => {
+    it('adds template to a folder', () => {
+        const mgr = fresh();
+        const folder = mgr.addFolder('내 폴더', null, false);
+        const t = mgr.addTemplate('내 템플릿', '<p>내용</p>', folder.id);
+        expect(mgr.getChildren(folder.id)).toContainEqual(expect.objectContaining({ id: t.id }));
+    });
+    it('template has content and correct type', () => {
+        const mgr = fresh();
+        const t = mgr.addTemplate('이름', '<b>bold</b>', null);
+        expect(t.type).toBe('template');
+        expect(t.content).toBeTruthy();
+    });
+    it('getById returns the template', () => {
+        const mgr = fresh();
+        const t = mgr.addTemplate('이름', '<p>x</p>', null);
+        expect(mgr.getById(t.id)).toEqual(t);
+    });
+});
+describe('TemplateManager — rename', () => {
+    it('renames a node', () => {
+        const mgr = fresh();
+        const node = mgr.addFolder('원래 이름', null);
+        mgr.rename(node.id, '새 이름');
+        expect(mgr.getById(node.id).name).toBe('새 이름');
+    });
+    it('returns false for empty name', () => {
+        const mgr = fresh();
+        const node = mgr.addFolder('이름', null);
+        expect(mgr.rename(node.id, '   ')).toBe(false);
+    });
+    it('returns false for unknown id', () => {
+        const mgr = fresh();
+        expect(mgr.rename('nonexistent', '이름')).toBe(false);
+    });
+});
+describe('TemplateManager — delete', () => {
+    it('deletes a leaf node', () => {
+        const mgr = fresh();
+        const node = mgr.addFolder('삭제 대상', null);
+        mgr.delete(node.id);
+        expect(mgr.getById(node.id)).toBeNull();
+    });
+    it('deletes folder and all children recursively', () => {
+        const mgr = fresh();
+        const parent = mgr.addFolder('부모', null);
+        const child1 = mgr.addFolder('자식1', parent.id);
+        const child2 = mgr.addTemplate('템플릿', '<p/>', parent.id);
+        mgr.addFolder('손자', child1.id);
+        mgr.delete(parent.id);
+        expect(mgr.getById(parent.id)).toBeNull();
+        expect(mgr.getById(child1.id)).toBeNull();
+        expect(mgr.getById(child2.id)).toBeNull();
+    });
+});
+describe('TemplateManager — move', () => {
+    it('moves a node to a new parent', () => {
+        const mgr = fresh();
+        const a = mgr.addFolder('A', null);
+        const b = mgr.addFolder('B', null);
+        const result = mgr.move(a.id, b.id);
+        expect(result).toBe(true);
+        expect(mgr.getById(a.id).parentId).toBe(b.id);
+    });
+    it('prevents moving a folder into its own descendant (cycle)', () => {
+        const mgr = fresh();
+        const a = mgr.addFolder('A', null);
+        const b = mgr.addFolder('B', a.id);
+        const result = mgr.move(a.id, b.id);
+        expect(result).toBe(false);
+    });
+    it('moves to root (null parentId)', () => {
+        const mgr = fresh();
+        const parent = mgr.addFolder('부모', null);
+        const child = mgr.addFolder('자식', parent.id);
+        mgr.move(child.id, null);
+        expect(mgr.getById(child.id).parentId).toBeNull();
+    });
+});
+describe('TemplateManager — getChildren / getFolders', () => {
+    it('getChildren returns children sorted by order then name', () => {
+        const mgr = fresh();
+        const parent = mgr.addFolder('부모', null);
+        mgr.addTemplate('B', '<p/>', parent.id);
+        mgr.addTemplate('A', '<p/>', parent.id);
+        const children = mgr.getChildren(parent.id);
+        expect(children).toHaveLength(2);
+        // order 0 → B, order 1 → A (insertion order); same order → alphabetical
+        expect(children[0].name).toBe('B');
+    });
+    it('getFolders returns only folder nodes', () => {
+        const mgr = fresh();
+        mgr.addTemplate('템플릿', '<p/>', null);
+        const folders = mgr.getFolders();
+        expect(folders.every(n => n.type === 'folder')).toBe(true);
+    });
+});
+describe('TemplateManager — isTemp / 임시 정리', () => {
+    it('addTemplate with isTemp:true 에 isTemp 플래그가 설정된다', () => {
+        const mgr = fresh();
+        const node = mgr.addTemplate('preview_test', '<p/>', null, false, true);
+        expect(node.isTemp).toBe(true);
+    });
+    it('isTemp:false(기본값)이면 isTemp 필드가 없다', () => {
+        const mgr = fresh();
+        const node = mgr.addTemplate('정식 템플릿', '<p/>', null);
+        expect(node.isTemp).toBeUndefined();
+    });
+    it('getAll()은 isTemp 항목을 포함해 반환한다', () => {
+        const mgr = fresh();
+        mgr.addTemplate('preview_xyz', '<p/>', null, false, true);
+        const temps = mgr.getAll().filter(n => n.isTemp);
+        expect(temps).toHaveLength(1);
+    });
+    it('"임시_" 접두어 항목은 재로드 시 자동 삭제된다', () => {
+        const mgr = fresh();
+        mgr.addTemplate('임시_1234567890', '<p/>', null);
+        // 재로드하면 _cleanTemp()가 실행되어 삭제됨
+        const mgr2 = new TemplateManager();
+        const found = mgr2.getAll().find(n => n.name.startsWith('임시_'));
+        expect(found).toBeUndefined();
+    });
+    it('isTemp 항목은 재로드 시 즉시 삭제된다', () => {
+        const mgr = fresh();
+        const old = mgr.addTemplate('preview_old', '<p/>', null, false, true);
+        const mgr2 = new TemplateManager();
+        expect(mgr2.getById(old.id)).toBeNull();
+    });
+    it('preview_ 이름 항목은 재로드 시 즉시 삭제된다', () => {
+        const mgr = fresh();
+        const node = mgr.addTemplate('preview_recent', '<p/>', null, false, false);
+        const mgr2 = new TemplateManager();
+        expect(mgr2.getById(node.id)).toBeNull();
+    });
+});

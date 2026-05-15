@@ -52,10 +52,10 @@
 
   <div id="user-mode-root"></div>
 
-  <script type="module" src="/src/index.ts"></script>
+  <script type="module" src="/src/index.js"></script>
   <script type="module">
     // URL 파라미터로 에디터 크기 설정 (임베딩 지원)
-    import { getEditorSize } from '/src/core/AppMode.ts';
+    import { getEditorSize } from '/src/core/AppMode.js';
     const { width, height } = getEditorSize();
     const editorEl = document.getElementById('editor');
     if (editorEl) {
@@ -64,8 +64,8 @@
     }
   </script>
   <script type="module">
-    import { getAppMode, getTemplateId } from '/src/core/AppMode.ts';
-    import { UserModePage } from '/src/pages/UserModePage.ts';
+    import { getAppMode, getTemplateId } from '/src/core/AppMode.js';
+    import { UserModePage } from '/src/pages/UserModePage.js';
 
     const mode = getAppMode();
     if (mode === 'user') {
