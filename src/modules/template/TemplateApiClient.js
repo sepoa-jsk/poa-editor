@@ -1,6 +1,6 @@
 import { getUserId } from '../../core/UserSession.js';
 const BASE_URL = import.meta.env?.VITE_API_URL
-    ?? 'http://localhost:8080/api/v1';
+    ?? '/poa/api/v1';
 // ── ID 변환: 서버 BIGINT ↔ 프론트엔드 string ─────────────────────────────────
 /** 서버 ID → 프론트엔드 string ID */
 export function toClientId(serverId) {

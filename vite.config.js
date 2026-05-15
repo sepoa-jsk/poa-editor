@@ -3,6 +3,12 @@ export default defineConfig({
     server: {
         host: '0.0.0.0',
         port: 5173,
+        proxy: {
+            '/poa/api': {
+                target: 'http://localhost:8080',
+                changeOrigin: true,
+            },
+        },
     },
     base: '/poa-editor/',
     build: {
