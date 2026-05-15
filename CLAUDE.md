@@ -165,11 +165,12 @@ poa-editor/
 **개발 서버 실행:**
 ```powershell
 cd e:\Project\poa-editor-server
-mvn tomcat7:run
+mvn package cargo:run
 ```
 - 접속: http://localhost:8080/poa-editor/
 - API: http://localhost:8080/poa-editor/poa/api/v1/templates
-- 컨텍스트 경로 `/poa-editor` (tomcat7-maven-plugin 2.2)
+- 컨텍스트 경로 `/poa-editor` (cargo-maven3-plugin 1.10.14 + 임베디드 Tomcat 9.0.85)
+- Java 17 호환 (tomcat7-maven-plugin 은 Java 9+ 미지원으로 폐기)
 
 **WAR 빌드:**
 ```powershell
