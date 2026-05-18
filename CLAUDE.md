@@ -162,15 +162,16 @@ poa-editor/
 
 ## 백엔드 서버 (poa-editor-server)
 
-**개발 서버 실행:**
+**개발 서버 실행 (오프라인, 로컬 repo 사용):**
 ```powershell
 cd e:\Project\poa-editor-server
-mvn package cargo:run
+mvn -o package cargo:run
 ```
 - 접속: http://localhost:8080/poa-editor/
 - API: http://localhost:8080/poa-editor/poa/api/v1/templates
 - 컨텍스트 경로 `/poa-editor` (cargo-maven3-plugin 1.10.14 + 임베디드 Tomcat 9.0.85)
 - Java 17 호환 (tomcat7-maven-plugin 은 Java 9+ 미지원으로 폐기)
+- `.mvn/maven.config` 가 `-Dmaven.repo.local=D:/Dev/04.WAS/apache-maven-3.6.0/repo` 자동 적용
 
 **WAR 빌드:**
 ```powershell
