@@ -336,7 +336,8 @@ export class PoaTableDialog extends HTMLElement {
             }
             table.style.width = '100%';
             table.style.maxWidth = '100%';
-            table.style.tableLayout = 'fixed';
+            // tableLayout 은 auto 유지 (드래그 리사이즈를 위해)
+            table.style.tableLayout = '';
             body.querySelector('#pp-w').value = '100%';
         });
         body.querySelector('#pp-ok').addEventListener('click', () => {

@@ -54,8 +54,9 @@ function fitTableToPage(table) {
         c.removeAttribute('width');
     });
     table.style.width = '100%';
-    table.style.tableLayout = 'fixed';
     table.style.maxWidth = '100%';
+    // table-layout: fixed 는 컬럼 너비를 첫 행으로 고정시켜 드래그 리사이즈를
+    // 막으므로 의도적으로 설정하지 않는다 (auto 가 기본값).
 }
 /** 워드/일반 HTML의 표에 기본 선·패딩 스타일 적용 + 페이지 너비 자동 맞춤 */
 function fixTableStyles(html) {

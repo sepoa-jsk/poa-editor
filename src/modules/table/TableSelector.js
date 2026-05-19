@@ -47,8 +47,15 @@ export class TableSelector {
         const cell = this.findCell(e.target);
         if (!cell)
             return;
-        // 우클릭 · resize 커서 시 무시 (target 또는 셀 자체의 커서 확인)
         if (e.button !== 0)
+            return;
+        // 리사이즈 zone(셀 우측·하단 5px) 클릭은 TableResizer 가 처리하도록 양보.
+        // cursor 상태(워드 붙여넣기 표에서 미설정될 수 있음)에 의존하지 않고
+        // 좌표를 직접 검사해 안전하게 판별한다.
+        // 단, jsdom 처럼 셀이 0 크기인 환경(테스트)에서는 판별을 건너뛴다.
+        const r = cell.getBoundingClientRect();
+        if (r.width > 0 && r.height > 0 &&
+            (e.clientX >= r.right - 5 || e.clientY >= r.bottom - 5))
             return;
         if (e.target.style?.cursor?.includes('resize'))
             return;

@@ -205,7 +205,6 @@ export class TableInlineToolbar {
         // % 단위 적용 시 셀의 고정 px 너비를 비율(%)로 변환해 표 너비와 함께 축소되도록
         if (unit === '%') {
             this.normalizeCellWidthsToPercent();
-            this.table.style.tableLayout = 'fixed';
             this.table.style.maxWidth = '100%';
         }
         if (!this.isDragging)
@@ -243,7 +242,8 @@ export class TableInlineToolbar {
         this.normalizeCellWidthsToPercent();
         this.table.style.width = '100%';
         this.table.style.maxWidth = '100%';
-        this.table.style.tableLayout = 'fixed';
+        // tableLayout 은 auto 유지 (드래그 리사이즈를 위해)
+        this.table.style.tableLayout = '';
         // 높이 자동 — 셀 내용에 따라 자연스럽게 결정
         this.table.style.minHeight = '';
         this.table.style.height = '';

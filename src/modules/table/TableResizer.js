@@ -130,6 +130,18 @@ export class TableResizer {
             const newW = Math.max(MIN_COL_W, this.state.startW + delta);
             this.state.cell.style.width = `${newW}px`;
             this.state.cell.style.minWidth = `${newW}px`;
+            // table-layout: fixed 대응 — 컬럼 너비는 첫 행 셀로 결정되므로
+            // 클릭한 셀이 첫 행이 아니면 첫 행의 같은 열 셀도 동기화한다.
+            const table = this.state.cell.closest('table');
+            const firstRow = table?.querySelector('tr');
+            if (firstRow && firstRow !== this.state.cell.parentElement) {
+                const colIdx = this.state.cell.cellIndex;
+                const headCell = firstRow.cells?.[colIdx];
+                if (headCell) {
+                    headCell.style.width = `${newW}px`;
+                    headCell.style.minWidth = `${newW}px`;
+                }
+            }
         }
         if (this.state.type === 'row' && this.state.row) {
             const delta = e.clientY - this.state.startY; // clientY 기준
