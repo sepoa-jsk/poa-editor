@@ -22,45 +22,44 @@ function plainToHtml(text) {
 function sanitizeWithTable(html) {
     return DOMPurify.sanitize(html, {
         USE_PROFILES: { html: true },
-        ADD_ATTR: ['style', 'border', 'width', 'height', 'colspan', 'rowspan', 'cellpadding', 'cellspacing'],
+        ADD_ATTR: [
+            'style', 'border', 'width', 'height',
+            'colspan', 'rowspan', 'cellpadding', 'cellspacing',
+            'align', 'valign', 'bgcolor', 'nowrap',
+        ],
         ADD_TAGS: ['table', 'tr', 'td', 'th', 'thead', 'tbody', 'tfoot', 'colgroup', 'col'],
     });
 }
 /**
- * 표의 셀 px 너비를 비율(%)로 변환해 페이지 너비에 맞게 자동 축소되도록 한다.
- * 워드/엑셀 표는 보통 고정 px 너비를 가져 부모 컨테이너보다 넓으면 페이지를
- * 넘어가는데, 비율로 바꾸면 부모 width 100% + tableLayout:fixed 로 자동 축소.
+ * 모든 element 의 inline style 에서 mso-* (Word 비표준) 속성만 제거.
+ * letter-spacing / word-spacing / height / width / line-height 등 표준
+ * CSS 는 그대로 보존되어 DOMPurify 의 CSS 필터를 통과한다.
  */
-function fitTableToPage(table) {
-    const firstRow = table.querySelector('tr');
-    if (!firstRow)
-        return;
-    const cells = Array.from(firstRow.querySelectorAll('td, th'));
-    if (cells.length === 0)
-        return;
-    const widths = cells.map((c) => {
-        const sw = c.style.width || c.getAttribute('width') || '';
-        const px = parseFloat(sw);
-        return Number.isFinite(px) && px > 0 ? px : 0;
+function stripMsoStyles(doc) {
+    doc.querySelectorAll('[style]').forEach((el) => {
+        const raw = el.getAttribute('style') ?? '';
+        const cleaned = raw
+            .split(';')
+            .map((s) => s.trim())
+            .filter((s) => s.length > 0 && !s.toLowerCase().startsWith('mso-'))
+            .join('; ');
+        if (cleaned)
+            el.setAttribute('style', cleaned);
+        else
+            el.removeAttribute('style');
     });
-    const total = widths.reduce((a, b) => a + b, 0);
-    if (total <= 0)
-        return;
-    cells.forEach((c, i) => {
-        if (widths[i] > 0) {
-            const pct = (widths[i] / total * 100).toFixed(2);
-            c.style.width = `${pct}%`;
-        }
-        c.removeAttribute('width');
-    });
-    table.style.width = '100%';
-    table.style.maxWidth = '100%';
-    // table-layout: fixed 는 컬럼 너비를 첫 행으로 고정시켜 드래그 리사이즈를
-    // 막으므로 의도적으로 설정하지 않는다 (auto 가 기본값).
 }
-/** 워드/일반 HTML의 표에 기본 선·패딩 스타일 적용 + 페이지 너비 자동 맞춤 */
+/**
+ * 워드/일반 HTML 표 정리:
+ * - mso-* 비표준 스타일만 제거 (letter-spacing, word-spacing, height,
+ *   width, colspan/rowspan 등 원본 그대로 보존)
+ * - 테두리/패딩이 없는 경우만 기본값 보강
+ * - 표 자체에 max-width:100% 설정 → 페이지 폭을 넘으면 CSS 가 비율
+ *   유지한 채 자동 축소 (셀 너비는 손대지 않음)
+ */
 function fixTableStyles(html) {
     const doc = new DOMParser().parseFromString(html, 'text/html');
+    stripMsoStyles(doc);
     doc.querySelectorAll('table').forEach((table) => {
         table.style.borderCollapse = 'collapse';
         if (!table.style.width)
@@ -70,8 +69,9 @@ function fixTableStyles(html) {
         }
         table.removeAttribute('width');
         table.removeAttribute('height');
-        // 워드/엑셀의 고정 px 셀 너비를 % 로 변환 → 페이지 폭 안에서 자동 축소
-        fitTableToPage(table);
+        // 페이지 폭을 넘지 않도록 max-width 만 설정.
+        // 원본의 셀 너비 비율·rowspan/colspan·height·letter-spacing 등 그대로 보존.
+        table.style.maxWidth = '100%';
     });
     doc.querySelectorAll('td, th').forEach((cell) => {
         if (!cell.style.border && !cell.style.borderTop) {
@@ -93,21 +93,16 @@ function isExcelHTML(html) {
         || html.includes('x:str');
 }
 /**
- * 엑셀 HTML에서 xl* 클래스, mso- 스타일 제거 후 표 구조만 추출
- * 기본 테두리·패딩 스타일 적용
+ * 엑셀 HTML 에서 xl* 클래스 제거 + mso-* 스타일 제거 + 표 구조만 추출.
+ * 셀 너비/병합 구조 등 원본은 그대로 보존하고 페이지 폭만 max-width:100% 로 제약.
  */
 function sanitizeExcelHTML(html) {
     const doc = new DOMParser().parseFromString(html, 'text/html');
     doc.querySelectorAll('[class^="xl"]').forEach((el) => {
         el.removeAttribute('class');
     });
+    stripMsoStyles(doc);
     doc.querySelectorAll('td, th').forEach((el) => {
-        const raw = el.getAttribute('style') ?? '';
-        const cleaned = raw
-            .split(';')
-            .filter((s) => !s.trim().startsWith('mso-'))
-            .join(';');
-        el.setAttribute('style', cleaned);
         if (!el.style.border && !el.style.borderTop)
             el.style.border = '1px solid #000000';
         if (!el.style.padding)
@@ -119,8 +114,7 @@ function sanitizeExcelHTML(html) {
         if (!table.style.width)
             table.style.width = '100%';
         table.removeAttribute('width');
-        // 엑셀 표도 페이지 폭에 맞도록 셀 너비를 비율로 변환
-        fitTableToPage(table);
+        table.style.maxWidth = '100%';
     });
     const table = doc.querySelector('table');
     return table ? sanitizeWithTable(table.outerHTML) : '';
