@@ -150,8 +150,13 @@ export class TableResizer {
             const newH = Math.max(MIN_ROW_H, this.state.startH + delta);
             this.state.row.style.height = `${newH}px`;
             // tr.style.height 단독은 브라우저에서 min-height 로만 동작 → 셀 높이 동기화 필수
+            // 셀 내부 <p> 가 자체 line-height 로 강한 최소 높이를 만들 수 있으므로
+            // 셀에 overflow:hidden 으로 시각적 축소까지 허용.
             for (const td of Array.from(this.state.row.cells)) {
                 td.style.height = `${newH}px`;
+                if (!td.style.verticalAlign)
+                    td.style.verticalAlign = 'top';
+                td.style.overflow = 'hidden';
             }
         }
     };

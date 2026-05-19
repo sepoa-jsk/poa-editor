@@ -31,6 +31,47 @@ function sanitizeWithTable(html) {
     });
 }
 /**
+ * mso-row-height / mso-height-rule / <tr height> 등 워드 비표준 또는
+ * 레거시 행 높이 정보를 표준 CSS height 로 변환한다 (stripMsoStyles 전에 호출).
+ *   - mso-row-height:13.5pt  → tr.style.height = 13.5pt (height 가 없을 때만)
+ *   - mso-height-rule:exactly + height → 각 셀에 동일 height 동기화 (강제 적용)
+ *   - <tr height="20"> → tr.style.height = '20px'
+ */
+function extractMsoHeights(doc) {
+    doc.querySelectorAll('tr').forEach((tr) => {
+        const raw = tr.getAttribute('style') ?? '';
+        const props = {};
+        raw.split(';').forEach((s) => {
+            const idx = s.indexOf(':');
+            if (idx < 0)
+                return;
+            const k = s.slice(0, idx).trim().toLowerCase();
+            const v = s.slice(idx + 1).trim();
+            if (k)
+                props[k] = v;
+        });
+        // mso-row-height → height
+        if (!props['height'] && props['mso-row-height']) {
+            tr.style.height = props['mso-row-height'];
+            props['height'] = props['mso-row-height'];
+        }
+        // <tr height="N"> 속성 → style.height
+        const heightAttr = tr.getAttribute('height');
+        if (heightAttr && !props['height'] && !tr.style.height) {
+            tr.style.height = `${heightAttr}px`;
+            props['height'] = `${heightAttr}px`;
+        }
+        // mso-height-rule:exactly → 각 셀에도 height 동기화 (강제 적용)
+        const rule = props['mso-height-rule']?.toLowerCase();
+        if (rule === 'exactly' && props['height']) {
+            Array.from(tr.cells).forEach((cell) => {
+                if (!cell.style.height)
+                    cell.style.height = props['height'];
+            });
+        }
+    });
+}
+/**
  * 모든 element 의 inline style 에서 mso-* (Word 비표준) 속성만 제거.
  * letter-spacing / word-spacing / height / width / line-height 등 표준
  * CSS 는 그대로 보존되어 DOMPurify 의 CSS 필터를 통과한다.
@@ -50,6 +91,19 @@ function stripMsoStyles(doc) {
     });
 }
 /**
+ * <td>/<th> 안의 <p> 에 워드의 MsoNormal 기본 스타일(margin:0, line-height:1.2)
+ * 을 강제 적용해, 셀이 에디터 기본 <p> 스타일(line-height ~1.5, margin)로
+ * 인해 한 줄짜리 워드 행이 두 줄로 늘어나는 문제를 방지한다.
+ */
+function compactTableParagraphs(doc) {
+    doc.querySelectorAll('td > p, th > p, td p, th p').forEach((p) => {
+        if (!p.style.margin)
+            p.style.margin = '0';
+        if (!p.style.lineHeight)
+            p.style.lineHeight = '1.2';
+    });
+}
+/**
  * 워드/일반 HTML 표 정리:
  * - mso-* 비표준 스타일만 제거 (letter-spacing, word-spacing, height,
  *   width, colspan/rowspan 등 원본 그대로 보존)
@@ -59,7 +113,9 @@ function stripMsoStyles(doc) {
  */
 function fixTableStyles(html) {
     const doc = new DOMParser().parseFromString(html, 'text/html');
+    extractMsoHeights(doc); // mso-row-height/mso-height-rule → 표준 height
     stripMsoStyles(doc);
+    compactTableParagraphs(doc); // 셀 내부 <p> 줄간격/마진 압축
     doc.querySelectorAll('table').forEach((table) => {
         table.style.borderCollapse = 'collapse';
         if (!table.style.width)
@@ -77,8 +133,9 @@ function fixTableStyles(html) {
         if (!cell.style.border && !cell.style.borderTop) {
             cell.style.border = '1px solid #000000';
         }
+        // 워드 셀이 그대로 좁을 수 있어 패딩은 보수적으로(2px 4px) 부여
         if (!cell.style.padding) {
-            cell.style.padding = '4px 8px';
+            cell.style.padding = '2px 4px';
         }
         // overflow-wrap 없으면 긴 영문자열로 셀이 강제로 늘어남
         if (!cell.style.wordBreak)
@@ -101,12 +158,14 @@ function sanitizeExcelHTML(html) {
     doc.querySelectorAll('[class^="xl"]').forEach((el) => {
         el.removeAttribute('class');
     });
+    extractMsoHeights(doc);
     stripMsoStyles(doc);
+    compactTableParagraphs(doc);
     doc.querySelectorAll('td, th').forEach((el) => {
         if (!el.style.border && !el.style.borderTop)
             el.style.border = '1px solid #000000';
         if (!el.style.padding)
-            el.style.padding = '4px 8px';
+            el.style.padding = '2px 4px';
     });
     doc.querySelectorAll('table').forEach((table) => {
         table.setAttribute('border', '1');
