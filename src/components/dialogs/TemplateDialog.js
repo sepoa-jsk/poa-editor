@@ -561,22 +561,30 @@ table{border-collapse:collapse;width:100%;}td,th{border:1px solid #ccc;padding:4
         menu.style.left = `${btnRect.left - dlgRect.left}px`;
         menu.style.bottom = `${dlgRect.bottom - btnRect.top + 4}px`;
         dlg.appendChild(menu);
+        // 클릭 선점을 위해 mousedown 단계에서 처리.
+        // (외부 클릭 닫힘 리스너가 click 보다 먼저 동작하므로 click 핸들러는
+        //  메뉴가 사라진 뒤에야 호출되어 무산되는 경우가 있음)
         menu.querySelectorAll('.folder-type-item').forEach(item => {
-            item.addEventListener('click', (e) => {
+            item.addEventListener('mousedown', (e) => {
+                e.stopPropagation();
+                e.preventDefault();
                 const isPub = e.currentTarget.dataset.pub === 'true';
                 menu.remove();
                 this.tree.addFolder(null, isPub);
             });
         });
-        // 외부 클릭 시 닫기
+        // 외부 클릭 시 닫기.
+        // Shadow DOM 내부 이벤트는 document 레벨에서 e.target 이 shadow host
+        // 로 재타겟되므로, shadow root 에 직접 리스너를 부착해 원본 target 으
+        // 로 contains 체크를 한다.
         setTimeout(() => {
             const close = (e) => {
                 if (!menu.contains(e.target) && !anchorBtn.contains(e.target)) {
                     menu.remove();
-                    document.removeEventListener('mousedown', close, true);
+                    this.shadow.removeEventListener('mousedown', close, true);
                 }
             };
-            document.addEventListener('mousedown', close, true);
+            this.shadow.addEventListener('mousedown', close, true);
         }, 0);
     }
 }
