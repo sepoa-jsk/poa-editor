@@ -177,6 +177,22 @@ const STYLE = `
 }
 @keyframes tmpl-fadein { from { opacity: 0; transform: translateX(-50%) translateY(6px); } to { opacity: 1; transform: translateX(-50%) translateY(0); } }
 .hidden { display: none !important; }
+
+/* ── 폴더 종류 선택 팝업 (관리자 전용) ── */
+.folder-type-menu {
+  position: absolute; z-index: 300;
+  background: #fff; border: 1px solid #e5e7eb; border-radius: 8px;
+  box-shadow: 0 6px 20px rgba(0,0,0,.12);
+  padding: 4px; min-width: 150px;
+}
+.folder-type-item {
+  display: flex; align-items: center; gap: 8px;
+  width: 100%; padding: 8px 12px; border: none; background: transparent;
+  cursor: pointer; font-size: 13px; color: #374151; border-radius: 6px;
+  font-family: inherit; text-align: left;
+}
+.folder-type-item:hover { background: #f3f4f6; }
+.folder-type-item svg { flex-shrink: 0; color: #6b7280; }
 `;
 const TPL = `
 <div class="dlg">
@@ -293,15 +309,25 @@ export class PoaTemplateDialog extends HTMLElement {
             this.tree.setFilter(e.target.value);
         });
         // 폴더 추가
-        this.shadow.getElementById('btn-add-folder').addEventListener('click', () => {
+        this.shadow.getElementById('btn-add-folder').addEventListener('click', (e) => {
             const sel = this.tree.getSelected();
-            if (isWriteMode() && sel?.isPublic) {
-                this._showToast('공용 템플릿 폴더는 관리자만 생성할 수 있습니다.');
+            // 비관리자: 공용 영역 시도 차단, 항상 개인 폴더 생성
+            if (!isAdmin()) {
+                if (sel?.isPublic) {
+                    this._showToast('공용 템플릿 폴더는 관리자만 생성할 수 있습니다.');
+                    return;
+                }
+                const parentId = sel?.type === 'folder' ? sel.id : null;
+                this.tree.addFolder(parentId, false);
                 return;
             }
-            const parentId = sel?.type === 'folder' ? sel.id : null;
-            const pub = sel?.isPublic ?? false;
-            this.tree.addFolder(parentId, isAdmin() ? pub : false);
+            // 관리자 + 폴더 선택됨: 선택된 폴더 안에 같은 종류로 생성
+            if (sel?.type === 'folder') {
+                this.tree.addFolder(sel.id, sel.isPublic);
+                return;
+            }
+            // 관리자 + 미선택(또는 템플릿 선택): 종류 선택 팝업
+            this._showFolderTypeMenu(e.currentTarget);
         });
         // 저장 폼 토글
         this.shadow.getElementById('btn-save-tmpl').addEventListener('click', () => {
@@ -512,5 +538,45 @@ table{border-collapse:collapse;width:100%;}td,th{border:1px solid #ccc;padding:4
         t.textContent = msg;
         this.shadow.querySelector('.dlg').appendChild(t);
         setTimeout(() => t.remove(), 2200);
+    }
+    /** 관리자 전용: [+ 폴더] 클릭 시 공용/개인 선택 팝업 */
+    _showFolderTypeMenu(anchorBtn) {
+        // 기존 메뉴가 있으면 제거 (토글)
+        const existing = this.shadow.querySelector('.folder-type-menu');
+        if (existing) { existing.remove(); return; }
+        const menu = document.createElement('div');
+        menu.className = 'folder-type-menu';
+        menu.innerHTML = `
+      <button class="folder-type-item" data-pub="true">
+        ${Icons.users12} 공용 폴더
+      </button>
+      <button class="folder-type-item" data-pub="false">
+        ${Icons.user12} 개인 폴더
+      </button>
+    `;
+        // 버튼 위쪽에 띄움 (dlg 좌표계 기준)
+        const dlg = this.shadow.querySelector('.dlg');
+        const btnRect = anchorBtn.getBoundingClientRect();
+        const dlgRect = dlg.getBoundingClientRect();
+        menu.style.left = `${btnRect.left - dlgRect.left}px`;
+        menu.style.bottom = `${dlgRect.bottom - btnRect.top + 4}px`;
+        dlg.appendChild(menu);
+        menu.querySelectorAll('.folder-type-item').forEach(item => {
+            item.addEventListener('click', (e) => {
+                const isPub = e.currentTarget.dataset.pub === 'true';
+                menu.remove();
+                this.tree.addFolder(null, isPub);
+            });
+        });
+        // 외부 클릭 시 닫기
+        setTimeout(() => {
+            const close = (e) => {
+                if (!menu.contains(e.target) && !anchorBtn.contains(e.target)) {
+                    menu.remove();
+                    document.removeEventListener('mousedown', close, true);
+                }
+            };
+            document.addEventListener('mousedown', close, true);
+        }, 0);
     }
 }
