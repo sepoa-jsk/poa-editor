@@ -26,7 +26,38 @@ function sanitizeWithTable(html) {
         ADD_TAGS: ['table', 'tr', 'td', 'th', 'thead', 'tbody', 'tfoot', 'colgroup', 'col'],
     });
 }
-/** 워드/일반 HTML의 표에 기본 선·패딩 스타일 적용 */
+/**
+ * 표의 셀 px 너비를 비율(%)로 변환해 페이지 너비에 맞게 자동 축소되도록 한다.
+ * 워드/엑셀 표는 보통 고정 px 너비를 가져 부모 컨테이너보다 넓으면 페이지를
+ * 넘어가는데, 비율로 바꾸면 부모 width 100% + tableLayout:fixed 로 자동 축소.
+ */
+function fitTableToPage(table) {
+    const firstRow = table.querySelector('tr');
+    if (!firstRow)
+        return;
+    const cells = Array.from(firstRow.querySelectorAll('td, th'));
+    if (cells.length === 0)
+        return;
+    const widths = cells.map((c) => {
+        const sw = c.style.width || c.getAttribute('width') || '';
+        const px = parseFloat(sw);
+        return Number.isFinite(px) && px > 0 ? px : 0;
+    });
+    const total = widths.reduce((a, b) => a + b, 0);
+    if (total <= 0)
+        return;
+    cells.forEach((c, i) => {
+        if (widths[i] > 0) {
+            const pct = (widths[i] / total * 100).toFixed(2);
+            c.style.width = `${pct}%`;
+        }
+        c.removeAttribute('width');
+    });
+    table.style.width = '100%';
+    table.style.tableLayout = 'fixed';
+    table.style.maxWidth = '100%';
+}
+/** 워드/일반 HTML의 표에 기본 선·패딩 스타일 적용 + 페이지 너비 자동 맞춤 */
 function fixTableStyles(html) {
     const doc = new DOMParser().parseFromString(html, 'text/html');
     doc.querySelectorAll('table').forEach((table) => {
@@ -36,6 +67,10 @@ function fixTableStyles(html) {
         if (!table.style.border && !table.getAttribute('border')) {
             table.style.border = '1px solid #000000';
         }
+        table.removeAttribute('width');
+        table.removeAttribute('height');
+        // 워드/엑셀의 고정 px 셀 너비를 % 로 변환 → 페이지 폭 안에서 자동 축소
+        fitTableToPage(table);
     });
     doc.querySelectorAll('td, th').forEach((cell) => {
         if (!cell.style.border && !cell.style.borderTop) {
@@ -44,6 +79,9 @@ function fixTableStyles(html) {
         if (!cell.style.padding) {
             cell.style.padding = '4px 8px';
         }
+        // overflow-wrap 없으면 긴 영문자열로 셀이 강제로 늘어남
+        if (!cell.style.wordBreak)
+            cell.style.wordBreak = 'break-word';
     });
     return doc.body.innerHTML;
 }
@@ -79,6 +117,9 @@ function sanitizeExcelHTML(html) {
         table.style.borderCollapse = 'collapse';
         if (!table.style.width)
             table.style.width = '100%';
+        table.removeAttribute('width');
+        // 엑셀 표도 페이지 폭에 맞도록 셀 너비를 비율로 변환
+        fitTableToPage(table);
     });
     const table = doc.querySelector('table');
     return table ? sanitizeWithTable(table.outerHTML) : '';

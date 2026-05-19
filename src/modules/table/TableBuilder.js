@@ -110,7 +110,7 @@ export class TableBuilder {
      * 셀 구조(행/열 수)는 변경하지 않는다.
      */
     static applyOptions(table, options) {
-        const { width, height, border, marginLeft, align, borderColor, bgColor, id, className, caption, captionVisible, summary, } = options;
+        const { width, height, border, marginLeft, align, borderColor, bgColor, id, className, caption, captionVisible, summary, letterSpacing, } = options;
         table.style.tableLayout = 'fixed';
         table.style.wordBreak = 'break-word';
         if (width !== undefined)
@@ -119,6 +119,10 @@ export class TableBuilder {
             table.style.height = height || '';
         if (bgColor !== undefined)
             table.style.backgroundColor = bgColor || '';
+        // 자간 (letter-spacing): 빈 문자열이면 inherit 으로 초기화
+        if (letterSpacing !== undefined) {
+            table.style.letterSpacing = letterSpacing ? letterSpacing : '';
+        }
         if (id !== undefined)
             table.id = id || '';
         if (className !== undefined)

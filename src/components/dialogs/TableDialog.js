@@ -275,6 +275,10 @@ export class PoaTableDialog extends HTMLElement {
             initAlign = 'center';
         else if (table.style.marginLeft === 'auto')
             initAlign = 'right';
+        // 자간 (letter-spacing): 'Npx' 형식 → 숫자만 추출. normal/없음은 0.
+        const lsRaw = table.style.letterSpacing || '';
+        const lsNum = parseFloat(lsRaw);
+        const letterSpacing = Number.isFinite(lsNum) ? lsNum : 0;
         const aBtn = (v, icon, label) => {
             const a = initAlign === v;
             return `<button class="align-btn${a ? ' active' : ''}" data-align="${v}">${icon} ${label}</button>`;
@@ -293,6 +297,12 @@ export class PoaTableDialog extends HTMLElement {
     ${aBtn('center', '≡', '가운데')}
     ${aBtn('right', '▶', '오른쪽')}
   </div>
+  <label class="p-lbl">자간(px)</label>
+  <input  class="p-inp" id="pp-ls" type="number" step="0.5" min="-5" max="20" value="${letterSpacing}">
+  <label class="p-lbl">페이지 맞춤</label>
+  <div>
+    <button class="btn" id="pp-fit-page" style="font-size:12px;padding:4px 10px;">표를 페이지 폭에 맞추기</button>
+  </div>
 </div>
 <div class="props-actions">
   <button class="btn"             id="pp-cancel">취소</button>
@@ -309,12 +319,34 @@ export class PoaTableDialog extends HTMLElement {
             });
         });
         body.querySelector('#pp-cancel').addEventListener('click', () => this.close());
+        // 페이지 맞춤: 셀 너비 비율 재계산 + 표 너비 100%
+        body.querySelector('#pp-fit-page').addEventListener('click', () => {
+            const firstRow = table.querySelector('tr');
+            if (firstRow) {
+                const cells = Array.from(firstRow.querySelectorAll('td, th'));
+                const widths = cells.map((c) => c.getBoundingClientRect().width);
+                const total = widths.reduce((a, b) => a + b, 0);
+                if (total > 0) {
+                    cells.forEach((c, i) => {
+                        const pct = (widths[i] / total * 100).toFixed(2);
+                        c.style.width = `${pct}%`;
+                        c.removeAttribute('width');
+                    });
+                }
+            }
+            table.style.width = '100%';
+            table.style.maxWidth = '100%';
+            table.style.tableLayout = 'fixed';
+            body.querySelector('#pp-w').value = '100%';
+        });
         body.querySelector('#pp-ok').addEventListener('click', () => {
+            const lsValue = parseFloat(body.querySelector('#pp-ls').value);
             const opts = {
                 width: body.querySelector('#pp-w').value.trim(),
                 borderColor: body.querySelector('#pp-bc').value,
                 bgColor: body.querySelector('#pp-bg').value,
                 align: selectedAlign,
+                letterSpacing: Number.isFinite(lsValue) && lsValue !== 0 ? `${lsValue}px` : '',
             };
             this.dispatchEvent(new CustomEvent('poa-table-update', {
                 bubbles: true, composed: true,

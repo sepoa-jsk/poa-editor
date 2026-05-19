@@ -93,6 +93,16 @@ export class TableInlineToolbar {
         bar.appendChild(hInput);
         bar.appendChild(this.makeLabel('px'));
         bar.appendChild(this.makeSep());
+        // 페이지 맞춤 버튼
+        const fitBtn = document.createElement('button');
+        fitBtn.textContent = '페이지 맞춤';
+        fitBtn.title = '표 너비를 페이지 폭(100%)에 맞추고 셀 비율을 재계산';
+        fitBtn.style.cssText =
+            'border:1px solid #2563EB;border-radius:4px;background:#EFF6FF;' +
+                'padding:2px 8px;cursor:pointer;font-size:11px;color:#1D4ED8;' +
+                'line-height:1.4;flex-shrink:0;font-weight:500;';
+        fitBtn.addEventListener('click', () => this.applyFitToPage());
+        bar.appendChild(fitBtn);
         // 원본 버튼
         const resetBtn = document.createElement('button');
         resetBtn.textContent = '원본';
@@ -192,6 +202,52 @@ export class TableInlineToolbar {
         const v = Math.max(1, parseFloat(this.wInput.value) || 100);
         this.wInput.value = String(Math.round(v));
         this.table.style.width = `${Math.round(v)}${unit}`;
+        // % 단위 적용 시 셀의 고정 px 너비를 비율(%)로 변환해 표 너비와 함께 축소되도록
+        if (unit === '%') {
+            this.normalizeCellWidthsToPercent();
+            this.table.style.tableLayout = 'fixed';
+            this.table.style.maxWidth = '100%';
+        }
+        if (!this.isDragging)
+            this.updatePosition();
+        this.cb.onApply?.(this.table);
+    }
+    /**
+     * 첫 행 셀들의 현재 렌더링 너비를 측정해 각 셀의 width 를 % 로 재설정.
+     * px 단위로 고정된 셀들이 표 너비 축소를 방해하지 않도록 한다.
+     */
+    normalizeCellWidthsToPercent() {
+        if (!this.table)
+            return;
+        const firstRow = this.table.querySelector('tr');
+        if (!firstRow)
+            return;
+        const cells = Array.from(firstRow.querySelectorAll('td, th'));
+        if (cells.length === 0)
+            return;
+        const widths = cells.map((c) => c.getBoundingClientRect().width);
+        const total = widths.reduce((a, b) => a + b, 0);
+        if (total <= 0)
+            return;
+        cells.forEach((c, i) => {
+            const pct = (widths[i] / total * 100).toFixed(2);
+            c.style.width = `${pct}%`;
+            c.removeAttribute('width');
+        });
+    }
+    /** 표 너비를 페이지 폭(100%)에 맞추고 셀 비율을 자동 재계산 */
+    applyFitToPage() {
+        if (!this.table)
+            return;
+        // 현재 렌더링 비율을 기준으로 셀 너비 정규화 → 100% 폭으로 적용
+        this.normalizeCellWidthsToPercent();
+        this.table.style.width = '100%';
+        this.table.style.maxWidth = '100%';
+        this.table.style.tableLayout = 'fixed';
+        // 높이 자동 — 셀 내용에 따라 자연스럽게 결정
+        this.table.style.minHeight = '';
+        this.table.style.height = '';
+        this.syncValues();
         if (!this.isDragging)
             this.updatePosition();
         this.cb.onApply?.(this.table);
